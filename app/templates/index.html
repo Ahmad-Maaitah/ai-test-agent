@@ -435,6 +435,9 @@
         // Track if test has been run (to enable Save button)
         let testHasRun = false;
 
+        // Cache for saved APIs
+        let savedAPIsCache = {};
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadSavedAPIs();
@@ -452,31 +455,40 @@
             }, 3000);
         }
 
-        // Load saved APIs into dropdown
-        function loadSavedAPIs() {
+        // Load saved APIs from backend
+        async function loadSavedAPIs() {
             const dropdown = document.getElementById('saved-apis-dropdown');
             const apiCount = document.getElementById('api-count');
             const deleteBtn = document.getElementById('delete-btn');
 
-            const savedAPIs = JSON.parse(localStorage.getItem('savedAPIs') || '{}');
-            const apiNames = Object.keys(savedAPIs);
+            try {
+                const response = await fetch('/api/saved-apis');
+                const data = await response.json();
 
-            // Clear existing options except first
-            dropdown.innerHTML = '<option value="">-- Select a saved API --</option>';
+                if (data.success) {
+                    savedAPIsCache = data.apis;
+                    const apiNames = Object.keys(savedAPIsCache);
 
-            // Add saved APIs
-            apiNames.forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                option.textContent = name;
-                dropdown.appendChild(option);
-            });
+                    // Clear existing options except first
+                    dropdown.innerHTML = '<option value="">-- Select a saved API --</option>';
 
-            // Update count
-            apiCount.textContent = `${apiNames.length} saved`;
+                    // Add saved APIs
+                    apiNames.forEach(name => {
+                        const option = document.createElement('option');
+                        option.value = name;
+                        option.textContent = name;
+                        dropdown.appendChild(option);
+                    });
 
-            // Show/hide delete button
-            deleteBtn.style.display = apiNames.length > 0 ? 'inline-block' : 'none';
+                    // Update count
+                    apiCount.textContent = `${apiNames.length} saved`;
+
+                    // Show/hide delete button
+                    deleteBtn.style.display = apiNames.length > 0 ? 'inline-block' : 'none';
+                }
+            } catch (error) {
+                console.error('Failed to load saved APIs:', error);
+            }
         }
 
         // Load selected API into form
@@ -484,8 +496,7 @@
             const selectedName = this.value;
             if (!selectedName) return;
 
-            const savedAPIs = JSON.parse(localStorage.getItem('savedAPIs') || '{}');
-            const apiCode = savedAPIs[selectedName];
+            const apiCode = savedAPIsCache[selectedName];
 
             if (apiCode) {
                 document.getElementById('api-name').value = selectedName;
@@ -499,8 +510,8 @@
             }
         });
 
-        // Save API to localStorage
-        function saveAPI() {
+        // Save API to backend
+        async function saveAPI() {
             const apiName = document.getElementById('api-name').value.trim();
             const apiCode = document.getElementById('curl-input').value.trim();
 
@@ -520,36 +531,38 @@
                 return;
             }
 
-            let savedAPIs = JSON.parse(localStorage.getItem('savedAPIs') || '{}');
+            try {
+                const response = await fetch('/api/saved-apis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: apiName,
+                        curl: apiCode
+                    })
+                });
 
-            // Check duplicate API Name
-            if (savedAPIs[apiName]) {
-                showToast(`API Name "${apiName}" already exists`, 'error');
-                return;
+                const data = await response.json();
+
+                if (data.success) {
+                    // Reload dropdown
+                    await loadSavedAPIs();
+
+                    // Select the newly saved API
+                    document.getElementById('saved-apis-dropdown').value = apiName;
+
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to save API: ' + error.message, 'error');
             }
-
-            // Check duplicate API Code
-            const duplicateEntry = Object.entries(savedAPIs).find(([name, code]) => code === apiCode);
-            if (duplicateEntry) {
-                showToast(`This API code already exists as "${duplicateEntry[0]}"`, 'error');
-                return;
-            }
-
-            // Save
-            savedAPIs[apiName] = apiCode;
-            localStorage.setItem('savedAPIs', JSON.stringify(savedAPIs));
-
-            // Reload dropdown
-            loadSavedAPIs();
-
-            // Select the newly saved API
-            document.getElementById('saved-apis-dropdown').value = apiName;
-
-            showToast(`API "${apiName}" saved successfully!`, 'success');
         }
 
-        // Delete selected API
-        function deleteAPI() {
+        // Delete selected API from backend
+        async function deleteAPI() {
             const dropdown = document.getElementById('saved-apis-dropdown');
             const selectedName = dropdown.value;
 
@@ -562,19 +575,29 @@
                 return;
             }
 
-            let savedAPIs = JSON.parse(localStorage.getItem('savedAPIs') || '{}');
-            delete savedAPIs[selectedName];
-            localStorage.setItem('savedAPIs', JSON.stringify(savedAPIs));
+            try {
+                const response = await fetch(`/api/saved-apis/${encodeURIComponent(selectedName)}`, {
+                    method: 'DELETE'
+                });
 
-            // Reload dropdown
-            loadSavedAPIs();
+                const data = await response.json();
 
-            // Clear form if showing deleted API
-            if (document.getElementById('api-name').value === selectedName) {
-                clearForm();
+                if (data.success) {
+                    // Reload dropdown
+                    await loadSavedAPIs();
+
+                    // Clear form if showing deleted API
+                    if (document.getElementById('api-name').value === selectedName) {
+                        clearForm();
+                    }
+
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete API: ' + error.message, 'error');
             }
-
-            showToast(`API "${selectedName}" deleted`, 'success');
         }
 
         // Clear form
