@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Generated files
+output/
+tests/test_api_*.py
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.log

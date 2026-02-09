@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Test Agent for API | OpenSooq</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        textarea::placeholder {
+            color: #bdc3c7;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .btn-save {
+            background: #27ae60;
+        }
+
+        .btn-save:hover:not(:disabled) {
+            background: #219a52;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        .btn-clear {
+            background: #95a5a6;
+        }
+
+        .btn-clear:hover {
+            background: #7f8c8d;
+        }
+
+        .saved-apis-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .saved-apis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .saved-apis-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .api-count {
+            background: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .results-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .results-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .rule-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+
+        .rule-name {
+            font-weight: 500;
+        }
+
+        .rule-status {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .rule-status.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .rule-status.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .rule-reason {
+            font-size: 13px;
+            color: #721c24;
+            margin-top: 8px;
+            padding-left: 15px;
+            border-left: 3px solid #f8d7da;
+        }
+
+        .reports-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .reports-section h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .report-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .report-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #ecf0f1;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .report-link:hover {
+            background: #d5dbdb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .example {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+
+        .example code {
+            background: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            max-width: 100%;
+            height: auto;
+            max-height: 150px;
+            border-radius: 8px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            background: #27ae60;
+        }
+
+        .toast.error {
+            background: #e74c3c;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://media.licdn.com/dms/image/v2/D4D3DAQGr3Y_cI3wCZw/image-scale_191_1128/B4DZv.wy5vGgAg-/0/1769505763568/opensooq_cover?e=1771243200&v=beta&t=kdbeMvd0tzTXioTgCxzDTf7PdGyDCwn4M0fYYK8qXFs" alt="OpenSooq Logo" class="logo">
+        <h1>AI Test Agent for API | OpenSooq</h1>
+    </div>
+    <p class="subtitle">Enter a cURL command to automatically generate and run API tests</p>
+
+    <!-- Saved APIs Section -->
+    <div class="saved-apis-section">
+        <div class="saved-apis-header">
+            <h3>Saved APIs</h3>
+            <span id="api-count" class="api-count">0 saved</span>
+        </div>
+        <select id="saved-apis-dropdown">
+            <option value="">-- Select a saved API --</option>
+        </select>
+        <button class="btn-delete" id="delete-btn" onclick="deleteAPI()" style="display: none;">Delete Selected</button>
+    </div>
+
+    <div class="input-section">
+        <label for="api-name">API Name</label>
+        <input type="text" id="api-name" placeholder="Enter API name (e.g., Get User Profile)">
+
+        <label for="curl-input">cURL Command</label>
+        <textarea
+            id="curl-input"
+            placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'"
+        ></textarea>
+        <p class="example">
+            Example: <code>curl https://jsonplaceholder.typicode.com/posts/1</code>
+        </p>
+
+        <div class="button-group">
+            <button id="run-btn" onclick="runTest()">Run Test</button>
+            <button id="save-btn" class="btn-save" onclick="saveAPI()" disabled>Save API</button>
+            <button id="clear-btn" class="btn-clear" onclick="clearForm()">Clear</button>
+        </div>
+    </div>
+
+    <div id="results-section" class="results-section">
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <div>Running tests...</div>
+        </div>
+
+        <div id="results-content" style="display: none;">
+            <div class="results-header">
+                <h2>Test Results</h2>
+            </div>
+
+            <div id="error-container"></div>
+            <div id="rules-container"></div>
+
+            <div id="reports-container" class="reports-section" style="display: none;">
+                <h3>Reports</h3>
+                <div class="report-links">
+                    <a id="html-report-link" class="report-link" href="#" target="_blank">HTML Report</a>
+                    <a id="json-report-link" class="report-link" href="#" target="_blank">JSON Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Track if test has been run (to enable Save button)
+        let testHasRun = false;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedAPIs();
+        });
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Load saved APIs into dropdown
+        function loadSavedAPIs() {
+            const dropdown = document.getElementById('saved-apis-dropdown');
+            const apiCount = document.getElementById('api-count');
+            const deleteBtn = document.getElementById('delete-btn');
+
+            const savedAPIs = JSON.parse(localStorage.getItem('savedAPIs') || '{}');
+            const apiNames = Object.keys(savedAPIs);
+
+            // Clear existing options except first
+            dropdown.innerHTML = '<option value="">-- Select a saved API --</option>';
+
+            // Add saved APIs
+            apiNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                dropdown.appendChild(option);
+            });
+
+            // Update count
+            apiCount.textContent = `${apiNames.length} saved`;
+
+            // Show/hide delete button
+            deleteBtn.style.display = apiNames.length > 0 ? 'inline-block' : 'none';
+        }
+
+        // Load selected API into form
+        document.getElementById('saved-apis-dropdown').addEventListener('change', function() {
+            const selectedName = this.value;
+            if (!selectedName) return;
+
+            const savedAPIs = JSON.parse(localStorage.getItem('savedAPIs') || '{}');
+            const apiCode = savedAPIs[selectedName];
+
+            if (apiCode) {
+                document.getElementById('api-name').value = selectedName;
+                document.getElementById('curl-input').value = apiCode;
+
+                // Reset test state
+                testHasRun = false;
+                document.getElementById('save-btn').disabled = true;
+
+                showToast(`Loaded API: ${selectedName}`, 'success');
+            }
+        });
+
+        // Save API to localStorage
+        function saveAPI() {
+            const apiName = document.getElementById('api-name').value.trim();
+            const apiCode = document.getElementById('curl-input').value.trim();
+
+            // Validation
+            if (!apiName) {
+                showToast('Please enter an API name', 'error');
+                return;
+            }
+
+            if (!apiCode) {
+                showToast('Please enter API code/cURL', 'error');
+                return;
+            }
+
+            if (!testHasRun) {
+                showToast('Please run the test first before saving', 'error');
+                return;
+            }
+
+            let savedAPIs = JSON.parse(localStorage.getItem('savedAPIs') || '{}');
+
+            // Check duplicate API Name
+            if (savedAPIs[apiName]) {
+                showToast(`API Name "${apiName}" already exists`, 'error');
+                return;
+            }
+
+            // Check duplicate API Code
+            const duplicateEntry = Object.entries(savedAPIs).find(([name, code]) => code === apiCode);
+            if (duplicateEntry) {
+                showToast(`This API code already exists as "${duplicateEntry[0]}"`, 'error');
+                return;
+            }
+
+            // Save
+            savedAPIs[apiName] = apiCode;
+            localStorage.setItem('savedAPIs', JSON.stringify(savedAPIs));
+
+            // Reload dropdown
+            loadSavedAPIs();
+
+            // Select the newly saved API
+            document.getElementById('saved-apis-dropdown').value = apiName;
+
+            showToast(`API "${apiName}" saved successfully!`, 'success');
+        }
+
+        // Delete selected API
+        function deleteAPI() {
+            const dropdown = document.getElementById('saved-apis-dropdown');
+            const selectedName = dropdown.value;
+
+            if (!selectedName) {
+                showToast('Please select an API to delete', 'error');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete "${selectedName}"?`)) {
+                return;
+            }
+
+            let savedAPIs = JSON.parse(localStorage.getItem('savedAPIs') || '{}');
+            delete savedAPIs[selectedName];
+            localStorage.setItem('savedAPIs', JSON.stringify(savedAPIs));
+
+            // Reload dropdown
+            loadSavedAPIs();
+
+            // Clear form if showing deleted API
+            if (document.getElementById('api-name').value === selectedName) {
+                clearForm();
+            }
+
+            showToast(`API "${selectedName}" deleted`, 'success');
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('api-name').value = '';
+            document.getElementById('curl-input').value = '';
+            document.getElementById('saved-apis-dropdown').value = '';
+            document.getElementById('save-btn').disabled = true;
+            document.getElementById('results-section').classList.remove('visible');
+            testHasRun = false;
+        }
+
+        // Run test
+        async function runTest() {
+            const curlInput = document.getElementById('curl-input').value.trim();
+            const runBtn = document.getElementById('run-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const resultsSection = document.getElementById('results-section');
+            const loading = document.getElementById('loading');
+            const resultsContent = document.getElementById('results-content');
+            const errorContainer = document.getElementById('error-container');
+            const rulesContainer = document.getElementById('rules-container');
+            const reportsContainer = document.getElementById('reports-container');
+
+            if (!curlInput) {
+                showToast('Please enter a cURL command', 'error');
+                return;
+            }
+
+            // Show loading state
+            runBtn.disabled = true;
+            resultsSection.classList.add('visible');
+            loading.style.display = 'block';
+            resultsContent.style.display = 'none';
+
+            try {
+                const response = await fetch('/run-test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ curl: curlInput })
+                });
+
+                const data = await response.json();
+
+                // Hide loading, show results
+                loading.style.display = 'none';
+                resultsContent.style.display = 'block';
+
+                // Clear previous results
+                errorContainer.innerHTML = '';
+                rulesContainer.innerHTML = '';
+
+                // Show error if present
+                if (data.error) {
+                    errorContainer.innerHTML = `<div class="error-message">${escapeHtml(data.error)}</div>`;
+                }
+
+                // Display rule results
+                if (data.rule_results && data.rule_results.length > 0) {
+                    data.rule_results.forEach(rule => {
+                        const resultDiv = document.createElement('div');
+                        resultDiv.className = 'rule-result';
+
+                        let html = `
+                            <div>
+                                <div class="rule-name">${escapeHtml(rule.rule_name)}</div>
+                                ${rule.reason ? `<div class="rule-reason">${escapeHtml(rule.reason)}</div>` : ''}
+                            </div>
+                            <span class="rule-status ${rule.result.toLowerCase()}">${rule.result}</span>
+                        `;
+
+                        resultDiv.innerHTML = html;
+                        rulesContainer.appendChild(resultDiv);
+                    });
+                }
+
+                // Show report links if available
+                if (data.report_paths && data.report_paths.html) {
+                    reportsContainer.style.display = 'block';
+                    document.getElementById('html-report-link').href = `/output/${data.report_paths.html}`;
+                    document.getElementById('json-report-link').href = `/output/${data.report_paths.json}`;
+                } else {
+                    reportsContainer.style.display = 'none';
+                }
+
+                // Enable Save button after successful test
+                testHasRun = true;
+                saveBtn.disabled = false;
+
+            } catch (error) {
+                loading.style.display = 'none';
+                resultsContent.style.display = 'block';
+                errorContainer.innerHTML = `<div class="error-message">Failed to run test: ${escapeHtml(error.message)}</div>`;
+                rulesContainer.innerHTML = '';
+                reportsContainer.style.display = 'none';
+            }
+
+            runBtn.disabled = false;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Allow Ctrl+Enter to run test
+        document.getElementById('curl-input').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                runTest();
+            }
+        });
+    </script>
+</body>
+</html>
