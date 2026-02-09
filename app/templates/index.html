@@ -147,34 +147,6 @@
             background: #7f8c8d;
         }
 
-        .saved-apis-section {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .saved-apis-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .saved-apis-header h3 {
-            margin: 0;
-            color: #2c3e50;
-        }
-
-        .api-count {
-            background: #3498db;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-        }
-
         .results-section {
             background: white;
             padding: 25px;
@@ -375,18 +347,6 @@
     </div>
     <p class="subtitle">Enter a cURL command to automatically generate and run API tests</p>
 
-    <!-- Saved APIs Section -->
-    <div class="saved-apis-section">
-        <div class="saved-apis-header">
-            <h3>Saved APIs</h3>
-            <span id="api-count" class="api-count">0 saved</span>
-        </div>
-        <select id="saved-apis-dropdown">
-            <option value="">-- Select a saved API --</option>
-        </select>
-        <button class="btn-delete" id="delete-btn" onclick="deleteAPI()" style="display: none;">Delete Selected</button>
-    </div>
-
     <div class="input-section">
         <label for="api-name">API Name</label>
         <input type="text" id="api-name" placeholder="Enter API name (e.g., Get User Profile)">
@@ -435,14 +395,6 @@
         // Track if test has been run (to enable Save button)
         let testHasRun = false;
 
-        // Cache for saved APIs
-        let savedAPIsCache = {};
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSavedAPIs();
-        });
-
         // Show toast notification
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
@@ -454,61 +406,6 @@
                 toast.remove();
             }, 3000);
         }
-
-        // Load saved APIs from backend
-        async function loadSavedAPIs() {
-            const dropdown = document.getElementById('saved-apis-dropdown');
-            const apiCount = document.getElementById('api-count');
-            const deleteBtn = document.getElementById('delete-btn');
-
-            try {
-                const response = await fetch('/api/saved-apis');
-                const data = await response.json();
-
-                if (data.success) {
-                    savedAPIsCache = data.apis;
-                    const apiNames = Object.keys(savedAPIsCache);
-
-                    // Clear existing options except first
-                    dropdown.innerHTML = '<option value="">-- Select a saved API --</option>';
-
-                    // Add saved APIs
-                    apiNames.forEach(name => {
-                        const option = document.createElement('option');
-                        option.value = name;
-                        option.textContent = name;
-                        dropdown.appendChild(option);
-                    });
-
-                    // Update count
-                    apiCount.textContent = `${apiNames.length} saved`;
-
-                    // Show/hide delete button
-                    deleteBtn.style.display = apiNames.length > 0 ? 'inline-block' : 'none';
-                }
-            } catch (error) {
-                console.error('Failed to load saved APIs:', error);
-            }
-        }
-
-        // Load selected API into form
-        document.getElementById('saved-apis-dropdown').addEventListener('change', function() {
-            const selectedName = this.value;
-            if (!selectedName) return;
-
-            const apiCode = savedAPIsCache[selectedName];
-
-            if (apiCode) {
-                document.getElementById('api-name').value = selectedName;
-                document.getElementById('curl-input').value = apiCode;
-
-                // Reset test state
-                testHasRun = false;
-                document.getElementById('save-btn').disabled = true;
-
-                showToast(`Loaded API: ${selectedName}`, 'success');
-            }
-        });
 
         // Save API to backend
         async function saveAPI() {
@@ -546,12 +443,6 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Reload dropdown
-                    await loadSavedAPIs();
-
-                    // Select the newly saved API
-                    document.getElementById('saved-apis-dropdown').value = apiName;
-
                     showToast(data.message, 'success');
                 } else {
                     showToast(data.error, 'error');
@@ -561,50 +452,10 @@
             }
         }
 
-        // Delete selected API from backend
-        async function deleteAPI() {
-            const dropdown = document.getElementById('saved-apis-dropdown');
-            const selectedName = dropdown.value;
-
-            if (!selectedName) {
-                showToast('Please select an API to delete', 'error');
-                return;
-            }
-
-            if (!confirm(`Are you sure you want to delete "${selectedName}"?`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/saved-apis/${encodeURIComponent(selectedName)}`, {
-                    method: 'DELETE'
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Reload dropdown
-                    await loadSavedAPIs();
-
-                    // Clear form if showing deleted API
-                    if (document.getElementById('api-name').value === selectedName) {
-                        clearForm();
-                    }
-
-                    showToast(data.message, 'success');
-                } else {
-                    showToast(data.error, 'error');
-                }
-            } catch (error) {
-                showToast('Failed to delete API: ' + error.message, 'error');
-            }
-        }
-
         // Clear form
         function clearForm() {
             document.getElementById('api-name').value = '';
             document.getElementById('curl-input').value = '';
-            document.getElementById('saved-apis-dropdown').value = '';
             document.getElementById('save-btn').disabled = true;
             document.getElementById('results-section').classList.remove('visible');
             testHasRun = false;
