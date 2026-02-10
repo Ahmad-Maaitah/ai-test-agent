@@ -261,3 +261,357 @@ def generate_html_report(
 </html>'''
 
     write_file(report_path, html)
+
+
+def generate_run_html_report(
+    run_id: str,
+    run_date: str,
+    results: list,
+    report_path: str
+) -> None:
+    """
+    Generate a comprehensive HTML report for all APIs in a test run.
+
+    Args:
+        run_id: Unique identifier for this run
+        run_date: Date/time of the run
+        results: List of API test results grouped by module
+        report_path: Path to save the HTML report
+    """
+    # Group results by module
+    modules = {}
+    for r in results:
+        module = r.get('section', 'Unknown')
+        if module not in modules:
+            modules[module] = []
+        modules[module].append(r)
+
+    total_apis = len(results)
+    total_passed = sum(1 for r in results if r['result'] == 'PASS')
+    total_failed = sum(1 for r in results if r['result'] == 'FAIL')
+    overall_result = 'PASS' if total_failed == 0 else 'FAIL'
+
+    # Build modules HTML
+    modules_html = ""
+    for module_name, apis in modules.items():
+        module_passed = sum(1 for a in apis if a['result'] == 'PASS')
+        module_failed = sum(1 for a in apis if a['result'] == 'FAIL')
+        module_result = 'pass' if module_failed == 0 else 'fail'
+
+        apis_html = ""
+        for api in apis:
+            rule_results = api.get('ruleResults', [])
+            api_passed = sum(1 for r in rule_results if r['result'] == 'PASS')
+            api_failed = sum(1 for r in rule_results if r['result'] == 'FAIL')
+
+            # Build test cases HTML
+            tests_html = ""
+            for rule in rule_results:
+                result_class = rule['result'].lower()
+                icon = '✓' if rule['result'] == 'PASS' else '✗'
+                tests_html += f'''
+                <div class="test-item {result_class}">
+                    <div class="test-header">
+                        <span class="test-icon">{icon}</span>
+                        <span class="test-name">{rule.get('rule_name', '')}</span>
+                        <span class="test-type">{rule.get('rule_type', '')}</span>
+                    </div>
+                    <div class="test-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Expected:</span>
+                            <span class="detail-value expected">{rule.get('expected', '-')}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Actual:</span>
+                            <span class="detail-value actual {result_class}">{rule.get('actual', '-')}</span>
+                        </div>
+                    </div>
+                </div>'''
+
+            api_result_class = api['result'].lower()
+            api_icon = '✓' if api['result'] == 'PASS' else '✗'
+
+            apis_html += f'''
+            <div class="api-card {api_result_class}">
+                <div class="api-header">
+                    <div class="api-info">
+                        <span class="api-icon {api_result_class}">{api_icon}</span>
+                        <h4 class="api-name">{api.get('apiName', 'Unknown API')}</h4>
+                        <span class="api-badge {api_result_class}">{api['result']}</span>
+                    </div>
+                    <div class="api-meta">
+                        <span class="meta-item"><strong>Status:</strong> {api.get('statusCode', '-')}</span>
+                        <span class="meta-item"><strong>Time:</strong> {api.get('executionTime', '-')}</span>
+                        <span class="meta-item tests"><strong>Tests:</strong> <span class="pass-count">{api_passed}</span> / <span class="fail-count">{api_failed}</span></span>
+                    </div>
+                </div>
+                <div class="api-tests">
+                    <h5 class="tests-title">Test Cases</h5>
+                    {tests_html}
+                </div>
+            </div>'''
+
+        modules_html += f'''
+        <div class="module-section">
+            <div class="module-header {module_result}">
+                <h3 class="module-name">{module_name}</h3>
+                <div class="module-stats">
+                    <span class="stat pass">{module_passed} passed</span>
+                    <span class="stat fail">{module_failed} failed</span>
+                </div>
+            </div>
+            <div class="module-apis">
+                {apis_html}
+            </div>
+        </div>'''
+
+    html = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Report - {run_id}</title>
+    <style>
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            min-height: 100vh;
+            padding: 30px;
+        }}
+        .container {{ max-width: 1100px; margin: 0 auto; }}
+
+        /* Header */
+        .header {{
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            padding: 30px 35px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+        .header-left h1 {{ font-size: 1.8rem; margin-bottom: 8px; font-weight: 600; }}
+        .header-left .subtitle {{ color: rgba(255,255,255,0.7); font-size: 0.9rem; }}
+        .header-badge {{
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }}
+
+        /* Summary Cards */
+        .summary {{
+            background: white;
+            padding: 25px 35px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            border-bottom: 1px solid #eee;
+        }}
+        .summary-card {{
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            background: #f8f9fa;
+        }}
+        .summary-card.result {{ background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; }}
+        .summary-card.result.fail {{ background: linear-gradient(135deg, #c0392b, #e74c3c); }}
+        .summary-value {{ font-size: 2.5rem; font-weight: 700; line-height: 1.2; }}
+        .summary-value.pass {{ color: #27ae60; }}
+        .summary-value.fail {{ color: #e74c3c; }}
+        .summary-label {{ font-size: 0.85rem; color: #7f8c8d; margin-top: 5px; font-weight: 500; }}
+        .summary-card.result .summary-label {{ color: rgba(255,255,255,0.8); }}
+
+        /* Content */
+        .content {{ background: white; padding: 30px 35px; border-radius: 0 0 16px 16px; }}
+        .content-title {{
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }}
+
+        /* Module Section */
+        .module-section {{ margin-bottom: 30px; }}
+        .module-header {{
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+        .module-header.fail {{ background: linear-gradient(135deg, #c0392b, #e74c3c); }}
+        .module-name {{ font-size: 1.1rem; font-weight: 600; }}
+        .module-stats {{ display: flex; gap: 15px; }}
+        .module-stats .stat {{
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }}
+        .module-apis {{
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 0 10px 10px;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+        }}
+
+        /* API Card */
+        .api-card {{
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border-left: 4px solid #27ae60;
+        }}
+        .api-card.fail {{ border-left-color: #e74c3c; }}
+        .api-card:last-child {{ margin-bottom: 0; }}
+
+        .api-header {{
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+        }}
+        .api-info {{ display: flex; align-items: center; gap: 12px; }}
+        .api-icon {{
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+        }}
+        .api-icon.pass {{ background: #d4edda; color: #27ae60; }}
+        .api-icon.fail {{ background: #f8d7da; color: #e74c3c; }}
+        .api-name {{ font-size: 1.05rem; font-weight: 600; color: #2c3e50; }}
+        .api-badge {{
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }}
+        .api-badge.pass {{ background: #d4edda; color: #155724; }}
+        .api-badge.fail {{ background: #f8d7da; color: #721c24; }}
+
+        .api-meta {{ display: flex; gap: 20px; font-size: 0.9rem; color: #666; }}
+        .meta-item strong {{ color: #2c3e50; }}
+        .pass-count {{ color: #27ae60; font-weight: 600; }}
+        .fail-count {{ color: #e74c3c; font-weight: 600; }}
+
+        /* Test Cases */
+        .api-tests {{ padding: 15px 20px; background: #fafbfc; }}
+        .tests-title {{
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
+        .test-item {{
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid #27ae60;
+        }}
+        .test-item.fail {{ border-left-color: #e74c3c; background: #fff9f9; }}
+        .test-item:last-child {{ margin-bottom: 0; }}
+
+        .test-header {{ display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }}
+        .test-icon {{ font-size: 14px; }}
+        .test-item.pass .test-icon {{ color: #27ae60; }}
+        .test-item.fail .test-icon {{ color: #e74c3c; }}
+        .test-name {{ font-weight: 600; color: #2c3e50; font-size: 0.95rem; }}
+        .test-type {{
+            font-size: 0.7rem;
+            background: #e0e0e0;
+            color: #666;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }}
+
+        .test-details {{ margin-left: 24px; }}
+        .detail-row {{
+            display: flex;
+            gap: 10px;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+        }}
+        .detail-label {{ color: #7f8c8d; min-width: 70px; }}
+        .detail-value.expected {{ color: #27ae60; }}
+        .detail-value.actual.pass {{ color: #2980b9; }}
+        .detail-value.actual.fail {{ color: #e74c3c; font-weight: 600; }}
+
+        /* Footer */
+        .footer {{
+            text-align: center;
+            padding: 25px;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }}
+        .footer a {{ color: #3498db; text-decoration: none; }}
+
+        /* Print styles */
+        @media print {{
+            body {{ background: white; padding: 0; }}
+            .container {{ max-width: 100%; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>API Test Report</h1>
+                <div class="subtitle">Run ID: {run_id} | {run_date}</div>
+            </div>
+            <div class="header-badge">OpenSooq</div>
+        </div>
+
+        <div class="summary">
+            <div class="summary-card result {overall_result.lower()}">
+                <div class="summary-value">{overall_result}</div>
+                <div class="summary-label">Overall Result</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value">{total_apis}</div>
+                <div class="summary-label">Total APIs</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value pass">{total_passed}</div>
+                <div class="summary-label">Passed</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value fail">{total_failed}</div>
+                <div class="summary-label">Failed</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2 class="content-title">Test Results by Module</h2>
+            {modules_html}
+        </div>
+
+        <div class="footer">
+            Generated by <strong>AI Test Agent for API</strong> | OpenSooq<br>
+            {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        </div>
+    </div>
+</body>
+</html>'''
+
+    write_file(report_path, html)

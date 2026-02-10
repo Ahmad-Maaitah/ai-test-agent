@@ -7,6 +7,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, request, jsonify, send_from_directory
 
 from backend.runner import run_test_pipeline, generate_allure_report
+from backend.report import generate_run_html_report
 
 
 main_bp = Blueprint('main', __name__)
@@ -382,6 +383,16 @@ def run_apis():
         api['lastStatus'] = status_code
         api['lastResult'] = overall_result
 
+    # Generate combined HTML report for this run
+    run_report_filename = f'run_report_{run_id}.html'
+    run_report_path = os.path.join(OUTPUT_DIR, run_report_filename)
+    generate_run_html_report(
+        run_id=run_id,
+        run_date=run_date,
+        results=results,
+        report_path=run_report_path
+    )
+
     # Save report
     report = {
         'runId': run_id,
@@ -389,7 +400,8 @@ def run_apis():
         'totalApis': len(results),
         'passed': sum(1 for r in results if r['result'] == 'PASS'),
         'failed': sum(1 for r in results if r['result'] == 'FAIL'),
-        'results': results
+        'results': results,
+        'htmlReport': run_report_filename
     }
 
     data['reports'].insert(0, report)  # Add to beginning

@@ -1903,8 +1903,9 @@
                 const response = await fetch(`/api/reports/${runId}`);
                 const data = await response.json();
 
-                if (data.success && data.report.results.length > 0) {
-                    const htmlPath = data.report.results[0].reportPaths?.html;
+                if (data.success && data.report) {
+                    // Use combined report if available, otherwise fall back to first API's report
+                    const htmlPath = data.report.htmlReport || data.report.results[0]?.reportPaths?.html;
                     if (htmlPath) {
                         window.open(`/output/${htmlPath}`, '_blank');
                     } else {
