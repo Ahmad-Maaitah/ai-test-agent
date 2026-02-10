@@ -285,13 +285,6 @@
             max-width: 500px;
         }
 
-        .api-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-right: 15px;
-        }
-
         .status-badge {
             padding: 4px 10px;
             border-radius: 4px;
@@ -1055,6 +1048,396 @@
             border-radius: 8px;
         }
 
+        /* Create API Full Page Layout */
+        .create-api-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr 350px;
+            gap: 0;
+            height: calc(100vh - 180px);
+            background: #f5f5f5;
+        }
+
+        .create-api-header {
+            background: white;
+            padding: 15px 25px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: -20px -30px 20px -30px;
+        }
+
+        .create-api-header h2 {
+            font-size: 1.3rem;
+            color: #2c3e50;
+        }
+
+        .create-api-header .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .left-panel h4 {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        .left-panel h4:first-child {
+            margin-top: 0;
+        }
+
+        .left-panel .form-group {
+            margin-bottom: 15px;
+        }
+
+        .left-panel .form-group label {
+            display: block;
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .left-panel .form-group input,
+        .left-panel .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quick-action-btn {
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: #f8f9fa;
+            cursor: pointer;
+            text-align: left;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-action-btn:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .quick-action-btn .icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        .field-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+
+        .field-item {
+            padding: 8px 12px;
+            font-size: 12px;
+            font-family: monospace;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+
+        .field-item:last-child {
+            border-bottom: none;
+        }
+
+        .field-item:hover {
+            background: #e3f2fd;
+        }
+
+        /* Center Panel */
+        .center-panel {
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
+
+        .curl-editor-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .curl-editor-section h4 {
+            margin-bottom: 12px;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        .curl-editor {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            resize: vertical;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+
+        .curl-editor-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .rules-section-full {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .rules-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .rules-section-header h4 {
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        .rules-list-full {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .rule-card-full {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fafafa;
+            transition: all 0.2s;
+        }
+
+        .rule-card-full.valid {
+            border-color: #27ae60;
+            background: #f0fff4;
+        }
+
+        .rule-card-full.invalid {
+            border-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        .rule-card-full .rule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .rule-card-full .rule-header .rule-title {
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rule-card-full .rule-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .rule-card-full .rule-fields label {
+            display: block;
+            font-size: 11px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .rule-card-full .rule-fields select,
+        .rule-card-full .rule-fields input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .rule-card-full .validation-result {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .rule-card-full .validation-result.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .rule-card-full .validation-result.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            background: white;
+            border-left: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .right-panel-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            background: #f8f9fa;
+        }
+
+        .right-panel-header h4 {
+            font-size: 0.9rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .response-meta-full {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .response-meta-full .meta-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .response-meta-full .meta-badge.status-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .response-meta-full .meta-badge.status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .response-meta-full .meta-badge.neutral {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .response-json {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: #1e1e1e;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            color: #d4d4d4;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .response-json.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7f8c8d;
+            background: #f5f5f5;
+        }
+
+        .fields-section {
+            border-top: 1px solid #eee;
+            padding: 15px 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .fields-section h5 {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #2c3e50;
+            color: white;
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            margin: 20px -30px -20px -30px;
+        }
+
+        .status-bar .status-left {
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-bar .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-bar .status-item.pass {
+            color: #2ecc71;
+        }
+
+        .status-bar .status-item.fail {
+            color: #e74c3c;
+        }
+
+        .empty-rules-full {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #e0e0e0;
+        }
+
+        .empty-rules-full p {
+            margin-bottom: 15px;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -1159,6 +1542,7 @@
     <!-- Tabs -->
     <div class="tabs">
         <div class="tab active" data-tab="saved-apis">Saved APIs</div>
+        <div class="tab" data-tab="create-api">Create API</div>
         <div class="tab" data-tab="reports">Reports</div>
     </div>
 
@@ -1188,7 +1572,7 @@
                                 <label for="select-all">Select All</label>
                             </div>
                         </div>
-                        <button class="btn btn-success" onclick="openAddApiModal()">+ Add API</button>
+                        <button class="btn btn-success" onclick="openCreateApiPage()">+ Add API</button>
                     </div>
                     <div class="apis-list" id="apis-list">
                         <!-- APIs loaded dynamically -->
@@ -1197,6 +1581,116 @@
                         <span class="selected-count"><span id="selected-count">0</span> APIs selected</span>
                         <button class="btn btn-primary" id="run-btn" onclick="runSelectedApis()" disabled>Run Selected</button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create API Tab -->
+        <div id="create-api" class="tab-content">
+            <div class="create-api-header">
+                <h2 id="create-api-title">Create New API</h2>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="cancelCreateApi()">Cancel</button>
+                    <button class="btn btn-success" id="page-save-btn" onclick="saveApiFromPage()" disabled>Save API</button>
+                </div>
+            </div>
+
+            <div class="create-api-layout">
+                <!-- Left Panel -->
+                <div class="left-panel">
+                    <h4>API Details</h4>
+                    <div class="form-group">
+                        <label>Module</label>
+                        <select id="page-api-section">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>API Name</label>
+                        <input type="text" id="page-api-name" placeholder="e.g., Get User Profile">
+                    </div>
+
+                    <h4>Quick Add Rules</h4>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="quickAddRule('status_code')">
+                            <span class="icon">📊</span> Status Code Check
+                        </button>
+                        <button class="quick-action-btn" onclick="quickAddRule('response_time')">
+                            <span class="icon">⏱️</span> Response Time Check
+                        </button>
+                        <button class="quick-action-btn" onclick="quickAddRule('field_exists')">
+                            <span class="icon">🔍</span> Field Exists
+                        </button>
+                        <button class="quick-action-btn" onclick="quickAddRule('field_type')">
+                            <span class="icon">🏷️</span> Field Type Check
+                        </button>
+                    </div>
+
+                    <h4>Response Fields</h4>
+                    <div class="field-list" id="page-field-list">
+                        <div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>
+                    </div>
+                </div>
+
+                <!-- Center Panel -->
+                <div class="center-panel">
+                    <div class="curl-editor-section">
+                        <h4>cURL Command</h4>
+                        <textarea class="curl-editor" id="page-curl" placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'"></textarea>
+                        <div class="curl-editor-actions">
+                            <button class="btn btn-primary" onclick="executePageCurl()" id="page-execute-btn">Execute & Parse Response</button>
+                        </div>
+                    </div>
+
+                    <div class="rules-section-full" id="page-rules-section">
+                        <div class="rules-section-header">
+                            <h4>Test Rules <span id="page-rules-count">(0)</span></h4>
+                            <button class="btn btn-sm btn-success" onclick="addPageRule()">+ Add Rule</button>
+                        </div>
+                        <div class="rules-list-full" id="page-rules-list">
+                            <div class="empty-rules-full">
+                                <p>No test rules yet</p>
+                                <span>Execute cURL first, then add rules using the quick actions or the "+ Add Rule" button</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center;">
+                            <button class="btn btn-secondary" onclick="validatePageRules()" id="page-validate-btn">Validate All Rules</button>
+                            <span id="page-validation-status" style="font-size: 13px; color: #7f8c8d;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel -->
+                <div class="right-panel">
+                    <div class="right-panel-header">
+                        <h4>Response Preview</h4>
+                        <div class="response-meta-full" id="page-response-meta">
+                            <span class="meta-badge neutral">No response yet</span>
+                        </div>
+                    </div>
+                    <div class="response-json empty" id="page-response-json">
+                        Execute cURL to see response
+                    </div>
+                    <div class="fields-section">
+                        <h5>Available Fields (<span id="page-fields-count">0</span>)</h5>
+                        <div id="page-fields-list-right">
+                            <span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-bar" id="page-status-bar">
+                <div class="status-left">
+                    <div class="status-item" id="page-status-rules">
+                        <span>Rules: 0</span>
+                    </div>
+                    <div class="status-item" id="page-status-validated">
+                        <span>Not validated</span>
+                    </div>
+                </div>
+                <div class="status-right">
+                    <span id="page-status-message">Enter cURL command and execute to start</span>
                 </div>
             </div>
         </div>
@@ -1582,7 +2076,7 @@
                 container.innerHTML = `
                     <div class="empty-state">
                         <h3>No APIs in this section</h3>
-                        <p>Click "+ Add API" to add your first API</p>
+                        <p>Click "+ Add API" or use the "Create API" tab</p>
                     </div>
                 `;
                 return;
@@ -1604,12 +2098,8 @@
                         </div>
                         <div class="api-curl">${escapeHtml(api.curl)}</div>
                     </div>
-                    <div class="api-status">
-                        ${api.lastResult ? `<span class="status-badge ${api.lastResult.toLowerCase()}">${api.lastResult}</span>` : ''}
-                        ${api.lastStatus ? `<span class="status-code">${api.lastStatus}</span>` : ''}
-                    </div>
                     <div class="api-actions">
-                        <button class="btn-icon" onclick="editApi('${api.id}')" title="Edit">✏️</button>
+                        <button class="btn-icon" onclick="openEditApiPage('${api.id}')" title="Edit">✏️</button>
                         <button class="btn-icon" onclick="deleteApi('${api.id}')" title="Delete">🗑️</button>
                     </div>
                 </div>
@@ -1709,7 +2199,7 @@
             customRules = api.customRules ? JSON.parse(JSON.stringify(api.customRules)) : [];
             availableFields = [];
             lastResponse = null;
-            rulesValidated = customRules.length > 0;
+            rulesValidated = false;
 
             // Hide rules section initially - user needs to execute curl to see it
             document.getElementById('rules-section').classList.add('hidden');
@@ -1720,6 +2210,9 @@
                 document.getElementById('rules-section').classList.remove('hidden');
                 document.getElementById('response-meta').innerHTML = '<span>Click "Execute & Parse Response" to refresh fields and validate rules</span>';
                 document.getElementById('response-preview').textContent = 'Execute cURL to see response';
+                document.getElementById('validation-status').textContent = 'Re-validate rules to enable save';
+                document.getElementById('validation-status').style.color = '#7f8c8d';
+                document.getElementById('save-api-btn').disabled = true;
                 renderRules();
             }
 
@@ -1839,12 +2332,13 @@
                         renderRules();
                     }
 
-                    // Enable save button for editing existing APIs
-                    if (editingApiId) {
-                        document.getElementById('save-api-btn').disabled = false;
-                    }
+                    // Save button remains disabled until rules are validated
+                    document.getElementById('save-api-btn').disabled = true;
+                    rulesValidated = false;
+                    document.getElementById('validation-status').textContent = 'Click "Validate Rules" to enable save';
+                    document.getElementById('validation-status').style.color = '#7f8c8d';
 
-                    showToast('Response parsed successfully');
+                    showToast('Response parsed successfully - validate rules to save');
                 } else {
                     showToast(data.error || 'Failed to execute cURL', 'error');
                 }
@@ -2072,7 +2566,7 @@
                     });
 
                     const allPassed = data.results.every(r => r.result === 'PASS');
-                    rulesValidated = true;
+                    rulesValidated = allPassed;
 
                     document.getElementById('validation-status').textContent =
                         allPassed ?
@@ -2080,10 +2574,10 @@
                         `${data.results.filter(r => r.result === 'PASS').length}/${data.results.length} rules passed`;
                     document.getElementById('validation-status').style.color = allPassed ? '#27ae60' : '#e74c3c';
 
-                    // Enable save button
-                    document.getElementById('save-api-btn').disabled = false;
+                    // Only enable save button if all rules pass
+                    document.getElementById('save-api-btn').disabled = !allPassed;
 
-                    showToast(allPassed ? 'All rules validated successfully!' : 'Some rules failed validation');
+                    showToast(allPassed ? 'All rules validated successfully!' : 'Some rules failed - fix them to save');
                 } else {
                     showToast(data.error || 'Validation failed', 'error');
                 }
@@ -2289,6 +2783,558 @@
                 showToast('Failed to open Allure report: ' + error.message, 'error');
             }
         }
+
+        // =============================================================================
+        // Create API Page Functions
+        // =============================================================================
+
+        let pageEditingApiId = null;
+        let pageCustomRules = [];
+        let pageAvailableFields = [];
+        let pageLastResponse = null;
+        let pageRulesValidated = false;
+
+        function openCreateApiPage() {
+            pageEditingApiId = null;
+            pageCustomRules = [];
+            pageAvailableFields = [];
+            pageLastResponse = null;
+            pageRulesValidated = false;
+
+            document.getElementById('create-api-title').textContent = 'Create New API';
+            document.getElementById('page-api-name').value = '';
+            document.getElementById('page-curl').value = '';
+            document.getElementById('page-save-btn').disabled = true;
+            document.getElementById('page-validation-status').textContent = '';
+
+            // Reset response panel
+            document.getElementById('page-response-meta').innerHTML = '<span class="meta-badge neutral">No response yet</span>';
+            document.getElementById('page-response-json').textContent = 'Execute cURL to see response';
+            document.getElementById('page-response-json').classList.add('empty');
+            document.getElementById('page-fields-count').textContent = '0';
+            document.getElementById('page-fields-list-right').innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>';
+            document.getElementById('page-field-list').innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>';
+
+            // Reset rules
+            renderPageRules();
+            updatePageStatus();
+
+            // Populate section dropdown
+            populatePageSectionDropdown();
+
+            // Switch to Create API tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.tab[data-tab="create-api"]').classList.add('active');
+            document.getElementById('create-api').classList.add('active');
+        }
+
+        function openEditApiPage(apiId) {
+            let api, sectionId;
+            for (const section of sections) {
+                const found = section.apis.find(a => a.id === apiId);
+                if (found) {
+                    api = found;
+                    sectionId = section.id;
+                    break;
+                }
+            }
+            if (!api) return;
+
+            pageEditingApiId = apiId;
+            pageCustomRules = api.customRules ? JSON.parse(JSON.stringify(api.customRules)) : [];
+            pageAvailableFields = [];
+            pageLastResponse = null;
+            pageRulesValidated = false;
+
+            document.getElementById('create-api-title').textContent = `Edit: ${api.name}`;
+            document.getElementById('page-api-name').value = api.name;
+            document.getElementById('page-curl').value = api.curl;
+            document.getElementById('page-save-btn').disabled = true;
+            document.getElementById('page-validation-status').textContent = pageCustomRules.length > 0 ? 'Re-validate rules to save' : '';
+
+            // Reset response panel
+            document.getElementById('page-response-meta').innerHTML = '<span class="meta-badge neutral">Execute to refresh</span>';
+            document.getElementById('page-response-json').textContent = 'Execute cURL to see response';
+            document.getElementById('page-response-json').classList.add('empty');
+            document.getElementById('page-fields-count').textContent = '0';
+            document.getElementById('page-fields-list-right').innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">Execute cURL to refresh fields</span>';
+            document.getElementById('page-field-list').innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>';
+
+            // Populate section dropdown
+            populatePageSectionDropdown();
+            document.getElementById('page-api-section').value = sectionId;
+
+            // Render existing rules
+            renderPageRules();
+            updatePageStatus();
+
+            // Switch to Create API tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.tab[data-tab="create-api"]').classList.add('active');
+            document.getElementById('create-api').classList.add('active');
+        }
+
+        function populatePageSectionDropdown() {
+            const select = document.getElementById('page-api-section');
+            select.innerHTML = sections.map(s =>
+                `<option value="${s.id}">${escapeHtml(s.name)}</option>`
+            ).join('');
+            if (currentSectionId) {
+                select.value = currentSectionId;
+            }
+        }
+
+        function cancelCreateApi() {
+            // Switch back to Saved APIs tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.tab[data-tab="saved-apis"]').classList.add('active');
+            document.getElementById('saved-apis').classList.add('active');
+        }
+
+        async function executePageCurl() {
+            const curl = document.getElementById('page-curl').value.trim();
+            if (!curl) {
+                showToast('Please enter a cURL command', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('page-execute-btn');
+            btn.disabled = true;
+            btn.textContent = 'Executing...';
+
+            try {
+                const response = await fetch('/api/execute-curl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ curl })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    pageLastResponse = data.response;
+                    pageAvailableFields = data.fields || [];
+
+                    // Update response meta
+                    const statusClass = data.status_code >= 200 && data.status_code < 300 ? 'status-ok' : 'status-error';
+                    document.getElementById('page-response-meta').innerHTML = `
+                        <span class="meta-badge ${statusClass}">Status: ${data.status_code}</span>
+                        <span class="meta-badge neutral">${data.response_time_ms}ms</span>
+                    `;
+
+                    // Update response JSON
+                    const jsonDiv = document.getElementById('page-response-json');
+                    jsonDiv.classList.remove('empty');
+                    if (data.response) {
+                        jsonDiv.textContent = JSON.stringify(data.response, null, 2);
+                    } else {
+                        jsonDiv.textContent = data.response_text || 'No JSON response';
+                    }
+
+                    // Update fields count and list
+                    document.getElementById('page-fields-count').textContent = pageAvailableFields.length;
+                    renderPageFieldsList();
+
+                    // Add default status_code rule if no rules exist
+                    if (pageCustomRules.length === 0) {
+                        quickAddRule('status_code');
+                    }
+
+                    pageRulesValidated = false;
+                    document.getElementById('page-save-btn').disabled = true;
+                    document.getElementById('page-validation-status').textContent = 'Validate rules to enable save';
+                    document.getElementById('page-validation-status').style.color = '#7f8c8d';
+
+                    updatePageStatus();
+                    showToast('Response parsed successfully');
+                } else {
+                    showToast(data.error || 'Failed to execute cURL', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to execute cURL: ' + error.message, 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Execute & Parse Response';
+        }
+
+        function renderPageFieldsList() {
+            // Left panel field list
+            const leftList = document.getElementById('page-field-list');
+            if (pageAvailableFields.length === 0) {
+                leftList.innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">No fields found</div>';
+            } else {
+                leftList.innerHTML = pageAvailableFields.map(f =>
+                    `<div class="field-item" onclick="addRuleForField('${f}')">${f}</div>`
+                ).join('');
+            }
+
+            // Right panel field list
+            const rightList = document.getElementById('page-fields-list-right');
+            if (pageAvailableFields.length === 0) {
+                rightList.innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No fields found</span>';
+            } else {
+                rightList.innerHTML = pageAvailableFields.slice(0, 20).map(f =>
+                    `<div class="field-item" onclick="addRuleForField('${f}')">${f}</div>`
+                ).join('') + (pageAvailableFields.length > 20 ? `<div class="field-item" style="color: #7f8c8d;">... and ${pageAvailableFields.length - 20} more</div>` : '');
+            }
+        }
+
+        function addRuleForField(field) {
+            const rule = {
+                id: 'rule-' + Math.random().toString(36).substr(2, 9),
+                type: 'field_exists',
+                field: field,
+                config: {},
+                enabled: true
+            };
+            pageCustomRules.push(rule);
+            pageRulesValidated = false;
+            renderPageRules();
+            updatePageStatus();
+            showToast(`Added rule for field: ${field}`);
+        }
+
+        function quickAddRule(ruleType) {
+            const rule = {
+                id: 'rule-' + Math.random().toString(36).substr(2, 9),
+                type: ruleType,
+                field: pageAvailableFields[0] || '',
+                config: {},
+                enabled: true
+            };
+
+            // Set defaults based on rule type
+            const typeConfig = ruleTypes[ruleType];
+            if (typeConfig && typeConfig.configFields) {
+                typeConfig.configFields.forEach(cf => {
+                    if (cf.default !== undefined) {
+                        rule.config[cf.name] = cf.default;
+                    }
+                });
+            }
+
+            // Clear field if not required
+            if (typeConfig && !typeConfig.requiresField) {
+                rule.field = '';
+            }
+
+            pageCustomRules.push(rule);
+            pageRulesValidated = false;
+            renderPageRules();
+            updatePageStatus();
+        }
+
+        function addPageRule() {
+            quickAddRule('field_exists');
+        }
+
+        function removePageRule(ruleId) {
+            pageCustomRules = pageCustomRules.filter(r => r.id !== ruleId);
+            pageRulesValidated = false;
+            renderPageRules();
+            updatePageStatus();
+        }
+
+        function updatePageRule(ruleId, field, value) {
+            const rule = pageCustomRules.find(r => r.id === ruleId);
+            if (!rule) return;
+
+            if (field === 'type') {
+                rule.type = value;
+                rule.config = {};
+                const typeConfig = ruleTypes[value];
+                if (typeConfig && typeConfig.configFields) {
+                    typeConfig.configFields.forEach(cf => {
+                        if (cf.default !== undefined) {
+                            rule.config[cf.name] = cf.default;
+                        }
+                    });
+                }
+                if (typeConfig && !typeConfig.requiresField) {
+                    rule.field = '';
+                } else if (!rule.field && pageAvailableFields.length > 0) {
+                    rule.field = pageAvailableFields[0];
+                }
+            } else if (field === 'field') {
+                rule.field = value;
+            } else {
+                rule.config[field] = value;
+            }
+
+            pageRulesValidated = false;
+            renderPageRules();
+            updatePageStatus();
+        }
+
+        function renderPageRules() {
+            const container = document.getElementById('page-rules-list');
+            document.getElementById('page-rules-count').textContent = `(${pageCustomRules.length})`;
+
+            if (pageCustomRules.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-rules-full">
+                        <p>No test rules yet</p>
+                        <span>Execute cURL first, then add rules using the quick actions or the "+ Add Rule" button</span>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = pageCustomRules.map((rule, index) => {
+                const typeConfig = ruleTypes[rule.type] || {};
+                const requiresField = typeConfig.requiresField !== false;
+
+                return `
+                    <div class="rule-card-full" id="page-rule-${rule.id}">
+                        <div class="rule-header">
+                            <div class="rule-title">
+                                <span>Rule ${index + 1}</span>
+                                <span style="font-size: 11px; background: #e0e0e0; padding: 2px 8px; border-radius: 10px; color: #666;">${typeConfig.ruleType || 'functional'}</span>
+                            </div>
+                            <button class="btn-icon" onclick="removePageRule('${rule.id}')" title="Remove">🗑️</button>
+                        </div>
+                        <div class="rule-fields">
+                            <div>
+                                <label>Rule Type</label>
+                                <select onchange="updatePageRule('${rule.id}', 'type', this.value)">
+                                    ${Object.entries(ruleTypes).map(([key, config]) =>
+                                        `<option value="${key}" ${rule.type === key ? 'selected' : ''}>${config.name}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            ${requiresField ? `
+                            <div>
+                                <label>Field</label>
+                                <select onchange="updatePageRule('${rule.id}', 'field', this.value)">
+                                    ${pageAvailableFields.map(f =>
+                                        `<option value="${f}" ${rule.field === f ? 'selected' : ''}>${f}</option>`
+                                    ).join('')}
+                                    ${rule.field && !pageAvailableFields.includes(rule.field) ?
+                                        `<option value="${rule.field}" selected>${rule.field}</option>` : ''}
+                                </select>
+                            </div>
+                            ` : ''}
+                            ${renderPageConfigFields(rule)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPageConfigFields(rule) {
+            const typeConfig = ruleTypes[rule.type];
+            if (!typeConfig || !typeConfig.configFields || typeConfig.configFields.length === 0) {
+                return '';
+            }
+
+            return typeConfig.configFields.map(cf => {
+                const value = rule.config[cf.name] !== undefined ? rule.config[cf.name] : cf.default;
+
+                if (cf.type === 'select') {
+                    return `
+                        <div>
+                            <label>${cf.label}</label>
+                            <select onchange="updatePageRule('${rule.id}', '${cf.name}', this.value)">
+                                ${cf.options.map(opt =>
+                                    `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    `;
+                } else if (cf.type === 'boolean') {
+                    return `
+                        <div>
+                            <label>${cf.label}</label>
+                            <select onchange="updatePageRule('${rule.id}', '${cf.name}', this.value === 'true')">
+                                <option value="true" ${value === true ? 'selected' : ''}>true</option>
+                                <option value="false" ${value === false ? 'selected' : ''}>false</option>
+                            </select>
+                        </div>
+                    `;
+                } else if (cf.type === 'number') {
+                    return `
+                        <div>
+                            <label>${cf.label}</label>
+                            <input type="number" value="${value}" onchange="updatePageRule('${rule.id}', '${cf.name}', parseInt(this.value) || 0)">
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div>
+                            <label>${cf.label}</label>
+                            <input type="text" value="${escapeHtml(value || '')}" onchange="updatePageRule('${rule.id}', '${cf.name}', this.value)">
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        async function validatePageRules() {
+            if (pageCustomRules.length === 0) {
+                showToast('Add at least one rule first', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('page-validate-btn');
+            btn.disabled = true;
+            btn.textContent = 'Validating...';
+
+            try {
+                const response = await fetch('/api/test-rules', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        curl: document.getElementById('page-curl').value.trim(),
+                        rules: pageCustomRules
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    data.results.forEach(result => {
+                        const card = document.getElementById(`page-rule-${result.rule_id}`);
+                        if (card) {
+                            card.classList.remove('valid', 'invalid');
+                            card.classList.add(result.result === 'PASS' ? 'valid' : 'invalid');
+
+                            // Add validation result
+                            let resultDiv = card.querySelector('.validation-result');
+                            if (!resultDiv) {
+                                resultDiv = document.createElement('div');
+                                resultDiv.className = 'validation-result';
+                                card.appendChild(resultDiv);
+                            }
+                            resultDiv.className = `validation-result ${result.result.toLowerCase()}`;
+                            resultDiv.innerHTML = result.result === 'PASS' ?
+                                `✓ PASS - Expected: ${result.expected}, Actual: ${result.actual}` :
+                                `✗ FAIL - ${result.reason}`;
+                        }
+                    });
+
+                    const allPassed = data.results.every(r => r.result === 'PASS');
+                    pageRulesValidated = allPassed;
+
+                    document.getElementById('page-validation-status').textContent = allPassed ?
+                        `✓ All ${data.results.length} rules passed` :
+                        `${data.results.filter(r => r.result === 'PASS').length}/${data.results.length} rules passed`;
+                    document.getElementById('page-validation-status').style.color = allPassed ? '#27ae60' : '#e74c3c';
+
+                    document.getElementById('page-save-btn').disabled = !allPassed;
+                    updatePageStatus();
+
+                    showToast(allPassed ? 'All rules validated!' : 'Some rules failed - fix them to save');
+                } else {
+                    showToast(data.error || 'Validation failed', 'error');
+                }
+            } catch (error) {
+                showToast('Validation failed: ' + error.message, 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Validate All Rules';
+        }
+
+        function updatePageStatus() {
+            const rulesStatus = document.getElementById('page-status-rules');
+            const validatedStatus = document.getElementById('page-status-validated');
+            const message = document.getElementById('page-status-message');
+
+            rulesStatus.innerHTML = `<span>Rules: ${pageCustomRules.length}</span>`;
+
+            if (pageRulesValidated) {
+                validatedStatus.className = 'status-item pass';
+                validatedStatus.innerHTML = '<span>✓ Validated</span>';
+                message.textContent = 'Ready to save';
+            } else if (pageCustomRules.length > 0) {
+                validatedStatus.className = 'status-item';
+                validatedStatus.innerHTML = '<span>Not validated</span>';
+                message.textContent = 'Click "Validate All Rules" to enable save';
+            } else {
+                validatedStatus.className = 'status-item';
+                validatedStatus.innerHTML = '<span>No rules</span>';
+                message.textContent = 'Add rules to create test cases';
+            }
+        }
+
+        async function saveApiFromPage() {
+            const sectionId = document.getElementById('page-api-section').value;
+            const name = document.getElementById('page-api-name').value.trim();
+            const curl = document.getElementById('page-curl').value.trim();
+
+            if (!name) {
+                showToast('API name is required', 'error');
+                return;
+            }
+            if (!curl) {
+                showToast('cURL command is required', 'error');
+                return;
+            }
+
+            const apiData = {
+                name,
+                curl,
+                customRules: pageCustomRules
+            };
+
+            try {
+                let response;
+                if (pageEditingApiId) {
+                    response = await fetch(`/api/apis/${pageEditingApiId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(apiData)
+                    });
+
+                    // Check if section changed
+                    let currentSection;
+                    for (const section of sections) {
+                        if (section.apis.find(a => a.id === pageEditingApiId)) {
+                            currentSection = section.id;
+                            break;
+                        }
+                    }
+
+                    if (currentSection !== sectionId) {
+                        await fetch(`/api/apis/${pageEditingApiId}/move`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ targetSectionId: sectionId })
+                        });
+                    }
+                } else {
+                    response = await fetch(`/api/sections/${sectionId}/apis`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(apiData)
+                    });
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(pageEditingApiId ?
+                        `API updated with ${pageCustomRules.length} rules` :
+                        `API created with ${pageCustomRules.length} rules`);
+
+                    // Reload sections and switch to Saved APIs tab
+                    await loadSections();
+                    cancelCreateApi();
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to save API', 'error');
+            }
+        }
+
+        // =============================================================================
+        // Reports Functions
+        // =============================================================================
 
         async function loadReports() {
             const container = document.getElementById('reports-list');
