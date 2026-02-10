@@ -353,11 +353,15 @@ def generate_run_html_report(
 
         modules_html += f'''
         <div class="module-section">
-            <div class="module-header {module_result}">
-                <h3 class="module-name">{module_name}</h3>
+            <div class="module-header {module_result}" onclick="toggleModule(this)">
+                <div class="module-left">
+                    <span class="toggle-icon">▼</span>
+                    <h3 class="module-name">{module_name}</h3>
+                </div>
                 <div class="module-stats">
                     <span class="stat pass">{module_passed} passed</span>
                     <span class="stat fail">{module_failed} failed</span>
+                    <span class="api-count">{len(apis)} APIs</span>
                 </div>
             </div>
             <div class="module-apis">
@@ -436,24 +440,43 @@ def generate_run_html_report(
         }}
 
         /* Module Section */
-        .module-section {{ margin-bottom: 30px; }}
+        .module-section {{ margin-bottom: 20px; }}
         .module-header {{
             background: linear-gradient(135deg, #27ae60, #2ecc71);
             color: white;
-            padding: 15px 20px;
-            border-radius: 10px 10px 0 0;
+            padding: 16px 20px;
+            border-radius: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
         }}
+        .module-header:hover {{ opacity: 0.95; transform: translateY(-1px); }}
         .module-header.fail {{ background: linear-gradient(135deg, #c0392b, #e74c3c); }}
+        .module-header.expanded {{ border-radius: 10px 10px 0 0; }}
+        .module-left {{ display: flex; align-items: center; gap: 12px; }}
+        .toggle-icon {{
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }}
+        .module-header.collapsed .toggle-icon {{ transform: rotate(-90deg); }}
         .module-name {{ font-size: 1.1rem; font-weight: 600; }}
-        .module-stats {{ display: flex; gap: 15px; }}
+        .module-stats {{ display: flex; gap: 12px; align-items: center; }}
         .module-stats .stat {{
             background: rgba(255,255,255,0.2);
             padding: 4px 12px;
             border-radius: 15px;
             font-size: 0.85rem;
+        }}
+        .module-stats .api-count {{
+            background: rgba(255,255,255,0.3);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
         }}
         .module-apis {{
             background: #f8f9fa;
@@ -461,6 +484,14 @@ def generate_run_html_report(
             border-radius: 0 0 10px 10px;
             border: 1px solid #e0e0e0;
             border-top: none;
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
+        }}
+        .module-apis.collapsed {{
+            max-height: 0;
+            padding: 0 20px;
+            opacity: 0;
         }}
 
         /* API Card */
@@ -611,6 +642,30 @@ def generate_run_html_report(
             {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         </div>
     </div>
+
+    <script>
+        function toggleModule(header) {{
+            const moduleSection = header.parentElement;
+            const apis = moduleSection.querySelector('.module-apis');
+
+            if (header.classList.contains('collapsed')) {{
+                header.classList.remove('collapsed');
+                header.classList.add('expanded');
+                apis.classList.remove('collapsed');
+            }} else {{
+                header.classList.add('collapsed');
+                header.classList.remove('expanded');
+                apis.classList.add('collapsed');
+            }}
+        }}
+
+        // Initialize all modules as expanded
+        document.addEventListener('DOMContentLoaded', function() {{
+            document.querySelectorAll('.module-header').forEach(function(header) {{
+                header.classList.add('expanded');
+            }});
+        }});
+    </script>
 </body>
 </html>'''
 
