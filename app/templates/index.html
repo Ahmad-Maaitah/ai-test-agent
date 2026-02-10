@@ -457,6 +457,10 @@
             overflow-y: auto;
         }
 
+        .modal.modal-wide {
+            max-width: 900px;
+        }
+
         .modal-header {
             padding: 20px;
             border-bottom: 1px solid #eee;
@@ -906,6 +910,151 @@
             font-weight: 600;
         }
 
+        /* Rules Builder */
+        .rules-section {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .rules-section.hidden {
+            display: none;
+        }
+
+        .response-preview {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .response-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .response-meta span {
+            padding: 4px 10px;
+            background: #ecf0f1;
+            border-radius: 4px;
+        }
+
+        .response-meta .status-ok { background: #d4edda; color: #155724; }
+        .response-meta .status-error { background: #f8d7da; color: #721c24; }
+
+        .rules-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .rules-header h4 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .rules-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .rule-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fafafa;
+        }
+
+        .rule-card.invalid {
+            border-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        .rule-card.valid {
+            border-color: #27ae60;
+            background: #f0fff4;
+        }
+
+        .rule-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .rule-card-header .rule-number {
+            font-weight: 600;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .rule-card-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .rule-card-row.single {
+            grid-template-columns: 1fr;
+        }
+
+        .rule-card-row label {
+            display: block;
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .rule-card-row select,
+        .rule-card-row input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .rule-validation-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .rule-validation-status.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .rule-validation-status.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .rules-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .empty-rules {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -1104,7 +1253,7 @@
 
     <!-- Add/Edit API Modal -->
     <div class="modal-overlay" id="api-modal">
-        <div class="modal">
+        <div class="modal modal-wide">
             <div class="modal-header">
                 <h2 id="api-modal-title">Add API</h2>
                 <button class="modal-close" onclick="closeApiModal()">&times;</button>
@@ -1124,7 +1273,32 @@
                     <label for="api-curl">cURL Command</label>
                     <textarea id="api-curl" placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'"></textarea>
                 </div>
-                <button class="btn btn-secondary" onclick="testApiInModal()" id="test-api-btn">Test API</button>
+                <button class="btn btn-primary" onclick="executeAndParseCurl()" id="execute-curl-btn">Execute & Parse Response</button>
+
+                <!-- Rules Builder Section -->
+                <div class="rules-section hidden" id="rules-section">
+                    <div class="response-meta" id="response-meta"></div>
+                    <details>
+                        <summary style="cursor: pointer; margin-bottom: 10px; color: #7f8c8d;">View Response JSON</summary>
+                        <div class="response-preview" id="response-preview"></div>
+                    </details>
+
+                    <div class="rules-header">
+                        <h4>Test Rules</h4>
+                        <button class="btn btn-sm btn-success" onclick="addRule()">+ Add Rule</button>
+                    </div>
+
+                    <div class="rules-list" id="rules-list">
+                        <div class="empty-rules">No rules added yet. Click "+ Add Rule" to create test cases.</div>
+                    </div>
+
+                    <div class="rules-actions">
+                        <button class="btn btn-secondary" onclick="validateRules()" id="validate-rules-btn">Validate Rules</button>
+                        <span id="validation-status" style="font-size: 13px; color: #7f8c8d;"></span>
+                    </div>
+                </div>
+
+                <!-- Legacy test result (hidden, for backward compatibility) -->
                 <div class="test-result" id="modal-test-result" style="display: none;">
                     <h4>Test Results</h4>
                     <div id="modal-rules-list"></div>
@@ -1157,11 +1331,32 @@
         let editingApiId = null;
         let editingSectionId = null;
 
+        // Rules Builder State
+        let ruleTypes = {};
+        let customRules = [];
+        let availableFields = [];
+        let lastResponse = null;
+        let rulesValidated = false;
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadSections();
             setupTabs();
+            loadRuleTypes();
         });
+
+        // Load rule types from backend
+        async function loadRuleTypes() {
+            try {
+                const response = await fetch('/api/rule-types');
+                const data = await response.json();
+                if (data.success) {
+                    ruleTypes = data.ruleTypes;
+                }
+            } catch (error) {
+                console.error('Failed to load rule types:', error);
+            }
+        }
 
         // Tab switching
         function setupTabs() {
@@ -1393,22 +1588,32 @@
                 return;
             }
 
-            container.innerHTML = apis.map(api => `
+            container.innerHTML = apis.map(api => {
+                const rulesCount = (api.customRules || []).length;
+                const hasRules = rulesCount > 0;
+                return `
                 <div class="api-item" data-id="${api.id}" draggable="true">
                     <span class="drag-handle">⋮⋮</span>
                     <input type="checkbox" class="api-checkbox"
                            ${selectedApis.has(api.id) ? 'checked' : ''}
                            onchange="toggleApiSelection('${api.id}')">
                     <div class="api-info">
-                        <div class="api-name">${escapeHtml(api.name)}</div>
+                        <div class="api-name">
+                            ${escapeHtml(api.name)}
+                            ${hasRules ? `<span style="font-size: 11px; background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 10px; margin-left: 8px;">${rulesCount} rules</span>` : ''}
+                        </div>
                         <div class="api-curl">${escapeHtml(api.curl)}</div>
+                    </div>
+                    <div class="api-status">
+                        ${api.lastResult ? `<span class="status-badge ${api.lastResult.toLowerCase()}">${api.lastResult}</span>` : ''}
+                        ${api.lastStatus ? `<span class="status-code">${api.lastStatus}</span>` : ''}
                     </div>
                     <div class="api-actions">
                         <button class="btn-icon" onclick="editApi('${api.id}')" title="Edit">✏️</button>
                         <button class="btn-icon" onclick="deleteApi('${api.id}')" title="Delete">🗑️</button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
 
             setupApiDragDrop();
             updateSelectedCount();
@@ -1465,6 +1670,16 @@
             document.getElementById('api-curl').value = '';
             document.getElementById('modal-test-result').style.display = 'none';
             document.getElementById('save-api-btn').disabled = true;
+
+            // Reset rules builder state
+            customRules = [];
+            availableFields = [];
+            lastResponse = null;
+            rulesValidated = false;
+            document.getElementById('rules-section').classList.add('hidden');
+            document.getElementById('rules-list').innerHTML = '<div class="empty-rules">No rules added yet. Click "+ Add Rule" to create test cases.</div>';
+            document.getElementById('validation-status').textContent = '';
+
             document.getElementById('api-modal').classList.add('active');
         }
 
@@ -1489,14 +1704,39 @@
             document.getElementById('api-curl').value = api.curl;
             document.getElementById('modal-test-result').style.display = 'none';
             document.getElementById('save-api-btn').disabled = false;
+
+            // Load existing custom rules if any
+            customRules = api.customRules ? JSON.parse(JSON.stringify(api.customRules)) : [];
+            availableFields = [];
+            lastResponse = null;
+            rulesValidated = customRules.length > 0;
+
+            // Hide rules section initially - user needs to execute curl to see it
+            document.getElementById('rules-section').classList.add('hidden');
+            document.getElementById('validation-status').textContent = '';
+
+            // If there are existing rules, show a hint
+            if (customRules.length > 0) {
+                document.getElementById('rules-section').classList.remove('hidden');
+                document.getElementById('response-meta').innerHTML = '<span>Click "Execute & Parse Response" to refresh fields and validate rules</span>';
+                document.getElementById('response-preview').textContent = 'Execute cURL to see response';
+                renderRules();
+            }
+
             document.getElementById('api-modal').classList.add('active');
         }
 
         function closeApiModal() {
             document.getElementById('api-modal').classList.remove('active');
+            // Reset rules builder state
+            customRules = [];
+            availableFields = [];
+            lastResponse = null;
+            rulesValidated = false;
         }
 
         async function testApiInModal() {
+            // Legacy function - kept for backward compatibility
             const curl = document.getElementById('api-curl').value.trim();
 
             if (!curl) {
@@ -1505,8 +1745,10 @@
             }
 
             const testBtn = document.getElementById('test-api-btn');
-            testBtn.disabled = true;
-            testBtn.textContent = 'Testing...';
+            if (testBtn) {
+                testBtn.disabled = true;
+                testBtn.textContent = 'Testing...';
+            }
 
             try {
                 const response = await fetch('/api/run-single', {
@@ -1535,8 +1777,322 @@
                 showToast('Test failed: ' + error.message, 'error');
             }
 
-            testBtn.disabled = false;
-            testBtn.textContent = 'Test API';
+            if (testBtn) {
+                testBtn.disabled = false;
+                testBtn.textContent = 'Test API';
+            }
+        }
+
+        // =============================================================================
+        // Rules Builder Functions
+        // =============================================================================
+
+        async function executeAndParseCurl() {
+            const curl = document.getElementById('api-curl').value.trim();
+
+            if (!curl) {
+                showToast('Please enter a cURL command', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('execute-curl-btn');
+            btn.disabled = true;
+            btn.textContent = 'Executing...';
+
+            try {
+                const response = await fetch('/api/execute-curl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ curl })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    lastResponse = data.response;
+                    availableFields = data.fields || [];
+
+                    // Show response metadata
+                    const metaDiv = document.getElementById('response-meta');
+                    const statusClass = data.status_code >= 200 && data.status_code < 300 ? 'status-ok' : 'status-error';
+                    metaDiv.innerHTML = `
+                        <span class="${statusClass}">Status: ${data.status_code}</span>
+                        <span>Response Time: ${data.response_time_ms}ms</span>
+                        <span>Fields Found: ${availableFields.length}</span>
+                    `;
+
+                    // Show response preview
+                    const previewDiv = document.getElementById('response-preview');
+                    if (data.response) {
+                        previewDiv.textContent = JSON.stringify(data.response, null, 2);
+                    } else {
+                        previewDiv.textContent = data.response_text || 'No JSON response';
+                    }
+
+                    // Show rules section
+                    document.getElementById('rules-section').classList.remove('hidden');
+
+                    // If no custom rules exist, add a default status_code rule
+                    if (customRules.length === 0) {
+                        addRule('status_code');
+                    } else {
+                        renderRules();
+                    }
+
+                    // Enable save button for editing existing APIs
+                    if (editingApiId) {
+                        document.getElementById('save-api-btn').disabled = false;
+                    }
+
+                    showToast('Response parsed successfully');
+                } else {
+                    showToast(data.error || 'Failed to execute cURL', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to execute cURL: ' + error.message, 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Execute & Parse Response';
+        }
+
+        function generateRuleId() {
+            return 'rule-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function addRule(defaultType = 'field_exists') {
+            const rule = {
+                id: generateRuleId(),
+                type: defaultType,
+                field: availableFields[0] || '',
+                config: {},
+                enabled: true
+            };
+
+            // Set default config values
+            const typeConfig = ruleTypes[defaultType];
+            if (typeConfig && typeConfig.configFields) {
+                typeConfig.configFields.forEach(cf => {
+                    if (cf.default !== undefined) {
+                        rule.config[cf.name] = cf.default;
+                    }
+                });
+            }
+
+            customRules.push(rule);
+            rulesValidated = false;
+            renderRules();
+        }
+
+        function removeRule(ruleId) {
+            customRules = customRules.filter(r => r.id !== ruleId);
+            rulesValidated = false;
+            renderRules();
+        }
+
+        function updateRule(ruleId, field, value) {
+            const rule = customRules.find(r => r.id === ruleId);
+            if (!rule) return;
+
+            if (field === 'type') {
+                rule.type = value;
+                // Reset config to defaults for new type
+                rule.config = {};
+                const typeConfig = ruleTypes[value];
+                if (typeConfig && typeConfig.configFields) {
+                    typeConfig.configFields.forEach(cf => {
+                        if (cf.default !== undefined) {
+                            rule.config[cf.name] = cf.default;
+                        }
+                    });
+                }
+                // Clear field if not required
+                if (typeConfig && !typeConfig.requiresField) {
+                    rule.field = '';
+                } else if (!rule.field && availableFields.length > 0) {
+                    rule.field = availableFields[0];
+                }
+            } else if (field === 'field') {
+                rule.field = value;
+            } else {
+                // Config field
+                rule.config[field] = value;
+            }
+
+            rulesValidated = false;
+            renderRules();
+        }
+
+        function renderRules() {
+            const container = document.getElementById('rules-list');
+
+            if (customRules.length === 0) {
+                container.innerHTML = '<div class="empty-rules">No rules added yet. Click "+ Add Rule" to create test cases.</div>';
+                document.getElementById('validation-status').textContent = '';
+                return;
+            }
+
+            container.innerHTML = customRules.map((rule, index) => {
+                const typeConfig = ruleTypes[rule.type] || {};
+                const requiresField = typeConfig.requiresField !== false;
+
+                return `
+                    <div class="rule-card" id="rule-card-${rule.id}">
+                        <div class="rule-card-header">
+                            <span class="rule-number">Rule ${index + 1}</span>
+                            <button class="btn-icon" onclick="removeRule('${rule.id}')" title="Remove">🗑️</button>
+                        </div>
+                        <div class="rule-card-row">
+                            <div>
+                                <label>Rule Type</label>
+                                <select onchange="updateRule('${rule.id}', 'type', this.value)">
+                                    ${Object.entries(ruleTypes).map(([key, config]) =>
+                                        `<option value="${key}" ${rule.type === key ? 'selected' : ''}>${config.name}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            ${requiresField ? `
+                            <div>
+                                <label>Field</label>
+                                <select onchange="updateRule('${rule.id}', 'field', this.value)">
+                                    ${availableFields.map(f =>
+                                        `<option value="${f}" ${rule.field === f ? 'selected' : ''}>${f}</option>`
+                                    ).join('')}
+                                    ${rule.field && !availableFields.includes(rule.field) ?
+                                        `<option value="${rule.field}" selected>${rule.field}</option>` : ''}
+                                </select>
+                            </div>
+                            ` : '<div></div>'}
+                        </div>
+                        ${renderConfigFields(rule)}
+                    </div>
+                `;
+            }).join('');
+
+            // Update validation status
+            if (!rulesValidated) {
+                document.getElementById('validation-status').textContent = 'Rules not validated yet';
+            }
+        }
+
+        function renderConfigFields(rule) {
+            const typeConfig = ruleTypes[rule.type];
+            if (!typeConfig || !typeConfig.configFields || typeConfig.configFields.length === 0) {
+                return '';
+            }
+
+            const fields = typeConfig.configFields.map(cf => {
+                const value = rule.config[cf.name] !== undefined ? rule.config[cf.name] : cf.default;
+
+                if (cf.type === 'select') {
+                    return `
+                        <div>
+                            <label>${cf.label}</label>
+                            <select onchange="updateRule('${rule.id}', '${cf.name}', this.value)">
+                                ${cf.options.map(opt =>
+                                    `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    `;
+                } else if (cf.type === 'boolean') {
+                    return `
+                        <div>
+                            <label>${cf.label}</label>
+                            <select onchange="updateRule('${rule.id}', '${cf.name}', this.value === 'true')">
+                                <option value="true" ${value === true ? 'selected' : ''}>true</option>
+                                <option value="false" ${value === false ? 'selected' : ''}>false</option>
+                            </select>
+                        </div>
+                    `;
+                } else if (cf.type === 'number') {
+                    return `
+                        <div>
+                            <label>${cf.label}</label>
+                            <input type="number" value="${value}"
+                                   onchange="updateRule('${rule.id}', '${cf.name}', parseInt(this.value) || 0)">
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div>
+                            <label>${cf.label}</label>
+                            <input type="text" value="${escapeHtml(value || '')}"
+                                   onchange="updateRule('${rule.id}', '${cf.name}', this.value)">
+                        </div>
+                    `;
+                }
+            });
+
+            return `<div class="rule-card-row ${fields.length === 1 ? 'single' : ''}">${fields.join('')}</div>`;
+        }
+
+        async function validateRules() {
+            if (customRules.length === 0) {
+                showToast('Add at least one rule first', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('validate-rules-btn');
+            btn.disabled = true;
+            btn.textContent = 'Validating...';
+
+            try {
+                const response = await fetch('/api/test-rules', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        curl: document.getElementById('api-curl').value.trim(),
+                        rules: customRules
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update rule cards with validation results
+                    data.results.forEach(result => {
+                        const card = document.getElementById(`rule-card-${result.rule_id}`);
+                        if (card) {
+                            card.classList.remove('valid', 'invalid');
+                            card.classList.add(result.result === 'PASS' ? 'valid' : 'invalid');
+
+                            // Add or update status badge
+                            let statusBadge = card.querySelector('.rule-validation-status');
+                            if (!statusBadge) {
+                                statusBadge = document.createElement('span');
+                                statusBadge.className = 'rule-validation-status';
+                                card.querySelector('.rule-card-header').appendChild(statusBadge);
+                            }
+                            statusBadge.className = `rule-validation-status ${result.result.toLowerCase()}`;
+                            statusBadge.textContent = result.result === 'PASS' ?
+                                `✓ ${result.actual || 'PASS'}` :
+                                `✗ ${result.reason || 'FAIL'}`;
+                        }
+                    });
+
+                    const allPassed = data.results.every(r => r.result === 'PASS');
+                    rulesValidated = true;
+
+                    document.getElementById('validation-status').textContent =
+                        allPassed ?
+                        `✓ All ${data.results.length} rules passed` :
+                        `${data.results.filter(r => r.result === 'PASS').length}/${data.results.length} rules passed`;
+                    document.getElementById('validation-status').style.color = allPassed ? '#27ae60' : '#e74c3c';
+
+                    // Enable save button
+                    document.getElementById('save-api-btn').disabled = false;
+
+                    showToast(allPassed ? 'All rules validated successfully!' : 'Some rules failed validation');
+                } else {
+                    showToast(data.error || 'Validation failed', 'error');
+                }
+            } catch (error) {
+                showToast('Validation failed: ' + error.message, 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Validate Rules';
         }
 
         async function saveApi() {
@@ -1553,13 +2109,20 @@
                 return;
             }
 
+            // Prepare API data with custom rules
+            const apiData = {
+                name,
+                curl,
+                customRules: customRules.length > 0 ? customRules : []
+            };
+
             try {
                 let response;
                 if (editingApiId) {
                     response = await fetch(`/api/apis/${editingApiId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, curl })
+                        body: JSON.stringify(apiData)
                     });
 
                     // Check if section changed
@@ -1582,14 +2145,17 @@
                     response = await fetch(`/api/sections/${sectionId}/apis`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, curl })
+                        body: JSON.stringify(apiData)
                     });
                 }
 
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast(editingApiId ? 'API updated' : 'API created');
+                    const rulesCount = customRules.length;
+                    showToast(editingApiId ?
+                        `API updated with ${rulesCount} rule(s)` :
+                        `API created with ${rulesCount} rule(s)`);
                     closeApiModal();
                     loadSections();
                 } else {

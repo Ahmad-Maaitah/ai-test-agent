@@ -234,11 +234,12 @@ def generate_html_report(
             <div class="test-case {r['result'].lower()}">
                 <div class="test-case-header">
                     <span class="test-case-icon">{'✓' if r['result'] == 'PASS' else '✗'}</span>
-                    <span class="test-case-name">{r['rule_name']}</span>
+                    <span class="test-case-name">{r['rule_name']}{f" ({r.get('field', '')})" if r.get('field') else ''}</span>
                     <span class="test-case-type">{r.get('rule_type', '')}</span>
                     <span class="badge {r['result'].lower()}">{r['result']}</span>
                 </div>
                 <div class="test-case-details">
+                    {f'<div class="test-case-row"><span class="label">Field:</span><span style="color: #8e44ad; font-family: monospace;">{r.get("field", "")}</span></div>' if r.get('field') else ''}
                     <div class="test-case-row">
                         <span class="label">Expected:</span>
                         <span class="expected">{r.get('expected', '-')}</span>
@@ -309,14 +310,17 @@ def generate_run_html_report(
             for rule in rule_results:
                 result_class = rule['result'].lower()
                 icon = '✓' if rule['result'] == 'PASS' else '✗'
+                field_display = f" <span style='color: #8e44ad; font-size: 0.85rem;'>({rule.get('field', '')})</span>" if rule.get('field') else ''
+                field_row = f'''<div class="detail-row"><span class="detail-label">Field:</span><span class="detail-value" style="color: #8e44ad; font-family: monospace;">{rule.get('field', '')}</span></div>''' if rule.get('field') else ''
                 tests_html += f'''
                 <div class="test-item {result_class}">
                     <div class="test-header">
                         <span class="test-icon">{icon}</span>
-                        <span class="test-name">{rule.get('rule_name', '')}</span>
+                        <span class="test-name">{rule.get('rule_name', '')}{field_display}</span>
                         <span class="test-type">{rule.get('rule_type', '')}</span>
                     </div>
                     <div class="test-details">
+                        {field_row}
                         <div class="detail-row">
                             <span class="detail-label">Expected:</span>
                             <span class="detail-value expected">{rule.get('expected', '-')}</span>

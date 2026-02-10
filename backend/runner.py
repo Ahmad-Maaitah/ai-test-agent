@@ -15,7 +15,7 @@ import subprocess
 import sys
 import time
 import requests
-from typing import Optional
+from typing import Optional, List
 
 from backend.utils import (
     parse_curl,
@@ -230,13 +230,14 @@ def generate_allure_report(allure_results_dir: str, allure_report_dir: str) -> b
         return False
 
 
-def run_test_pipeline(curl_command: str, api_name: str = "API Test") -> dict:
+def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rules: List[dict] = None) -> dict:
     """
     Execute the complete test pipeline.
 
     Args:
         curl_command: The cURL command to test
         api_name: Name of the API being tested
+        custom_rules: Optional list of custom rule configurations
 
     Returns:
         Dictionary with execution results
@@ -253,7 +254,9 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test") -> dict:
             'html': None,
             'json': None
         },
-        'error': None
+        'error': None,
+        'status_code': None,
+        'response_time_ms': None
     }
 
     try:
@@ -264,9 +267,20 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test") -> dict:
         start_time = time.time()
         response = execute_api_request(parsed_curl)
         response_time = time.time() - start_time
+        response_time_ms = response_time * 1000
 
         # Step 3: Apply validation rules
-        rule_results = apply_rules(response)
+        if custom_rules and len(custom_rules) > 0:
+            # Use dynamic rules engine for custom rules
+            from backend.dynamic_rules import apply_dynamic_rules
+            try:
+                response_json = response.json()
+            except Exception:
+                response_json = None
+            rule_results = apply_dynamic_rules(custom_rules, response_json, response_time_ms, response.status_code)
+        else:
+            # Fall back to legacy hardcoded rules
+            rule_results = apply_rules(response)
         result['rule_results'] = rule_results
 
         # Step 4: Generate pytest file
@@ -316,6 +330,8 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test") -> dict:
         )
 
         result['success'] = True
+        result['status_code'] = response.status_code
+        result['response_time_ms'] = response_time_ms
 
     except requests.exceptions.Timeout:
         result['error'] = f'API request timed out after {DEFAULT_TIMEOUT} seconds'

@@ -166,6 +166,7 @@ def create_api(section_id):
     req_data = request.get_json()
     name = req_data.get('name', '').strip()
     curl = req_data.get('curl', '').strip()
+    custom_rules = req_data.get('customRules', [])
 
     if not name:
         return jsonify({'success': False, 'error': 'API name is required'}), 400
@@ -189,7 +190,8 @@ def create_api(section_id):
                 'curl': curl,
                 'order': max_order + 1,
                 'lastStatus': None,
-                'lastResult': None
+                'lastResult': None,
+                'customRules': custom_rules
             }
 
             section['apis'].append(new_api)
@@ -206,6 +208,7 @@ def update_api(api_id):
     req_data = request.get_json()
     name = req_data.get('name', '').strip()
     curl = req_data.get('curl', '').strip()
+    custom_rules = req_data.get('customRules')
 
     data = load_data()
 
@@ -216,6 +219,8 @@ def update_api(api_id):
                     api['name'] = name
                 if curl:
                     api['curl'] = curl
+                if custom_rules is not None:
+                    api['customRules'] = custom_rules
                 save_data(data)
                 return jsonify({'success': True, 'api': api})
 
@@ -329,7 +334,9 @@ def run_apis():
         section_name = item['section']
 
         start_time = datetime.now()
-        test_result = run_test_pipeline(api['curl'], api_name=api['name'])
+        # Pass custom rules to runner if available
+        custom_rules = api.get('customRules', [])
+        test_result = run_test_pipeline(api['curl'], api_name=api['name'], custom_rules=custom_rules)
         end_time = datetime.now()
         execution_time = int((end_time - start_time).total_seconds() * 1000)
 
@@ -347,21 +354,27 @@ def run_apis():
 
         overall_result = 'PASS' if (structural_pass and functional_pass) else 'FAIL'
 
-        # Get status code from rule results
-        status_code = None
+        # Get status code directly from test result (set by runner)
+        status_code = test_result.get('status_code')
         error_message = None
+
+        # Fallback: try to get from rule results for legacy compatibility
+        if status_code is None:
+            for r in test_result.get('rule_results', []):
+                if r['rule_name'] == 'Status Code Rule':
+                    if r['reason']:
+                        import re
+                        match = re.search(r'got (\d+)', r['reason'])
+                        if match:
+                            status_code = int(match.group(1))
+                    else:
+                        status_code = 200
+
+        # Collect error messages from failed rules
         for r in test_result.get('rule_results', []):
-            if r['rule_name'] == 'Status Code Rule':
-                if r['reason']:
-                    # Extract status code from reason
-                    import re
-                    match = re.search(r'got (\d+)', r['reason'])
-                    if match:
-                        status_code = int(match.group(1))
-                else:
-                    status_code = 200  # Assume 2xx if passed
             if r['result'] == 'FAIL' and r['reason']:
                 error_message = r['reason']
+                break
 
         result_entry = {
             'apiId': api['id'],
@@ -422,11 +435,12 @@ def run_single_api():
     """Run a single API test (for Add API flow)."""
     req_data = request.get_json()
     curl = req_data.get('curl', '').strip()
+    custom_rules = req_data.get('customRules', [])
 
     if not curl:
         return jsonify({'success': False, 'error': 'cURL command is required'}), 400
 
-    test_result = run_test_pipeline(curl)
+    test_result = run_test_pipeline(curl, custom_rules=custom_rules)
 
     return jsonify({
         'success': True,
@@ -566,3 +580,166 @@ def serve_allure_report(filename):
     """Serve Allure report files."""
     allure_report = os.path.join(OUTPUT_DIR, 'allure-report')
     return send_from_directory(allure_report, filename)
+
+
+# =============================================================================
+# Dynamic Rules API
+# =============================================================================
+
+@main_bp.route('/api/execute-curl', methods=['POST'])
+def execute_curl():
+    """
+    Execute cURL and return response with extracted fields.
+    Used when user enters cURL to show available fields for rule selection.
+    """
+    import time
+    import requests
+    from backend.utils import parse_curl
+    from backend.dynamic_rules import extract_response_fields
+
+    req_data = request.get_json()
+    curl = req_data.get('curl', '').strip()
+
+    if not curl:
+        return jsonify({'success': False, 'error': 'cURL command is required'}), 400
+
+    try:
+        # Parse cURL
+        parsed_curl = parse_curl(curl)
+
+        # Execute request
+        start_time = time.time()
+        response = requests.request(
+            method=parsed_curl['method'],
+            url=parsed_curl['url'],
+            headers=parsed_curl.get('headers', {}),
+            data=parsed_curl.get('data'),
+            verify=parsed_curl.get('verify_ssl', False),
+            timeout=30
+        )
+        response_time_ms = (time.time() - start_time) * 1000
+
+        # Parse response
+        try:
+            response_json = response.json()
+            fields = extract_response_fields(response_json)
+        except Exception:
+            response_json = None
+            fields = []
+
+        return jsonify({
+            'success': True,
+            'status_code': response.status_code,
+            'response_time_ms': int(response_time_ms),
+            'response': response_json,
+            'response_text': response.text[:5000] if response_json is None else None,
+            'fields': fields
+        })
+
+    except requests.exceptions.Timeout:
+        return jsonify({'success': False, 'error': 'Request timed out'}), 408
+    except requests.exceptions.ConnectionError as e:
+        return jsonify({'success': False, 'error': f'Connection failed: {str(e)}'}), 502
+    except ValueError as e:
+        return jsonify({'success': False, 'error': f'Invalid cURL: {str(e)}'}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
+
+
+@main_bp.route('/api/rule-types', methods=['GET'])
+def get_rule_types():
+    """Get all available rule types with their configuration schemas."""
+    from backend.dynamic_rules import get_rule_types
+
+    return jsonify({
+        'success': True,
+        'ruleTypes': get_rule_types()
+    })
+
+
+@main_bp.route('/api/validate-rules', methods=['POST'])
+def validate_rules():
+    """Validate a set of rules before saving."""
+    from backend.dynamic_rules import validate_rule_config
+
+    req_data = request.get_json()
+    rules = req_data.get('rules', [])
+    available_fields = req_data.get('fields', [])
+
+    results = []
+    all_valid = True
+
+    for rule in rules:
+        is_valid, error = validate_rule_config(rule, available_fields)
+        results.append({
+            'ruleId': rule.get('id'),
+            'valid': is_valid,
+            'error': error
+        })
+        if not is_valid:
+            all_valid = False
+
+    return jsonify({
+        'success': True,
+        'allValid': all_valid,
+        'results': results
+    })
+
+
+@main_bp.route('/api/test-rules', methods=['POST'])
+def test_rules():
+    """Execute cURL and test rules without saving."""
+    import time
+    import requests
+    from backend.utils import parse_curl
+    from backend.dynamic_rules import apply_dynamic_rules
+
+    req_data = request.get_json()
+    curl = req_data.get('curl', '').strip()
+    rules = req_data.get('rules', [])
+
+    if not curl:
+        return jsonify({'success': False, 'error': 'cURL command is required'}), 400
+
+    if not rules:
+        return jsonify({'success': False, 'error': 'At least one rule is required'}), 400
+
+    try:
+        # Parse and execute cURL
+        parsed_curl = parse_curl(curl)
+
+        start_time = time.time()
+        response = requests.request(
+            method=parsed_curl['method'],
+            url=parsed_curl['url'],
+            headers=parsed_curl.get('headers', {}),
+            data=parsed_curl.get('data'),
+            verify=parsed_curl.get('verify_ssl', False),
+            timeout=30
+        )
+        response_time_ms = (time.time() - start_time) * 1000
+
+        # Parse response
+        try:
+            response_json = response.json()
+        except Exception:
+            response_json = None
+
+        # Apply rules
+        results = apply_dynamic_rules(rules, response_json, response_time_ms, response.status_code)
+
+        return jsonify({
+            'success': True,
+            'status_code': response.status_code,
+            'response_time_ms': int(response_time_ms),
+            'results': results
+        })
+
+    except requests.exceptions.Timeout:
+        return jsonify({'success': False, 'error': 'Request timed out'}), 408
+    except requests.exceptions.ConnectionError as e:
+        return jsonify({'success': False, 'error': f'Connection failed: {str(e)}'}), 502
+    except ValueError as e:
+        return jsonify({'success': False, 'error': f'Invalid cURL: {str(e)}'}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
