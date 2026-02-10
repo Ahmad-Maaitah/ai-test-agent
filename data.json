@@ -72,8 +72,8 @@
           "name": "Apartment For Sale",
           "curl": "curl --location 'https://opensooq.com/api//taxonomy-api/v8?Action_screen_name=search&medium=app_open&source=opensooq&campaign=direct_app_open' \\\n--header 'currency: JOD' \\\n--header 'Accept: application/json' \\\n--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdDAiOjE3NDIyMDAwMjksImF1ZCI6ImRlc2t0b3AiLCJzdWIiOjcxMDA3NDkyLCJybmQiOiI0MTQ3OTMiLCJleHAiOjE3NDIyMDA0OTN9.dqwJDFa6WktAOs_YPusalVVoXEHODccWp2rd4l3OVBs' \\\n--header 'abBucket: 1' \\\n--header 'release-version: 11.1.00.06' \\\n--header 'Device-Language: en' \\\n--header 'country: jo' \\\n--header 'source: ios' \\\n--header 'device_timezone: UTC+03:00' \\\n--header 'always-200: 1' \\\n--header 'session-id: 9A2078A0-CEB1-4C5B-8DB5-78CE8C0B988B' \\\n--header 'appVersion: pwa-prod-7.2.03-build-2435' \\\n--header 'Accept-Charset: UTF-8' \\\n--header 'rm: 0' \\\n--header 'latency_ms: 527' \\\n--header 'ConnectionType: WiFi' \\\n--header 'version: 4' \\\n--header 'X-Tracking-UUID: _4992B0EA-9E15-4B93-A83C-D8482CC303D6' \\\n--header 'User-Agent: OpenSooq/11.1.00.06_qa_stag/v2.1/1 (com.opensooq.App; build:20241128111310; iOS 14.6.0) Alamofire/5.4.1' \\\n--header 'Content-Type: application/json' \\\n--header 'device-model: iPhone11,6' \\\n--header 'display-mode: normal' \\\n--header 'screen_resolution: 414x896' \\\n--header 'Accept-Language: en' \\\n--data '{\n    \"vertical_link\" : \"Property\", \"filters\" :{\n        \"clone_vertical_link\\/Property\": [\n            1\n        ]\n    },\n\n\"sort_code\":\"\",\n\"selected_cell_type\":\"GridCell\",\n\"filters_val\":{\n\n},\n\n\"member_ids\":[\n\n],\n\"page\":1\n}'",
           "order": 2,
-          "lastStatus": null,
-          "lastResult": null
+          "lastStatus": 200,
+          "lastResult": "PASS"
         }
       ]
     },
@@ -87,13 +87,521 @@
           "name": "MY Account over view",
           "curl": "curl --location 'https://opensooq.com/api//account/my-account/overview/v1?source=opensooq&medium=app_open&campaign=direct_app_open' \\\n--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdDAiOjE3NzA1OTQwMDcsImF1ZCI6ImRlc2t0b3AiLCJzdWIiOjgwNjE0MDAxLCJybmQiOiIxMjQxMjkxMCIsImV4cCI6MTc3MDcwODIzMX0.G8lcY5TWWVGaySPZoR_8rLmAlBttv9wMIrxaikJncxo' \\\n--header 'Accept-Language: ar' \\\n--header 'Device-Language: ar' \\\n--header 'source: web' \\\n--header 'country: jo'",
           "order": 1,
-          "lastStatus": null,
-          "lastResult": null
+          "lastStatus": 200,
+          "lastResult": "PASS"
         }
       ]
     }
   ],
   "reports": [
+    {
+      "runId": "run-0949a23d",
+      "date": "2026-02-10T12:05:07.072554",
+      "totalApis": 8,
+      "passed": 7,
+      "failed": 1,
+      "results": [
+        {
+          "apiId": "api-6f2a0b1b",
+          "apiName": "countries API",
+          "section": "Config",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "1242ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "32410 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 2 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_120507_f86bc9dd.html",
+            "json": "report_20260210_120507_f86bc9dd.json"
+          }
+        },
+        {
+          "apiId": "api-7dbbd986",
+          "apiName": "neighborhoods And cities",
+          "section": "Config",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "2164ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "224385 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 1 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_120508_8b6ae6b8.html",
+            "json": "report_20260210_120508_8b6ae6b8.json"
+          }
+        },
+        {
+          "apiId": "api-6dbf9186",
+          "apiName": "configurations API",
+          "section": "Config",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "1214ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "33468 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 3 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_120510_a3e0092b.html",
+            "json": "report_20260210_120510_a3e0092b.json"
+          }
+        },
+        {
+          "apiId": "api-72929ecc",
+          "apiName": "Home page",
+          "section": "Home Page",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "3476ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "161096 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 1 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_120511_96be15e9.html",
+            "json": "report_20260210_120511_96be15e9.json"
+          }
+        },
+        {
+          "apiId": "api-6db23ca9",
+          "apiName": "Test",
+          "section": "Home Page",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "4316ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "160767 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 1 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_120515_f97570b0.html",
+            "json": "report_20260210_120515_f97570b0.json"
+          }
+        },
+        {
+          "apiId": "api-600f7837",
+          "apiName": "CarFor Sale API",
+          "section": "Taxonomy",
+          "statusCode": 404,
+          "result": "FAIL",
+          "structuralResult": "FAIL",
+          "functionalResult": "FAIL",
+          "executionTime": "1234ms",
+          "errorMessage": "Response is not valid JSON: Expecting value: line 1 column 1 (char 0)",
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "FAIL",
+              "reason": "Expected 2xx status code, got 404",
+              "expected": "200-299 (2xx)",
+              "actual": "404"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "153 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "FAIL",
+              "reason": "Response is not valid JSON: Expecting value: line 1 column 1 (char 0)",
+              "expected": "Valid JSON format",
+              "actual": "Invalid JSON"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_120519_e79eb09b.html",
+            "json": "report_20260210_120519_e79eb09b.json"
+          }
+        },
+        {
+          "apiId": "api-13426982",
+          "apiName": "Apartment For Sale",
+          "section": "Taxonomy",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "2464ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "61895 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 9 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_120520_3444e4d5.html",
+            "json": "report_20260210_120520_3444e4d5.json"
+          }
+        },
+        {
+          "apiId": "api-f50daa9a",
+          "apiName": "MY Account over view",
+          "section": "MY Account",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "1475ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "1105 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 9 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_120523_cfc142d0.html",
+            "json": "report_20260210_120523_cfc142d0.json"
+          }
+        }
+      ]
+    },
+    {
+      "runId": "run-c8bd371d",
+      "date": "2026-02-10T12:04:13.640956",
+      "totalApis": 2,
+      "passed": 2,
+      "failed": 0,
+      "results": [
+        {
+          "apiId": "api-6f2a0b1b",
+          "apiName": "countries API",
+          "section": "Config",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "1281ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "32410 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 2 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_120413_2eaed497.html",
+            "json": "report_20260210_120413_2eaed497.json"
+          }
+        },
+        {
+          "apiId": "api-72929ecc",
+          "apiName": "Home page",
+          "section": "Home Page",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "3521ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "161355 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 1 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_120414_9c0aa3d0.html",
+            "json": "report_20260210_120414_9c0aa3d0.json"
+          }
+        }
+      ]
+    },
     {
       "runId": "run-f5a89814",
       "date": "2026-02-10T10:55:55.556752",
@@ -197,97 +705,6 @@
           "reportPaths": {
             "html": "report_20260210_105556_0a744df0.html",
             "json": "report_20260210_105556_0a744df0.json"
-          }
-        }
-      ]
-    },
-    {
-      "runId": "run-1a00046a",
-      "date": "2026-02-09T18:16:02.145383",
-      "totalApis": 2,
-      "passed": 2,
-      "failed": 0,
-      "results": [
-        {
-          "apiId": "api-72929ecc",
-          "apiName": "Home page",
-          "section": "Home Page",
-          "statusCode": 200,
-          "result": "PASS",
-          "structuralResult": "PASS",
-          "functionalResult": "PASS",
-          "executionTime": "3115ms",
-          "errorMessage": null,
-          "ruleResults": [
-            {
-              "rule_name": "Status Code Rule",
-              "rule_type": "functional",
-              "result": "PASS",
-              "reason": null
-            },
-            {
-              "rule_name": "Response Exists Rule",
-              "rule_type": "structural",
-              "result": "PASS",
-              "reason": null
-            },
-            {
-              "rule_name": "Valid JSON Rule",
-              "rule_type": "structural",
-              "result": "PASS",
-              "reason": null
-            },
-            {
-              "rule_name": "No Error Field Rule",
-              "rule_type": "functional",
-              "result": "PASS",
-              "reason": null
-            }
-          ],
-          "reportPaths": {
-            "html": "report_20260209_181602_794d6dfd.html",
-            "json": "report_20260209_181602_794d6dfd.json"
-          }
-        },
-        {
-          "apiId": "api-6db23ca9",
-          "apiName": "Test",
-          "section": "Home Page",
-          "statusCode": 200,
-          "result": "PASS",
-          "structuralResult": "PASS",
-          "functionalResult": "PASS",
-          "executionTime": "2903ms",
-          "errorMessage": null,
-          "ruleResults": [
-            {
-              "rule_name": "Status Code Rule",
-              "rule_type": "functional",
-              "result": "PASS",
-              "reason": null
-            },
-            {
-              "rule_name": "Response Exists Rule",
-              "rule_type": "structural",
-              "result": "PASS",
-              "reason": null
-            },
-            {
-              "rule_name": "Valid JSON Rule",
-              "rule_type": "structural",
-              "result": "PASS",
-              "reason": null
-            },
-            {
-              "rule_name": "No Error Field Rule",
-              "rule_type": "functional",
-              "result": "PASS",
-              "reason": null
-            }
-          ],
-          "reportPaths": {
-            "html": "report_20260209_181605_c7f5730f.html",
-            "json": "report_20260209_181605_c7f5730f.json"
           }
         }
       ]
