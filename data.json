@@ -72,8 +72,8 @@
           "name": "Apartment For Sale",
           "curl": "curl --location 'https://opensooq.com/api//taxonomy-api/v8?Action_screen_name=search&medium=app_open&source=opensooq&campaign=direct_app_open' \\\n--header 'currency: JOD' \\\n--header 'Accept: application/json' \\\n--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdDAiOjE3NDIyMDAwMjksImF1ZCI6ImRlc2t0b3AiLCJzdWIiOjcxMDA3NDkyLCJybmQiOiI0MTQ3OTMiLCJleHAiOjE3NDIyMDA0OTN9.dqwJDFa6WktAOs_YPusalVVoXEHODccWp2rd4l3OVBs' \\\n--header 'abBucket: 1' \\\n--header 'release-version: 11.1.00.06' \\\n--header 'Device-Language: en' \\\n--header 'country: jo' \\\n--header 'source: ios' \\\n--header 'device_timezone: UTC+03:00' \\\n--header 'always-200: 1' \\\n--header 'session-id: 9A2078A0-CEB1-4C5B-8DB5-78CE8C0B988B' \\\n--header 'appVersion: pwa-prod-7.2.03-build-2435' \\\n--header 'Accept-Charset: UTF-8' \\\n--header 'rm: 0' \\\n--header 'latency_ms: 527' \\\n--header 'ConnectionType: WiFi' \\\n--header 'version: 4' \\\n--header 'X-Tracking-UUID: _4992B0EA-9E15-4B93-A83C-D8482CC303D6' \\\n--header 'User-Agent: OpenSooq/11.1.00.06_qa_stag/v2.1/1 (com.opensooq.App; build:20241128111310; iOS 14.6.0) Alamofire/5.4.1' \\\n--header 'Content-Type: application/json' \\\n--header 'device-model: iPhone11,6' \\\n--header 'display-mode: normal' \\\n--header 'screen_resolution: 414x896' \\\n--header 'Accept-Language: en' \\\n--data '{\n    \"vertical_link\" : \"Property\", \"filters\" :{\n        \"clone_vertical_link\\/Property\": [\n            1\n        ]\n    },\n\n\"sort_code\":\"\",\n\"selected_cell_type\":\"GridCell\",\n\"filters_val\":{\n\n},\n\n\"member_ids\":[\n\n],\n\"page\":1\n}'",
           "order": 2,
-          "lastStatus": 200,
-          "lastResult": "PASS"
+          "lastStatus": 401,
+          "lastResult": "FAIL"
         }
       ]
     },
@@ -94,6 +94,114 @@
     }
   ],
   "reports": [
+    {
+      "runId": "run-e0a00b91",
+      "date": "2026-02-10T13:29:28.611995",
+      "totalApis": 2,
+      "passed": 1,
+      "failed": 1,
+      "results": [
+        {
+          "apiId": "api-6dbf9186",
+          "apiName": "configurations API",
+          "section": "Config",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "1192ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "33468 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 3 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_132928_d8a1817d.html",
+            "json": "report_20260210_132928_d8a1817d.json"
+          }
+        },
+        {
+          "apiId": "api-13426982",
+          "apiName": "Apartment For Sale",
+          "section": "Taxonomy",
+          "statusCode": 401,
+          "result": "FAIL",
+          "structuralResult": "PASS",
+          "functionalResult": "FAIL",
+          "executionTime": "1150ms",
+          "errorMessage": "Response contains error: Not Authorized",
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "FAIL",
+              "reason": "Expected 2xx status code, got 401",
+              "expected": "200-299 (2xx)",
+              "actual": "401"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "26 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 1 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "FAIL",
+              "reason": "Response contains error: Not Authorized",
+              "expected": "No error/message fields in response",
+              "actual": "error: \"Not Authorized\""
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_132929_83fe2871.html",
+            "json": "report_20260210_132929_83fe2871.json"
+          }
+        }
+      ],
+      "htmlReport": "run_report_run-e0a00b91.html"
+    },
     {
       "runId": "run-ec759e49",
       "date": "2026-02-10T13:18:09.819376",
