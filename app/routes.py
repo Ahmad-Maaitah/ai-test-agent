@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from flask import Blueprint, render_template, request, jsonify, send_from_directory
 
-from backend.runner import run_test_pipeline
+from backend.runner import run_test_pipeline, generate_allure_report
 
 
 main_bp = Blueprint('main', __name__)
@@ -328,7 +328,7 @@ def run_apis():
         section_name = item['section']
 
         start_time = datetime.now()
-        test_result = run_test_pipeline(api['curl'])
+        test_result = run_test_pipeline(api['curl'], api_name=api['name'])
         end_time = datetime.now()
         execution_time = int((end_time - start_time).total_seconds() * 1000)
 
@@ -519,3 +519,38 @@ def rerun_failed(run_id):
             return run_apis()  # Will use request body
 
     return jsonify({'success': False, 'error': 'Report not found'}), 404
+
+
+# =============================================================================
+# Allure Reports
+# =============================================================================
+
+@main_bp.route('/api/allure/generate', methods=['POST'])
+def generate_allure():
+    """Generate Allure report from collected results."""
+    allure_results = os.path.join(OUTPUT_DIR, 'allure-results')
+    allure_report = os.path.join(OUTPUT_DIR, 'allure-report')
+
+    if not os.path.exists(allure_results):
+        return jsonify({'success': False, 'error': 'No Allure results found'}), 404
+
+    success = generate_allure_report(allure_results, allure_report)
+
+    if success:
+        return jsonify({
+            'success': True,
+            'message': 'Allure report generated',
+            'reportUrl': '/allure-report/index.html'
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Failed to generate Allure report. Make sure Allure is installed.'
+        }), 500
+
+
+@main_bp.route('/allure-report/<path:filename>')
+def serve_allure_report(filename):
+    """Serve Allure report files."""
+    allure_report = os.path.join(OUTPUT_DIR, 'allure-report')
+    return send_from_directory(allure_report, filename)

@@ -142,7 +142,9 @@ def get_report_paths(unique_id: str) -> dict:
 
     return {
         'html': os.path.join(output_dir, f'report_{unique_id}.html'),
-        'json': os.path.join(output_dir, f'report_{unique_id}.json')
+        'json': os.path.join(output_dir, f'report_{unique_id}.json'),
+        'allure_results': os.path.join(output_dir, 'allure-results', unique_id),
+        'allure_report': os.path.join(output_dir, 'allure-report', unique_id)
     }
 
 

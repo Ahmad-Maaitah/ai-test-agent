@@ -357,6 +357,31 @@
             background: #c0392b;
         }
 
+        .btn-allure {
+            background: linear-gradient(135deg, #f05b5b, #eb3d3d);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-allure:hover {
+            background: linear-gradient(135deg, #eb3d3d, #d32f2f);
+        }
+
+        .allure-icon {
+            background: white;
+            color: #eb3d3d;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
         .btn-secondary {
             background: #ecf0f1;
             color: #2c3e50;
@@ -790,6 +815,97 @@
             gap: 10px;
         }
 
+        /* Test Cases */
+        .test-count.pass { color: #27ae60; font-weight: 600; }
+        .test-count.fail { color: #e74c3c; font-weight: 600; }
+
+        .test-cases-title {
+            margin: 0 0 10px 0;
+            padding: 10px 15px;
+            background: #ecf0f1;
+            font-size: 13px;
+            color: #2c3e50;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .test-cases-list {
+            background: white;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .test-case-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            border-left: 4px solid #27ae60;
+        }
+
+        .test-case-item:last-child {
+            border-bottom: none;
+        }
+
+        .test-case-item.fail {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        .test-case-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .test-case-icon {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .test-case-item.pass .test-case-icon { color: #27ae60; }
+        .test-case-item.fail .test-case-icon { color: #e74c3c; }
+
+        .test-case-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .test-case-type {
+            font-size: 11px;
+            color: white;
+            background: #7f8c8d;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .test-case-details {
+            margin-left: 26px;
+        }
+
+        .test-case-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+
+        .test-case-row .label {
+            color: #7f8c8d;
+            min-width: 70px;
+        }
+
+        .test-case-row .value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: #2c3e50;
+        }
+
+        .test-case-row .value.expected {
+            color: #27ae60;
+        }
+
+        .test-case-row .value.actual.fail {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -955,6 +1071,9 @@
                             <option value="FAIL">Fail Only</option>
                         </select>
                     </div>
+                    <button class="btn btn-allure" onclick="openAllureReport()">
+                        <span class="allure-icon">A</span> View Allure Report
+                    </button>
                 </div>
             </div>
             <div class="reports-list" id="reports-list">
@@ -1587,6 +1706,24 @@
         // =============================================================================
         // Reports
         // =============================================================================
+
+        async function openAllureReport() {
+            try {
+                // First, try to generate the Allure report
+                const response = await fetch('/api/allure/generate', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    // Open the Allure report in a new tab
+                    window.open(data.reportUrl, '_blank');
+                } else {
+                    showToast(data.error || 'Failed to generate Allure report', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to open Allure report: ' + error.message, 'error');
+            }
+        }
+
         async function loadReports() {
             const container = document.getElementById('reports-list');
             const sectionFilter = document.getElementById('filter-section').value;
@@ -1670,42 +1807,51 @@
                                     </div>
                                 </div>
                                 <div class="module-apis" id="module-${report.runId}-${moduleName.replace(/\s+/g, '-')}">
-                                    ${moduleData.apis.map(api => `
+                                    ${moduleData.apis.map(api => {
+                                        const passedTests = (api.ruleResults || []).filter(r => r.result === 'PASS').length;
+                                        const failedTests = (api.ruleResults || []).filter(r => r.result === 'FAIL').length;
+                                        const totalTests = (api.ruleResults || []).length;
+                                        return `
                                         <div class="api-report-item">
                                             <div class="api-report-header" onclick="event.stopPropagation(); toggleApiDetails('${report.runId}-${api.apiId}')">
                                                 <div class="api-report-info">
                                                     <h5>${escapeHtml(api.apiName)}</h5>
-                                                    <span class="api-report-meta">Status: ${api.statusCode || '-'} • Time: ${api.executionTime}</span>
+                                                    <span class="api-report-meta">
+                                                        Status: ${api.statusCode || '-'} •
+                                                        Time: ${api.executionTime} •
+                                                        Tests: <span class="test-count pass">${passedTests} passed</span> / <span class="test-count fail">${failedTests} failed</span>
+                                                    </span>
                                                 </div>
                                                 <div class="api-report-badges">
-                                                    <span class="status-badge ${api.structuralResult.toLowerCase()}">Structural: ${api.structuralResult}</span>
-                                                    <span class="status-badge ${api.functionalResult.toLowerCase()}">Functional: ${api.functionalResult}</span>
                                                     <span class="status-badge ${api.result.toLowerCase()}">${api.result}</span>
                                                 </div>
                                             </div>
-                                            <div class="api-report-details" id="api-details-${report.runId}-${api.apiId}">
-                                                <div class="rule-logs">
-                                                    <div class="rule-log-item header">
-                                                        <div>Rule</div>
-                                                        <div>Expected</div>
-                                                        <div>Actual</div>
-                                                        <div>Result</div>
-                                                    </div>
+                                            <div class="api-report-details expanded" id="api-details-${report.runId}-${api.apiId}">
+                                                <h6 class="test-cases-title">Test Cases (${totalTests})</h6>
+                                                <div class="test-cases-list">
                                                     ${(api.ruleResults || []).map(rule => `
-                                                        <div class="rule-log-item">
-                                                            <div>
-                                                                <div class="rule-log-name">${escapeHtml(rule.rule_name)}</div>
-                                                                <div class="rule-log-type">${rule.rule_type || ''}</div>
+                                                        <div class="test-case-item ${rule.result.toLowerCase()}">
+                                                            <div class="test-case-header">
+                                                                <span class="test-case-icon">${rule.result === 'PASS' ? '✓' : '✗'}</span>
+                                                                <span class="test-case-name">${escapeHtml(rule.rule_name)}</span>
+                                                                <span class="test-case-type">${rule.rule_type || ''}</span>
                                                             </div>
-                                                            <div class="log-value expected">${escapeHtml(rule.expected || '-')}</div>
-                                                            <div class="log-value actual ${rule.result === 'FAIL' ? 'fail' : ''}">${escapeHtml(rule.actual || '-')}</div>
-                                                            <div><span class="status-badge ${rule.result.toLowerCase()}">${rule.result}</span></div>
+                                                            <div class="test-case-details">
+                                                                <div class="test-case-row">
+                                                                    <span class="label">Expected:</span>
+                                                                    <span class="value expected">${escapeHtml(rule.expected || '-')}</span>
+                                                                </div>
+                                                                <div class="test-case-row">
+                                                                    <span class="label">Actual:</span>
+                                                                    <span class="value actual ${rule.result === 'FAIL' ? 'fail' : ''}">${escapeHtml(rule.actual || '-')}</span>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     `).join('')}
                                                 </div>
                                             </div>
                                         </div>
-                                    `).join('')}
+                                    `}).join('')}
                                 </div>
                             </div>
                         `).join('')}

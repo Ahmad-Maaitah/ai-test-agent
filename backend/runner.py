@@ -25,7 +25,7 @@ from backend.utils import (
     write_file
 )
 from backend.rules import apply_rules
-from backend.report import save_execution_metadata, generate_json_report
+from backend.report import save_execution_metadata, generate_json_report, generate_html_report
 
 
 # Default timeout for API requests (30 seconds)
@@ -204,12 +204,39 @@ def run_pytest(test_file_path: str, report_paths: dict) -> tuple:
     return result.returncode, result.stdout, result.stderr
 
 
-def run_test_pipeline(curl_command: str) -> dict:
+def generate_allure_report(allure_results_dir: str, allure_report_dir: str) -> bool:
+    """
+    Generate Allure HTML report from results.
+
+    Args:
+        allure_results_dir: Path to allure results directory
+        allure_report_dir: Path to generate allure HTML report
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        os.makedirs(allure_report_dir, exist_ok=True)
+        result = subprocess.run(
+            ['allure', 'generate', allure_results_dir, '-o', allure_report_dir, '--clean'],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        # Allure command not found
+        return False
+    except Exception:
+        return False
+
+
+def run_test_pipeline(curl_command: str, api_name: str = "API Test") -> dict:
     """
     Execute the complete test pipeline.
 
     Args:
         curl_command: The cURL command to test
+        api_name: Name of the API being tested
 
     Returns:
         Dictionary with execution results
@@ -249,7 +276,18 @@ def run_test_pipeline(curl_command: str) -> dict:
         # Step 5: Run pytest and generate reports
         return_code, stdout, stderr = run_pytest(test_file_path, report_paths)
 
-        # Step 6: Generate backup JSON report if pytest-json-report failed
+        # Step 6: Generate custom HTML report with API name
+        generate_html_report(
+            unique_id=unique_id,
+            api_name=api_name,
+            curl_command=curl_command,
+            rule_results=rule_results,
+            report_path=report_paths['html'],
+            api_response_status=response.status_code,
+            execution_time=f"{response_time:.2f}s"
+        )
+
+        # Step 7: Generate backup JSON report if pytest-json-report failed
         if not os.path.exists(report_paths['json']):
             generate_json_report(
                 unique_id,
