@@ -1,0 +1,296 @@
+{
+  "sections": [
+    {
+      "id": "section-default",
+      "name": "Config",
+      "order": 1,
+      "apis": [
+        {
+          "id": "api-6f2a0b1b",
+          "name": "countries API",
+          "curl": "curl --location 'https://api.opensooq.com/v2.1/countries?withTicket=1&supportCurrency=true' --header 'country: jo' --header 'source: ios' --header 'x-access-token: a9d85bf9942cf90b64793dfe5aad7564dfc104b7' --header 'Authorization: Basic MDc4ODY3OTQ1NTowOTg3NjU0MzI='",
+          "order": 1,
+          "lastStatus": 200,
+          "lastResult": "PASS"
+        },
+        {
+          "id": "api-7dbbd986",
+          "name": "neighborhoods And cities",
+          "curl": "curl --location 'https://api.opensooq.com/v2.1/cities?expand=neighborhoods' --header 'country: jo' --header 'source: ios' --header 'x-access-token: a9d85bf9942cf90b64793dfe5aad7564dfc104b7' --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdDAiOjE3NDcwNTM1NDUsImF1ZCI6ImRlc2t0b3AiLCJzdWIiOjE0NDQyMDY0LCJybmQiOiIzNzEyMTMxNSIsImV4cCI6MTc0NzI5NjEyM30.8CxffCKPHffoLZtvJp1SAoWcvPFcYzBH5LAPLt205aY'",
+          "order": 2,
+          "lastStatus": 200,
+          "lastResult": "PASS"
+        },
+        {
+          "id": "api-6dbf9186",
+          "name": "configurations API",
+          "curl": "curl --location 'https://api.opensooq.com/v2.1/configurations?expand=ticket' --header 'country: jo' --header 'source: ios'",
+          "order": 3,
+          "lastStatus": 200,
+          "lastResult": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "section-f04bdfc7",
+      "name": "Home Page",
+      "order": 2,
+      "apis": [
+        {
+          "id": "api-72929ecc",
+          "name": "Home page",
+          "curl": "curl --location 'https://opensooq.com/api//home/v2/full?source=opensooq&medium=app_open&campaign=direct_app_open&abBucket=3' \\\n--header 'release-version: pwa-prod-7.2.03-build-2435' \\\n--header 'ConnectionType: WiFi' \\\n--header 'source: ios' \\\n--header 'Accept-Language: ar' \\\n--header 'country: jo' \\\n--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdDAiOjE3NDY5NTIzNzEsImF1ZCI6ImRlc2t0b3AiLCJzdWIiOjcxMDA3NDkyLCJybmQiOiIwMzExNDIiLCJleHAiOjE3NDY5NjQzNzB9.SibGNiSF9UmDdD9kEx0njndV0WWb_jYtYqreHR5uqy4'",
+          "order": 1,
+          "lastStatus": 200,
+          "lastResult": "PASS"
+        },
+        {
+          "id": "api-6db23ca9",
+          "name": "Test",
+          "curl": "curl --location 'https://opensooq.com/api//home/v2/full?source=opensooq&medium=app_open&campaign=direct_app_open&abBucket=3' \\\n--header 'release-version: pwa-prod-7.2.03-build-2435' \\\n--header 'ConnectionType: WiFi' \\\n--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdDAiOjE3NDcwNTM1NDUsImF1ZCI6ImRlc2t0b3AiLCJzdWIiOjE0NDQyMDY0LCJybmQiOiIzNzEyMTMxNSIsImV4cCI6MTc0NzI5NjEyM30.8CxffCKPHffoLZtvJp1SAoWcvPFcYzBH5LAPLt205aY' \\\n--header 'source: ios' \\\n--header 'Accept-Language: ar' \\\n--header 'country: jo'",
+          "order": 2,
+          "lastStatus": 200,
+          "lastResult": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "section-9362b0e3",
+      "name": "Taxonomy",
+      "order": 3,
+      "apis": [
+        {
+          "id": "api-600f7837",
+          "name": "CarFor Sale API",
+          "curl": "curl --location 'https://opensooq.com/api//taxonomy-api/v8' \\\n--header 'device_language: en' \\\n--header 'release-version: 11.1.00.06' \\\n--header 'source: ios' \\\n--header 'Device-Language: en' \\\n--header 'Accept-Language: en' \\\n--header 'rm: 0' \\\n--header 'latency_ms: 513' \\\n--header 'display-mode: normal' \\\n--header 'session-id: 9A2078A0-CEB1-4C5B-8DB5-78CE8C0B988B' \\\n--header 'currency: JOD' \\\n--header 'appVersion: pwa-prod-7.2.03-build-2435' \\\n--header 'abBucket: 1' \\\n--header 'country: jo' \\\n--header 'device-model: iPhone11,6' \\\n--header 'version: 4' \\\n--header 'Accept: application/json' \\\n--header 'ConnectionType: WiFi' \\\n--header 'User-Agent: OpenSooq/11.1.00.06_qa_stag/v2.1/1 (com.opensooq.App; build:20241128111310; iOS 14.6.0) Alamofire/5.4.1' \\\n--header 'X-Tracking-UUID: _4992B0EA-9E15-4B93-A83C-D8482CC303D6' \\\n--header 'screen_resolution: 414x896' \\\n--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdDAiOjE3NDIyMDAwMjksImF1ZCI6ImRlc2t0b3AiLCJzdWIiOjcxMDA3NDkyLCJybmQiOiI0MTQ3OTMiLCJleHAiOjE3NDIyMDA0OTN9.dqwJDFa6WktAOs_YPusalVVoXEHODccWp2rd4l3OVBs' \\\n--header 'Content-Type: application/x-www-form-urlencoded' \\\n--data-urlencode 'vertical_link=Autos'",
+          "order": 1,
+          "lastStatus": 404,
+          "lastResult": "FAIL"
+        },
+        {
+          "id": "api-13426982",
+          "name": "Apartment For Sale",
+          "curl": "curl --location 'https://opensooq.com/api//taxonomy-api/v8?Action_screen_name=search&medium=app_open&source=opensooq&campaign=direct_app_open' \\\n--header 'currency: JOD' \\\n--header 'Accept: application/json' \\\n--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdDAiOjE3NDIyMDAwMjksImF1ZCI6ImRlc2t0b3AiLCJzdWIiOjcxMDA3NDkyLCJybmQiOiI0MTQ3OTMiLCJleHAiOjE3NDIyMDA0OTN9.dqwJDFa6WktAOs_YPusalVVoXEHODccWp2rd4l3OVBs' \\\n--header 'abBucket: 1' \\\n--header 'release-version: 11.1.00.06' \\\n--header 'Device-Language: en' \\\n--header 'country: jo' \\\n--header 'source: ios' \\\n--header 'device_timezone: UTC+03:00' \\\n--header 'always-200: 1' \\\n--header 'session-id: 9A2078A0-CEB1-4C5B-8DB5-78CE8C0B988B' \\\n--header 'appVersion: pwa-prod-7.2.03-build-2435' \\\n--header 'Accept-Charset: UTF-8' \\\n--header 'rm: 0' \\\n--header 'latency_ms: 527' \\\n--header 'ConnectionType: WiFi' \\\n--header 'version: 4' \\\n--header 'X-Tracking-UUID: _4992B0EA-9E15-4B93-A83C-D8482CC303D6' \\\n--header 'User-Agent: OpenSooq/11.1.00.06_qa_stag/v2.1/1 (com.opensooq.App; build:20241128111310; iOS 14.6.0) Alamofire/5.4.1' \\\n--header 'Content-Type: application/json' \\\n--header 'device-model: iPhone11,6' \\\n--header 'display-mode: normal' \\\n--header 'screen_resolution: 414x896' \\\n--header 'Accept-Language: en' \\\n--data '{\n    \"vertical_link\" : \"Property\", \"filters\" :{\n        \"clone_vertical_link\\/Property\": [\n            1\n        ]\n    },\n\n\"sort_code\":\"\",\n\"selected_cell_type\":\"GridCell\",\n\"filters_val\":{\n\n},\n\n\"member_ids\":[\n\n],\n\"page\":1\n}'",
+          "order": 2,
+          "lastStatus": null,
+          "lastResult": null
+        }
+      ]
+    },
+    {
+      "id": "section-d8caa15f",
+      "name": "MY Account",
+      "order": 4,
+      "apis": [
+        {
+          "id": "api-f50daa9a",
+          "name": "MY Account over view",
+          "curl": "curl --location 'https://opensooq.com/api//account/my-account/overview/v1?source=opensooq&medium=app_open&campaign=direct_app_open' \\\n--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdDAiOjE3NzA1OTQwMDcsImF1ZCI6ImRlc2t0b3AiLCJzdWIiOjgwNjE0MDAxLCJybmQiOiIxMjQxMjkxMCIsImV4cCI6MTc3MDcwODIzMX0.G8lcY5TWWVGaySPZoR_8rLmAlBttv9wMIrxaikJncxo' \\\n--header 'Accept-Language: ar' \\\n--header 'Device-Language: ar' \\\n--header 'source: web' \\\n--header 'country: jo'",
+          "order": 1,
+          "lastStatus": null,
+          "lastResult": null
+        }
+      ]
+    }
+  ],
+  "reports": [
+    {
+      "runId": "run-f5a89814",
+      "date": "2026-02-10T10:55:55.556752",
+      "totalApis": 2,
+      "passed": 2,
+      "failed": 0,
+      "results": [
+        {
+          "apiId": "api-6f2a0b1b",
+          "apiName": "countries API",
+          "section": "Config",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "1258ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "32410 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 2 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_105555_57884bf9.html",
+            "json": "report_20260210_105555_57884bf9.json"
+          }
+        },
+        {
+          "apiId": "api-72929ecc",
+          "apiName": "Home page",
+          "section": "Home Page",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "3178ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "200-299 (2xx)",
+              "actual": "200"
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Non-empty response body",
+              "actual": "161391 characters"
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null,
+              "expected": "Valid JSON format",
+              "actual": "JSON Object with 1 keys"
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null,
+              "expected": "No error/message fields in response",
+              "actual": "No error fields found"
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260210_105556_0a744df0.html",
+            "json": "report_20260210_105556_0a744df0.json"
+          }
+        }
+      ]
+    },
+    {
+      "runId": "run-1a00046a",
+      "date": "2026-02-09T18:16:02.145383",
+      "totalApis": 2,
+      "passed": 2,
+      "failed": 0,
+      "results": [
+        {
+          "apiId": "api-72929ecc",
+          "apiName": "Home page",
+          "section": "Home Page",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "3115ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260209_181602_794d6dfd.html",
+            "json": "report_20260209_181602_794d6dfd.json"
+          }
+        },
+        {
+          "apiId": "api-6db23ca9",
+          "apiName": "Test",
+          "section": "Home Page",
+          "statusCode": 200,
+          "result": "PASS",
+          "structuralResult": "PASS",
+          "functionalResult": "PASS",
+          "executionTime": "2903ms",
+          "errorMessage": null,
+          "ruleResults": [
+            {
+              "rule_name": "Status Code Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null
+            },
+            {
+              "rule_name": "Response Exists Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null
+            },
+            {
+              "rule_name": "Valid JSON Rule",
+              "rule_type": "structural",
+              "result": "PASS",
+              "reason": null
+            },
+            {
+              "rule_name": "No Error Field Rule",
+              "rule_type": "functional",
+              "result": "PASS",
+              "reason": null
+            }
+          ],
+          "reportPaths": {
+            "html": "report_20260209_181605_c7f5730f.html",
+            "json": "report_20260209_181605_c7f5730f.json"
+          }
+        }
+      ]
+    }
+  ]
+}

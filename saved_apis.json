@@ -1,1 +1,6 @@
-{}
+{
+  "Get User": "curl https://jsonplaceholder.typicode.com/users/1",
+  "countries API": "curl --location 'https://api.opensooq.com/v2.1/countries?withTicket=1&supportCurrency=true' \\\n--header 'country: jo' \\\n--header 'source: ios' \\\n--header 'x-access-token: a9d85bf9942cf90b64793dfe5aad7564dfc104b7' \\\n--header 'Authorization: Basic MDc4ODY3OTQ1NTowOTg3NjU0MzI='",
+  "neighborhoods And cities": "curl --location 'https://api.opensooq.com/v2.1/cities?expand=neighborhoods' \\\n--header 'country: jo' \\\n--header 'source: ios' \\\n--header 'x-access-token: a9d85bf9942cf90b64793dfe5aad7564dfc104b7' \\\n--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdDAiOjE3NDcwNTM1NDUsImF1ZCI6ImRlc2t0b3AiLCJzdWIiOjE0NDQyMDY0LCJybmQiOiIzNzEyMTMxNSIsImV4cCI6MTc0NzI5NjEyM30.8CxffCKPHffoLZtvJp1SAoWcvPFcYzBH5LAPLt205aY'",
+  "configurations API": "curl --location 'https://api.opensooq.com/v2.1/configurations?expand=ticket' \\\n--header 'country: jo' \\\n--header 'source: ios'"
+}

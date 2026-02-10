@@ -7,307 +7,809 @@
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px;
             background: #f5f5f5;
             color: #333;
+            min-height: 100vh;
         }
 
-        h1 {
-            color: #2c3e50;
-            margin: 0;
-        }
-
-        .subtitle {
-            color: #7f8c8d;
-            margin-bottom: 30px;
-        }
-
-        .input-section {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.2s;
-            margin-bottom: 15px;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        textarea {
-            width: 100%;
-            height: 150px;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            resize: vertical;
-            transition: border-color 0.2s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        textarea::placeholder {
-            color: #bdc3c7;
-        }
-
-        select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-            background: white;
-            cursor: pointer;
-            margin-bottom: 15px;
-        }
-
-        select:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: #2980b9;
-        }
-
-        button:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-        }
-
-        .btn-save {
-            background: #27ae60;
-        }
-
-        .btn-save:hover:not(:disabled) {
-            background: #219a52;
-        }
-
-        .btn-delete {
-            background: #e74c3c;
-        }
-
-        .btn-delete:hover {
-            background: #c0392b;
-        }
-
-        .btn-clear {
-            background: #95a5a6;
-        }
-
-        .btn-clear:hover {
-            background: #7f8c8d;
-        }
-
-        .results-section {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: none;
-        }
-
-        .results-section.visible {
-            display: block;
-        }
-
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .results-header h2 {
-            margin: 0;
-            color: #2c3e50;
-        }
-
-        .rule-result {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            background: #f8f9fa;
-        }
-
-        .rule-name {
-            font-weight: 500;
-        }
-
-        .rule-status {
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .rule-status.pass {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .rule-status.fail {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .rule-reason {
-            font-size: 13px;
-            color: #721c24;
-            margin-top: 8px;
-            padding-left: 15px;
-            border-left: 3px solid #f8d7da;
-        }
-
-        .reports-section {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-
-        .reports-section h3 {
-            margin-top: 0;
-            color: #2c3e50;
-        }
-
-        .report-links {
-            display: flex;
-            gap: 15px;
-        }
-
-        .report-link {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #ecf0f1;
-            color: #2c3e50;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-
-        .report-link:hover {
-            background: #d5dbdb;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .example {
-            font-size: 13px;
-            color: #7f8c8d;
-            margin-top: 10px;
-        }
-
-        .example code {
-            background: #ecf0f1;
-            padding: 2px 6px;
-            border-radius: 3px;
-        }
-
+        /* Header */
         .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 20px 30px;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 10px;
+            gap: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .logo-container {
+            background: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .logo {
-            max-width: 100%;
-            height: auto;
-            max-height: 150px;
-            border-radius: 8px;
+            height: 45px;
+            display: block;
         }
 
+        .header-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .header h1 .highlight {
+            color: #00d4ff;
+        }
+
+        .header-subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            font-weight: 400;
+        }
+
+        .header-badge {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: auto;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0 30px;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: #7f8c8d;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #3498db;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px 30px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Saved APIs Tab */
+        .saved-apis-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            height: calc(100vh - 180px);
+        }
+
+        /* Sections Panel */
+        .sections-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h3 {
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+
+        .sections-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .section-item {
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+        }
+
+        .section-item:hover {
+            background: #f8f9fa;
+        }
+
+        .section-item.active {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .section-item.dragging {
+            opacity: 0.5;
+        }
+
+        .section-name {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .section-count {
+            background: #ecf0f1;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .section-actions {
+            display: none;
+            gap: 5px;
+        }
+
+        .section-item:hover .section-actions {
+            display: flex;
+        }
+
+        .section-item:hover .section-count {
+            display: none;
+        }
+
+        /* APIs Panel */
+        .apis-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .apis-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .apis-header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .apis-header h3 {
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .apis-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .api-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .api-item:hover {
+            border-color: #3498db;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+        }
+
+        .api-item.dragging {
+            opacity: 0.5;
+        }
+
+        .api-checkbox {
+            margin-right: 15px;
+        }
+
+        .api-info {
+            flex: 1;
+        }
+
+        .api-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .api-curl {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            color: #7f8c8d;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 500px;
+        }
+
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: 15px;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-code {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .api-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbdb;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .btn-icon {
+            padding: 5px 8px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #7f8c8d;
+            border-radius: 4px;
+        }
+
+        .btn-icon:hover {
+            background: #f0f0f0;
+            color: #2c3e50;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Run Bar */
+        .run-bar {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+        }
+
+        .selected-count {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            color: #2c3e50;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            resize: vertical;
+        }
+
+        /* Test Result in Modal */
+        .test-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .test-result h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .rule-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .rule-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Reports Tab */
+        .reports-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .reports-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .report-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .report-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .report-header:hover {
+            background: #f8f9fa;
+        }
+
+        .report-info h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .report-meta {
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+
+        .report-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stat-value.pass {
+            color: #27ae60;
+        }
+
+        .stat-value.fail {
+            color: #e74c3c;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .report-details {
+            display: none;
+            border-top: 1px solid #eee;
+        }
+
+        .report-details.expanded {
+            display: block;
+        }
+
+        /* Module-based Reports */
+        .module-group {
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .module-header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .module-header h4 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .module-stats {
+            display: flex;
+            gap: 15px;
+        }
+
+        .module-stat {
+            font-size: 0.85rem;
+        }
+
+        .module-stat.pass { color: #4ade80; }
+        .module-stat.fail { color: #f87171; }
+
+        .module-apis {
+            display: none;
+        }
+
+        .module-apis.expanded {
+            display: block;
+        }
+
+        .api-report-item {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .api-report-item:last-child {
+            border-bottom: none;
+        }
+
+        .api-report-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .api-report-header:hover {
+            background: #f8f9fa;
+        }
+
+        .api-report-info h5 {
+            margin: 0 0 5px 0;
+            color: #2c3e50;
+        }
+
+        .api-report-meta {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .api-report-badges {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .api-report-details {
+            display: none;
+            padding: 0 20px 20px;
+            background: #f8f9fa;
+        }
+
+        .api-report-details.expanded {
+            display: block;
+        }
+
+        /* Rule Logs */
+        .rule-logs {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .rule-log-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 80px;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .rule-log-item:last-child {
+            border-bottom: none;
+        }
+
+        .rule-log-item.header {
+            background: #ecf0f1;
+            font-weight: 600;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+
+        .rule-log-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .rule-log-type {
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+
+        .log-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            color: #333;
+            background: #f5f5f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            word-break: break-word;
+        }
+
+        .log-value.expected {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .log-value.actual {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .log-value.actual.fail {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .report-actions {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        /* Toast */
         .toast {
             position: fixed;
             top: 20px;
@@ -316,7 +818,7 @@
             border-radius: 6px;
             color: white;
             font-weight: 500;
-            z-index: 1000;
+            z-index: 2000;
             animation: slideIn 0.3s ease;
         }
 
@@ -338,231 +840,968 @@
                 opacity: 1;
             }
         }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Drag handle */
+        .drag-handle {
+            cursor: grab;
+            padding: 5px;
+            color: #bdc3c7;
+            margin-right: 10px;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
     </style>
 </head>
 <body>
+    <!-- Header -->
     <div class="header">
-        <img src="https://media.licdn.com/dms/image/v2/D4D3DAQGr3Y_cI3wCZw/image-scale_191_1128/B4DZv.wy5vGgAg-/0/1769505763568/opensooq_cover?e=1771243200&v=beta&t=kdbeMvd0tzTXioTgCxzDTf7PdGyDCwn4M0fYYK8qXFs" alt="OpenSooq Logo" class="logo">
-        <h1>AI Test Agent for API | OpenSooq</h1>
-    </div>
-    <p class="subtitle">Enter a cURL command to automatically generate and run API tests</p>
-
-    <div class="input-section">
-        <label for="api-name">API Name</label>
-        <input type="text" id="api-name" placeholder="Enter API name (e.g., Get User Profile)">
-
-        <label for="curl-input">cURL Command</label>
-        <textarea
-            id="curl-input"
-            placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'"
-        ></textarea>
-        <p class="example">
-            Example: <code>curl https://jsonplaceholder.typicode.com/posts/1</code>
-        </p>
-
-        <div class="button-group">
-            <button id="run-btn" onclick="runTest()">Run Test</button>
-            <button id="save-btn" class="btn-save" onclick="saveAPI()" disabled>Save API</button>
-            <button id="clear-btn" class="btn-clear" onclick="clearForm()">Clear</button>
+        <div class="logo-container">
+            <img src="https://media.licdn.com/dms/image/v2/D4D3DAQGr3Y_cI3wCZw/image-scale_191_1128/B4DZv.wy5vGgAg-/0/1769505763568/opensooq_cover?e=1771243200&v=beta&t=kdbeMvd0tzTXioTgCxzDTf7PdGyDCwn4M0fYYK8qXFs" alt="OpenSooq Logo" class="logo">
         </div>
+        <div class="header-text">
+            <h1><span class="highlight">AI Test Agent</span> for API</h1>
+            <span class="header-subtitle">Automated API Testing & Validation Platform</span>
+        </div>
+        <span class="header-badge">OpenSooq</span>
     </div>
 
-    <div id="results-section" class="results-section">
-        <div id="loading" class="loading" style="display: none;">
-            <div class="spinner"></div>
-            <div>Running tests...</div>
-        </div>
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" data-tab="saved-apis">Saved APIs</div>
+        <div class="tab" data-tab="reports">Reports</div>
+    </div>
 
-        <div id="results-content" style="display: none;">
-            <div class="results-header">
-                <h2>Test Results</h2>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Saved APIs Tab -->
+        <div id="saved-apis" class="tab-content active">
+            <div class="saved-apis-layout">
+                <!-- Modules Panel -->
+                <div class="sections-panel">
+                    <div class="panel-header">
+                        <h3>Modules</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openAddSectionModal()">+ Add</button>
+                    </div>
+                    <div class="sections-list" id="sections-list">
+                        <!-- Modules loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- APIs Panel -->
+                <div class="apis-panel">
+                    <div class="apis-header">
+                        <div class="apis-header-left">
+                            <h3 id="current-section-name">All APIs</h3>
+                            <div class="select-all-container">
+                                <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                                <label for="select-all">Select All</label>
+                            </div>
+                        </div>
+                        <button class="btn btn-success" onclick="openAddApiModal()">+ Add API</button>
+                    </div>
+                    <div class="apis-list" id="apis-list">
+                        <!-- APIs loaded dynamically -->
+                    </div>
+                    <div class="run-bar">
+                        <span class="selected-count"><span id="selected-count">0</span> APIs selected</span>
+                        <button class="btn btn-primary" id="run-btn" onclick="runSelectedApis()" disabled>Run Selected</button>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <div id="error-container"></div>
-            <div id="rules-container"></div>
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content">
+            <div class="reports-header">
+                <h2>Test Reports</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Module:</label>
+                        <select id="filter-section" onchange="loadReports()">
+                            <option value="">All Modules</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Result:</label>
+                        <select id="filter-result" onchange="loadReports()">
+                            <option value="">All Results</option>
+                            <option value="PASS">Pass Only</option>
+                            <option value="FAIL">Fail Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="reports-list" id="reports-list">
+                <!-- Reports loaded dynamically -->
+            </div>
+        </div>
+    </div>
 
-            <div id="reports-container" class="reports-section" style="display: none;">
-                <h3>Reports</h3>
-                <div class="report-links">
-                    <a id="html-report-link" class="report-link" href="#" target="_blank">HTML Report</a>
-                    <a id="json-report-link" class="report-link" href="#" target="_blank">JSON Report</a>
+    <!-- Add Module Modal -->
+    <div class="modal-overlay" id="section-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="section-modal-title">Add Module</h2>
+                <button class="modal-close" onclick="closeSectionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="section-name">Module Name</label>
+                    <input type="text" id="section-name" placeholder="e.g., User APIs, Payment APIs">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSectionModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSection()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit API Modal -->
+    <div class="modal-overlay" id="api-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="api-modal-title">Add API</h2>
+                <button class="modal-close" onclick="closeApiModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="api-section">Module</label>
+                    <select id="api-section">
+                        <!-- Modules loaded dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="api-name">API Name</label>
+                    <input type="text" id="api-name" placeholder="e.g., Get User Profile">
+                </div>
+                <div class="form-group">
+                    <label for="api-curl">cURL Command</label>
+                    <textarea id="api-curl" placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'"></textarea>
+                </div>
+                <button class="btn btn-secondary" onclick="testApiInModal()" id="test-api-btn">Test API</button>
+                <div class="test-result" id="modal-test-result" style="display: none;">
+                    <h4>Test Results</h4>
+                    <div id="modal-rules-list"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeApiModal()">Cancel</button>
+                <button class="btn btn-success" onclick="saveApi()" id="save-api-btn" disabled>Save API</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Running Modal -->
+    <div class="modal-overlay" id="running-modal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-body">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span id="running-status">Running tests...</span>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Track if test has been run (to enable Save button)
-        let testHasRun = false;
+        // State
+        let sections = [];
+        let currentSectionId = null;
+        let selectedApis = new Set();
+        let editingApiId = null;
+        let editingSectionId = null;
 
-        // Show toast notification
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSections();
+            setupTabs();
+        });
+
+        // Tab switching
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+
+                    if (tab.dataset.tab === 'reports') {
+                        loadReports();
+                    }
+                });
+            });
+        }
+
+        // Toast
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             toast.textContent = message;
             document.body.appendChild(toast);
-
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
+            setTimeout(() => toast.remove(), 3000);
         }
 
-        // Save API to backend
-        async function saveAPI() {
-            const apiName = document.getElementById('api-name').value.trim();
-            const apiCode = document.getElementById('curl-input').value.trim();
+        // =============================================================================
+        // Sections
+        // =============================================================================
+        async function loadSections() {
+            try {
+                const response = await fetch('/api/sections');
+                const data = await response.json();
 
-            // Validation
-            if (!apiName) {
-                showToast('Please enter an API name', 'error');
+                if (data.success) {
+                    sections = data.sections;
+                    renderSections();
+                    populateSectionDropdowns();
+
+                    if (sections.length > 0 && !currentSectionId) {
+                        selectSection(sections[0].id);
+                    } else if (currentSectionId) {
+                        renderApis();
+                    }
+                }
+            } catch (error) {
+                showToast('Failed to load modules', 'error');
+            }
+        }
+
+        function renderSections() {
+            const container = document.getElementById('sections-list');
+
+            if (sections.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No modules yet</p>
+                    </div>
+                `;
                 return;
             }
 
-            if (!apiCode) {
-                showToast('Please enter API code/cURL', 'error');
-                return;
-            }
+            container.innerHTML = sections.map(section => `
+                <div class="section-item ${currentSectionId === section.id ? 'active' : ''}"
+                     data-id="${section.id}"
+                     draggable="true"
+                     onclick="selectSection('${section.id}')">
+                    <span class="drag-handle">⋮⋮</span>
+                    <span class="section-name">${escapeHtml(section.name)}</span>
+                    <span class="section-count">${section.apis.length}</span>
+                    <div class="section-actions">
+                        <button class="btn-icon" onclick="event.stopPropagation(); editSection('${section.id}')" title="Edit">✏️</button>
+                        <button class="btn-icon" onclick="event.stopPropagation(); deleteSection('${section.id}')" title="Delete">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
 
-            if (!testHasRun) {
-                showToast('Please run the test first before saving', 'error');
+            setupSectionDragDrop();
+        }
+
+        function selectSection(sectionId) {
+            currentSectionId = sectionId;
+            renderSections();
+            renderApis();
+
+            const section = sections.find(s => s.id === sectionId);
+            document.getElementById('current-section-name').textContent = section ? section.name : 'All APIs';
+        }
+
+        function openAddSectionModal() {
+            editingSectionId = null;
+            document.getElementById('section-modal-title').textContent = 'Add Module';
+            document.getElementById('section-name').value = '';
+            document.getElementById('section-modal').classList.add('active');
+        }
+
+        function editSection(sectionId) {
+            editingSectionId = sectionId;
+            const section = sections.find(s => s.id === sectionId);
+            document.getElementById('section-modal-title').textContent = 'Edit Module';
+            document.getElementById('section-name').value = section.name;
+            document.getElementById('section-modal').classList.add('active');
+        }
+
+        function closeSectionModal() {
+            document.getElementById('section-modal').classList.remove('active');
+        }
+
+        async function saveSection() {
+            const name = document.getElementById('section-name').value.trim();
+
+            if (!name) {
+                showToast('Module name is required', 'error');
                 return;
             }
 
             try {
-                const response = await fetch('/api/saved-apis', {
+                let response;
+                if (editingSectionId) {
+                    response = await fetch(`/api/sections/${editingSectionId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name })
+                    });
+                } else {
+                    response = await fetch('/api/sections', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name })
+                    });
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(editingSectionId ? 'Module updated' : 'Module created');
+                    closeSectionModal();
+                    loadSections();
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to save module', 'error');
+            }
+        }
+
+        async function deleteSection(sectionId) {
+            if (!confirm('Delete this module and all its APIs?')) return;
+
+            try {
+                const response = await fetch(`/api/sections/${sectionId}`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Module deleted');
+                    if (currentSectionId === sectionId) {
+                        currentSectionId = sections[0]?.id || null;
+                    }
+                    loadSections();
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete module', 'error');
+            }
+        }
+
+        function setupSectionDragDrop() {
+            const items = document.querySelectorAll('.section-item');
+
+            items.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    item.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', item.dataset.id);
+                });
+
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                });
+
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const dragging = document.querySelector('.section-item.dragging');
+                    if (dragging && dragging !== item) {
+                        const rect = item.getBoundingClientRect();
+                        const midY = rect.top + rect.height / 2;
+                        if (e.clientY < midY) {
+                            item.parentNode.insertBefore(dragging, item);
+                        } else {
+                            item.parentNode.insertBefore(dragging, item.nextSibling);
+                        }
+                    }
+                });
+
+                item.addEventListener('drop', async () => {
+                    const newOrder = Array.from(document.querySelectorAll('.section-item'))
+                        .map(el => el.dataset.id);
+
+                    try {
+                        await fetch('/api/sections/reorder', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sectionIds: newOrder })
+                        });
+                        loadSections();
+                    } catch (error) {
+                        showToast('Failed to reorder', 'error');
+                    }
+                });
+            });
+        }
+
+        // =============================================================================
+        // APIs
+        // =============================================================================
+        function renderApis() {
+            const container = document.getElementById('apis-list');
+            const section = sections.find(s => s.id === currentSectionId);
+            const apis = section ? section.apis : [];
+
+            if (apis.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No APIs in this section</h3>
+                        <p>Click "+ Add API" to add your first API</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = apis.map(api => `
+                <div class="api-item" data-id="${api.id}" draggable="true">
+                    <span class="drag-handle">⋮⋮</span>
+                    <input type="checkbox" class="api-checkbox"
+                           ${selectedApis.has(api.id) ? 'checked' : ''}
+                           onchange="toggleApiSelection('${api.id}')">
+                    <div class="api-info">
+                        <div class="api-name">${escapeHtml(api.name)}</div>
+                        <div class="api-curl">${escapeHtml(api.curl)}</div>
+                    </div>
+                    <div class="api-actions">
+                        <button class="btn-icon" onclick="editApi('${api.id}')" title="Edit">✏️</button>
+                        <button class="btn-icon" onclick="deleteApi('${api.id}')" title="Delete">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+
+            setupApiDragDrop();
+            updateSelectedCount();
+        }
+
+        function toggleApiSelection(apiId) {
+            if (selectedApis.has(apiId)) {
+                selectedApis.delete(apiId);
+            } else {
+                selectedApis.add(apiId);
+            }
+            updateSelectedCount();
+        }
+
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('select-all');
+            const section = sections.find(s => s.id === currentSectionId);
+            const apis = section ? section.apis : [];
+
+            if (selectAllCheckbox.checked) {
+                apis.forEach(api => selectedApis.add(api.id));
+            } else {
+                apis.forEach(api => selectedApis.delete(api.id));
+            }
+
+            renderApis();
+        }
+
+        function updateSelectedCount() {
+            document.getElementById('selected-count').textContent = selectedApis.size;
+            document.getElementById('run-btn').disabled = selectedApis.size === 0;
+        }
+
+        function populateSectionDropdowns() {
+            const apiSectionSelect = document.getElementById('api-section');
+            const filterSectionSelect = document.getElementById('filter-section');
+
+            const options = sections.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+
+            apiSectionSelect.innerHTML = options;
+            filterSectionSelect.innerHTML = '<option value="">All Modules</option>' +
+                sections.map(s => `<option value="${s.name}">${escapeHtml(s.name)}</option>`).join('');
+
+            if (currentSectionId) {
+                apiSectionSelect.value = currentSectionId;
+            }
+        }
+
+        function openAddApiModal() {
+            editingApiId = null;
+            document.getElementById('api-modal-title').textContent = 'Add API';
+            document.getElementById('api-section').value = currentSectionId || sections[0]?.id;
+            document.getElementById('api-name').value = '';
+            document.getElementById('api-curl').value = '';
+            document.getElementById('modal-test-result').style.display = 'none';
+            document.getElementById('save-api-btn').disabled = true;
+            document.getElementById('api-modal').classList.add('active');
+        }
+
+        function editApi(apiId) {
+            editingApiId = apiId;
+            let api, sectionId;
+
+            for (const section of sections) {
+                const found = section.apis.find(a => a.id === apiId);
+                if (found) {
+                    api = found;
+                    sectionId = section.id;
+                    break;
+                }
+            }
+
+            if (!api) return;
+
+            document.getElementById('api-modal-title').textContent = 'Edit API';
+            document.getElementById('api-section').value = sectionId;
+            document.getElementById('api-name').value = api.name;
+            document.getElementById('api-curl').value = api.curl;
+            document.getElementById('modal-test-result').style.display = 'none';
+            document.getElementById('save-api-btn').disabled = false;
+            document.getElementById('api-modal').classList.add('active');
+        }
+
+        function closeApiModal() {
+            document.getElementById('api-modal').classList.remove('active');
+        }
+
+        async function testApiInModal() {
+            const curl = document.getElementById('api-curl').value.trim();
+
+            if (!curl) {
+                showToast('Please enter a cURL command', 'error');
+                return;
+            }
+
+            const testBtn = document.getElementById('test-api-btn');
+            testBtn.disabled = true;
+            testBtn.textContent = 'Testing...';
+
+            try {
+                const response = await fetch('/api/run-single', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: apiName,
-                        curl: apiCode
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ curl })
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast(data.message, 'success');
+                    const resultDiv = document.getElementById('modal-test-result');
+                    const rulesList = document.getElementById('modal-rules-list');
+
+                    rulesList.innerHTML = data.result.rule_results.map(rule => `
+                        <div class="rule-item">
+                            <span>${escapeHtml(rule.rule_name)}</span>
+                            <span class="status-badge ${rule.result.toLowerCase()}">${rule.result}</span>
+                        </div>
+                    `).join('');
+
+                    resultDiv.style.display = 'block';
+                    document.getElementById('save-api-btn').disabled = false;
+                }
+            } catch (error) {
+                showToast('Test failed: ' + error.message, 'error');
+            }
+
+            testBtn.disabled = false;
+            testBtn.textContent = 'Test API';
+        }
+
+        async function saveApi() {
+            const sectionId = document.getElementById('api-section').value;
+            const name = document.getElementById('api-name').value.trim();
+            const curl = document.getElementById('api-curl').value.trim();
+
+            if (!name) {
+                showToast('API name is required', 'error');
+                return;
+            }
+            if (!curl) {
+                showToast('cURL command is required', 'error');
+                return;
+            }
+
+            try {
+                let response;
+                if (editingApiId) {
+                    response = await fetch(`/api/apis/${editingApiId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, curl })
+                    });
+
+                    // Check if section changed
+                    let currentSection;
+                    for (const section of sections) {
+                        if (section.apis.find(a => a.id === editingApiId)) {
+                            currentSection = section.id;
+                            break;
+                        }
+                    }
+
+                    if (currentSection !== sectionId) {
+                        await fetch(`/api/apis/${editingApiId}/move`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ targetSectionId: sectionId })
+                        });
+                    }
+                } else {
+                    response = await fetch(`/api/sections/${sectionId}/apis`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, curl })
+                    });
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(editingApiId ? 'API updated' : 'API created');
+                    closeApiModal();
+                    loadSections();
                 } else {
                     showToast(data.error, 'error');
                 }
             } catch (error) {
-                showToast('Failed to save API: ' + error.message, 'error');
+                showToast('Failed to save API', 'error');
             }
         }
 
-        // Clear form
-        function clearForm() {
-            document.getElementById('api-name').value = '';
-            document.getElementById('curl-input').value = '';
-            document.getElementById('save-btn').disabled = true;
-            document.getElementById('results-section').classList.remove('visible');
-            testHasRun = false;
-        }
-
-        // Run test
-        async function runTest() {
-            const curlInput = document.getElementById('curl-input').value.trim();
-            const runBtn = document.getElementById('run-btn');
-            const saveBtn = document.getElementById('save-btn');
-            const resultsSection = document.getElementById('results-section');
-            const loading = document.getElementById('loading');
-            const resultsContent = document.getElementById('results-content');
-            const errorContainer = document.getElementById('error-container');
-            const rulesContainer = document.getElementById('rules-container');
-            const reportsContainer = document.getElementById('reports-container');
-
-            if (!curlInput) {
-                showToast('Please enter a cURL command', 'error');
-                return;
-            }
-
-            // Show loading state
-            runBtn.disabled = true;
-            resultsSection.classList.add('visible');
-            loading.style.display = 'block';
-            resultsContent.style.display = 'none';
+        async function deleteApi(apiId) {
+            if (!confirm('Delete this API?')) return;
 
             try {
-                const response = await fetch('/run-test', {
+                const response = await fetch(`/api/apis/${apiId}`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('API deleted');
+                    selectedApis.delete(apiId);
+                    loadSections();
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete API', 'error');
+            }
+        }
+
+        function setupApiDragDrop() {
+            const items = document.querySelectorAll('.api-item');
+
+            items.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    item.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', item.dataset.id);
+                });
+
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                });
+
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const dragging = document.querySelector('.api-item.dragging');
+                    if (dragging && dragging !== item) {
+                        const rect = item.getBoundingClientRect();
+                        const midY = rect.top + rect.height / 2;
+                        if (e.clientY < midY) {
+                            item.parentNode.insertBefore(dragging, item);
+                        } else {
+                            item.parentNode.insertBefore(dragging, item.nextSibling);
+                        }
+                    }
+                });
+
+                item.addEventListener('drop', async () => {
+                    const newOrder = Array.from(document.querySelectorAll('.api-item'))
+                        .map(el => el.dataset.id);
+
+                    try {
+                        await fetch(`/api/sections/${currentSectionId}/apis/reorder`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ apiIds: newOrder })
+                        });
+                        loadSections();
+                    } catch (error) {
+                        showToast('Failed to reorder', 'error');
+                    }
+                });
+            });
+        }
+
+        // =============================================================================
+        // Run APIs
+        // =============================================================================
+        async function runSelectedApis() {
+            if (selectedApis.size === 0) return;
+
+            document.getElementById('running-modal').classList.add('active');
+            document.getElementById('running-status').textContent = `Running ${selectedApis.size} API(s)...`;
+
+            try {
+                const response = await fetch('/api/run', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ curl: curlInput })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiIds: Array.from(selectedApis) })
                 });
 
                 const data = await response.json();
 
-                // Hide loading, show results
-                loading.style.display = 'none';
-                resultsContent.style.display = 'block';
+                document.getElementById('running-modal').classList.remove('active');
 
-                // Clear previous results
-                errorContainer.innerHTML = '';
-                rulesContainer.innerHTML = '';
+                if (data.success) {
+                    const passed = data.report.passed;
+                    const failed = data.report.failed;
+                    showToast(`Tests complete: ${passed} passed, ${failed} failed`);
 
-                // Show error if present
-                if (data.error) {
-                    errorContainer.innerHTML = `<div class="error-message">${escapeHtml(data.error)}</div>`;
-                }
+                    selectedApis.clear();
+                    loadSections();
 
-                // Display rule results
-                if (data.rule_results && data.rule_results.length > 0) {
-                    data.rule_results.forEach(rule => {
-                        const resultDiv = document.createElement('div');
-                        resultDiv.className = 'rule-result';
-
-                        let html = `
-                            <div>
-                                <div class="rule-name">${escapeHtml(rule.rule_name)}</div>
-                                ${rule.reason ? `<div class="rule-reason">${escapeHtml(rule.reason)}</div>` : ''}
-                            </div>
-                            <span class="rule-status ${rule.result.toLowerCase()}">${rule.result}</span>
-                        `;
-
-                        resultDiv.innerHTML = html;
-                        rulesContainer.appendChild(resultDiv);
-                    });
-                }
-
-                // Show report links if available
-                if (data.report_paths && data.report_paths.html) {
-                    reportsContainer.style.display = 'block';
-                    document.getElementById('html-report-link').href = `/output/${data.report_paths.html}`;
-                    document.getElementById('json-report-link').href = `/output/${data.report_paths.json}`;
+                    // Switch to reports tab
+                    document.querySelector('.tab[data-tab="reports"]').click();
                 } else {
-                    reportsContainer.style.display = 'none';
+                    showToast(data.error, 'error');
                 }
-
-                // Enable Save button after successful test
-                testHasRun = true;
-                saveBtn.disabled = false;
-
             } catch (error) {
-                loading.style.display = 'none';
-                resultsContent.style.display = 'block';
-                errorContainer.innerHTML = `<div class="error-message">Failed to run test: ${escapeHtml(error.message)}</div>`;
-                rulesContainer.innerHTML = '';
-                reportsContainer.style.display = 'none';
+                document.getElementById('running-modal').classList.remove('active');
+                showToast('Failed to run tests: ' + error.message, 'error');
             }
-
-            runBtn.disabled = false;
         }
 
+        // =============================================================================
+        // Reports
+        // =============================================================================
+        async function loadReports() {
+            const container = document.getElementById('reports-list');
+            const sectionFilter = document.getElementById('filter-section').value;
+            const resultFilter = document.getElementById('filter-result').value;
+
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading reports...</span></div>';
+
+            try {
+                let url = '/api/reports';
+                const params = new URLSearchParams();
+                if (sectionFilter) params.append('section', sectionFilter);
+                if (resultFilter) params.append('result', resultFilter);
+                if (params.toString()) url += '?' + params.toString();
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success) {
+                    renderReports(data.reports);
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="empty-state"><p>Failed to load reports</p></div>';
+            }
+        }
+
+        function renderReports(reports) {
+            const container = document.getElementById('reports-list');
+
+            if (reports.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No reports yet</h3>
+                        <p>Run some API tests to see reports here</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = reports.map(report => {
+                // Group results by module (section)
+                const moduleGroups = {};
+                report.results.forEach(result => {
+                    const moduleName = result.section || 'Unknown';
+                    if (!moduleGroups[moduleName]) {
+                        moduleGroups[moduleName] = { passed: 0, failed: 0, apis: [] };
+                    }
+                    moduleGroups[moduleName].apis.push(result);
+                    if (result.result === 'PASS') {
+                        moduleGroups[moduleName].passed++;
+                    } else {
+                        moduleGroups[moduleName].failed++;
+                    }
+                });
+
+                return `
+                <div class="report-card">
+                    <div class="report-header" onclick="toggleReportDetails('${report.runId}')">
+                        <div class="report-info">
+                            <h4>Test Run: ${report.runId}</h4>
+                            <span class="report-meta">${formatDate(report.date)} • ${report.totalApis} APIs • ${Object.keys(moduleGroups).length} Modules</span>
+                        </div>
+                        <div class="report-stats">
+                            <div class="stat">
+                                <div class="stat-value pass">${report.passed}</div>
+                                <div class="stat-label">Passed</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value fail">${report.failed}</div>
+                                <div class="stat-label">Failed</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="report-details" id="details-${report.runId}">
+                        ${Object.entries(moduleGroups).map(([moduleName, moduleData]) => `
+                            <div class="module-group">
+                                <div class="module-header" onclick="event.stopPropagation(); toggleModule('${report.runId}-${moduleName.replace(/\s+/g, '-')}')">
+                                    <h4>${escapeHtml(moduleName)}</h4>
+                                    <div class="module-stats">
+                                        <span class="module-stat pass">${moduleData.passed} passed</span>
+                                        <span class="module-stat fail">${moduleData.failed} failed</span>
+                                    </div>
+                                </div>
+                                <div class="module-apis" id="module-${report.runId}-${moduleName.replace(/\s+/g, '-')}">
+                                    ${moduleData.apis.map(api => `
+                                        <div class="api-report-item">
+                                            <div class="api-report-header" onclick="event.stopPropagation(); toggleApiDetails('${report.runId}-${api.apiId}')">
+                                                <div class="api-report-info">
+                                                    <h5>${escapeHtml(api.apiName)}</h5>
+                                                    <span class="api-report-meta">Status: ${api.statusCode || '-'} • Time: ${api.executionTime}</span>
+                                                </div>
+                                                <div class="api-report-badges">
+                                                    <span class="status-badge ${api.structuralResult.toLowerCase()}">Structural: ${api.structuralResult}</span>
+                                                    <span class="status-badge ${api.functionalResult.toLowerCase()}">Functional: ${api.functionalResult}</span>
+                                                    <span class="status-badge ${api.result.toLowerCase()}">${api.result}</span>
+                                                </div>
+                                            </div>
+                                            <div class="api-report-details" id="api-details-${report.runId}-${api.apiId}">
+                                                <div class="rule-logs">
+                                                    <div class="rule-log-item header">
+                                                        <div>Rule</div>
+                                                        <div>Expected</div>
+                                                        <div>Actual</div>
+                                                        <div>Result</div>
+                                                    </div>
+                                                    ${(api.ruleResults || []).map(rule => `
+                                                        <div class="rule-log-item">
+                                                            <div>
+                                                                <div class="rule-log-name">${escapeHtml(rule.rule_name)}</div>
+                                                                <div class="rule-log-type">${rule.rule_type || ''}</div>
+                                                            </div>
+                                                            <div class="log-value expected">${escapeHtml(rule.expected || '-')}</div>
+                                                            <div class="log-value actual ${rule.result === 'FAIL' ? 'fail' : ''}">${escapeHtml(rule.actual || '-')}</div>
+                                                            <div><span class="status-badge ${rule.result.toLowerCase()}">${rule.result}</span></div>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                        <div class="report-actions">
+                            ${report.failed > 0 ? `<button class="btn btn-secondary btn-sm" onclick="rerunFailed('${report.runId}')">Re-run Failed</button>` : ''}
+                            <button class="btn btn-primary btn-sm" onclick="viewReport('${report.runId}')">Web View</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteReport('${report.runId}')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function toggleReportDetails(runId) {
+            const details = document.getElementById(`details-${runId}`);
+            details.classList.toggle('expanded');
+        }
+
+        function toggleModule(moduleId) {
+            const moduleApis = document.getElementById(`module-${moduleId}`);
+            moduleApis.classList.toggle('expanded');
+        }
+
+        function toggleApiDetails(apiId) {
+            const apiDetails = document.getElementById(`api-details-${apiId}`);
+            apiDetails.classList.toggle('expanded');
+        }
+
+        async function rerunFailed(runId) {
+            try {
+                const response = await fetch(`/api/reports/${runId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const failedIds = data.report.results
+                        .filter(r => r.result === 'FAIL')
+                        .map(r => r.apiId);
+
+                    selectedApis = new Set(failedIds);
+                    await runSelectedApis();
+                }
+            } catch (error) {
+                showToast('Failed to re-run tests', 'error');
+            }
+        }
+
+        async function viewReport(runId) {
+            try {
+                const response = await fetch(`/api/reports/${runId}`);
+                const data = await response.json();
+
+                if (data.success && data.report.results.length > 0) {
+                    const htmlPath = data.report.results[0].reportPaths?.html;
+                    if (htmlPath) {
+                        window.open(`/output/${htmlPath}`, '_blank');
+                    } else {
+                        showToast('No HTML report available', 'error');
+                    }
+                }
+            } catch (error) {
+                showToast('Failed to open report', 'error');
+            }
+        }
+
+        async function deleteReport(runId) {
+            if (!confirm('Delete this report?')) return;
+
+            try {
+                const response = await fetch(`/api/reports/${runId}`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Report deleted');
+                    loadReports();
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete report', 'error');
+            }
+        }
+
+        // =============================================================================
+        // Utilities
+        // =============================================================================
         function escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // Allow Ctrl+Enter to run test
-        document.getElementById('curl-input').addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'Enter') {
-                runTest();
-            }
-        });
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString();
+        }
     </script>
 </body>
 </html>

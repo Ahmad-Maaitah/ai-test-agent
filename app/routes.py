@@ -2,6 +2,8 @@
 
 import os
 import json
+import uuid
+from datetime import datetime
 from flask import Blueprint, render_template, request, jsonify, send_from_directory
 
 from backend.runner import run_test_pipeline
@@ -10,63 +12,39 @@ from backend.runner import run_test_pipeline
 main_bp = Blueprint('main', __name__)
 
 
-# Get the output directory path
+# Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(BASE_DIR, 'output')
-SAVED_APIS_FILE = os.path.join(BASE_DIR, 'saved_apis.json')
+DATA_FILE = os.path.join(BASE_DIR, 'data.json')
 
 
-def load_saved_apis():
-    """Load saved APIs from JSON file."""
-    if os.path.exists(SAVED_APIS_FILE):
-        with open(SAVED_APIS_FILE, 'r') as f:
+def load_data():
+    """Load data from JSON file."""
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r') as f:
             return json.load(f)
-    return {}
+    return {"sections": [], "reports": []}
 
 
-def save_apis_to_file(apis):
-    """Save APIs to JSON file."""
-    with open(SAVED_APIS_FILE, 'w') as f:
-        json.dump(apis, f, indent=2)
+def save_data(data):
+    """Save data to JSON file."""
+    with open(DATA_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
 
+
+def generate_id():
+    """Generate unique ID."""
+    return str(uuid.uuid4())[:8]
+
+
+# =============================================================================
+# Pages
+# =============================================================================
 
 @main_bp.route('/')
 def index():
     """Render the main page."""
     return render_template('index.html')
-
-
-@main_bp.route('/run-test', methods=['POST'])
-def run_test():
-    """
-    Execute the test pipeline with the provided cURL command.
-
-    Expected JSON body:
-        { "curl": "curl command here" }
-
-    Returns:
-        JSON with rule results and report links
-    """
-    data = request.get_json()
-
-    if not data or 'curl' not in data:
-        return jsonify({
-            'success': False,
-            'error': 'No cURL command provided'
-        }), 400
-
-    curl_command = data['curl'].strip()
-
-    if not curl_command:
-        return jsonify({
-            'success': False,
-            'error': 'cURL command is empty'
-        }), 400
-
-    # Run the test pipeline
-    result = run_test_pipeline(curl_command)
-
-    return jsonify(result)
 
 
 @main_bp.route('/output/<path:filename>')
@@ -76,93 +54,468 @@ def serve_report(filename):
 
 
 # =============================================================================
-# Saved APIs Endpoints
+# Sections API
 # =============================================================================
 
-@main_bp.route('/api/saved-apis', methods=['GET'])
-def get_saved_apis():
-    """Get all saved APIs."""
-    apis = load_saved_apis()
+@main_bp.route('/api/sections', methods=['GET'])
+def get_sections():
+    """Get all sections with their APIs."""
+    data = load_data()
     return jsonify({
         'success': True,
-        'apis': apis,
-        'count': len(apis)
+        'sections': data.get('sections', [])
     })
 
 
-@main_bp.route('/api/saved-apis', methods=['POST'])
-def save_api():
-    """
-    Save a new API.
+@main_bp.route('/api/sections', methods=['POST'])
+def create_section():
+    """Create a new section."""
+    req_data = request.get_json()
+    name = req_data.get('name', '').strip()
 
-    Expected JSON body:
-        { "name": "API Name", "curl": "curl command" }
-    """
-    data = request.get_json()
+    if not name:
+        return jsonify({'success': False, 'error': 'Section name is required'}), 400
 
-    if not data or 'name' not in data or 'curl' not in data:
-        return jsonify({
-            'success': False,
-            'error': 'API name and curl command are required'
-        }), 400
+    data = load_data()
 
-    api_name = data['name'].strip()
-    api_curl = data['curl'].strip()
+    # Check duplicate name
+    for section in data['sections']:
+        if section['name'].lower() == name.lower():
+            return jsonify({'success': False, 'error': 'Section name already exists'}), 400
 
-    if not api_name:
-        return jsonify({
-            'success': False,
-            'error': 'API name is required'
-        }), 400
+    # Get max order
+    max_order = max([s.get('order', 0) for s in data['sections']], default=0)
 
-    if not api_curl:
-        return jsonify({
-            'success': False,
-            'error': 'cURL command is required'
-        }), 400
+    new_section = {
+        'id': f'section-{generate_id()}',
+        'name': name,
+        'order': max_order + 1,
+        'apis': []
+    }
 
-    apis = load_saved_apis()
+    data['sections'].append(new_section)
+    save_data(data)
 
-    # Check duplicate API Name
-    if api_name in apis:
-        return jsonify({
-            'success': False,
-            'error': f'API Name "{api_name}" already exists'
-        }), 400
+    return jsonify({'success': True, 'section': new_section})
 
-    # Check duplicate API Code
-    for existing_name, existing_curl in apis.items():
-        if existing_curl == api_curl:
+
+@main_bp.route('/api/sections/<section_id>', methods=['PUT'])
+def update_section(section_id):
+    """Update section name."""
+    req_data = request.get_json()
+    name = req_data.get('name', '').strip()
+
+    if not name:
+        return jsonify({'success': False, 'error': 'Section name is required'}), 400
+
+    data = load_data()
+
+    for section in data['sections']:
+        if section['id'] == section_id:
+            section['name'] = name
+            save_data(data)
+            return jsonify({'success': True, 'section': section})
+
+    return jsonify({'success': False, 'error': 'Section not found'}), 404
+
+
+@main_bp.route('/api/sections/<section_id>', methods=['DELETE'])
+def delete_section(section_id):
+    """Delete a section."""
+    data = load_data()
+
+    for i, section in enumerate(data['sections']):
+        if section['id'] == section_id:
+            del data['sections'][i]
+            save_data(data)
+            return jsonify({'success': True})
+
+    return jsonify({'success': False, 'error': 'Section not found'}), 404
+
+
+@main_bp.route('/api/sections/reorder', methods=['POST'])
+def reorder_sections():
+    """Reorder sections."""
+    req_data = request.get_json()
+    section_ids = req_data.get('sectionIds', [])
+
+    data = load_data()
+
+    # Create order map
+    order_map = {sid: idx + 1 for idx, sid in enumerate(section_ids)}
+
+    for section in data['sections']:
+        if section['id'] in order_map:
+            section['order'] = order_map[section['id']]
+
+    # Sort by order
+    data['sections'].sort(key=lambda x: x.get('order', 0))
+    save_data(data)
+
+    return jsonify({'success': True})
+
+
+# =============================================================================
+# APIs within Sections
+# =============================================================================
+
+@main_bp.route('/api/sections/<section_id>/apis', methods=['POST'])
+def create_api(section_id):
+    """Create a new API in a section."""
+    req_data = request.get_json()
+    name = req_data.get('name', '').strip()
+    curl = req_data.get('curl', '').strip()
+
+    if not name:
+        return jsonify({'success': False, 'error': 'API name is required'}), 400
+    if not curl:
+        return jsonify({'success': False, 'error': 'cURL command is required'}), 400
+
+    data = load_data()
+
+    for section in data['sections']:
+        if section['id'] == section_id:
+            # Check duplicate name in section
+            for api in section['apis']:
+                if api['name'].lower() == name.lower():
+                    return jsonify({'success': False, 'error': 'API name already exists in this section'}), 400
+
+            max_order = max([a.get('order', 0) for a in section['apis']], default=0)
+
+            new_api = {
+                'id': f'api-{generate_id()}',
+                'name': name,
+                'curl': curl,
+                'order': max_order + 1,
+                'lastStatus': None,
+                'lastResult': None
+            }
+
+            section['apis'].append(new_api)
+            save_data(data)
+
+            return jsonify({'success': True, 'api': new_api})
+
+    return jsonify({'success': False, 'error': 'Section not found'}), 404
+
+
+@main_bp.route('/api/apis/<api_id>', methods=['PUT'])
+def update_api(api_id):
+    """Update an API."""
+    req_data = request.get_json()
+    name = req_data.get('name', '').strip()
+    curl = req_data.get('curl', '').strip()
+
+    data = load_data()
+
+    for section in data['sections']:
+        for api in section['apis']:
+            if api['id'] == api_id:
+                if name:
+                    api['name'] = name
+                if curl:
+                    api['curl'] = curl
+                save_data(data)
+                return jsonify({'success': True, 'api': api})
+
+    return jsonify({'success': False, 'error': 'API not found'}), 404
+
+
+@main_bp.route('/api/apis/<api_id>', methods=['DELETE'])
+def delete_api(api_id):
+    """Delete an API."""
+    data = load_data()
+
+    for section in data['sections']:
+        for i, api in enumerate(section['apis']):
+            if api['id'] == api_id:
+                del section['apis'][i]
+                save_data(data)
+                return jsonify({'success': True})
+
+    return jsonify({'success': False, 'error': 'API not found'}), 404
+
+
+@main_bp.route('/api/apis/<api_id>/move', methods=['POST'])
+def move_api(api_id):
+    """Move API to another section."""
+    req_data = request.get_json()
+    target_section_id = req_data.get('targetSectionId')
+
+    data = load_data()
+
+    # Find and remove API from current section
+    api_to_move = None
+    for section in data['sections']:
+        for i, api in enumerate(section['apis']):
+            if api['id'] == api_id:
+                api_to_move = section['apis'].pop(i)
+                break
+        if api_to_move:
+            break
+
+    if not api_to_move:
+        return jsonify({'success': False, 'error': 'API not found'}), 404
+
+    # Add to target section
+    for section in data['sections']:
+        if section['id'] == target_section_id:
+            max_order = max([a.get('order', 0) for a in section['apis']], default=0)
+            api_to_move['order'] = max_order + 1
+            section['apis'].append(api_to_move)
+            save_data(data)
+            return jsonify({'success': True})
+
+    return jsonify({'success': False, 'error': 'Target section not found'}), 404
+
+
+@main_bp.route('/api/sections/<section_id>/apis/reorder', methods=['POST'])
+def reorder_apis(section_id):
+    """Reorder APIs within a section."""
+    req_data = request.get_json()
+    api_ids = req_data.get('apiIds', [])
+
+    data = load_data()
+
+    for section in data['sections']:
+        if section['id'] == section_id:
+            order_map = {aid: idx + 1 for idx, aid in enumerate(api_ids)}
+            for api in section['apis']:
+                if api['id'] in order_map:
+                    api['order'] = order_map[api['id']]
+            section['apis'].sort(key=lambda x: x.get('order', 0))
+            save_data(data)
+            return jsonify({'success': True})
+
+    return jsonify({'success': False, 'error': 'Section not found'}), 404
+
+
+# =============================================================================
+# Run APIs
+# =============================================================================
+
+@main_bp.route('/api/run', methods=['POST'])
+def run_apis():
+    """Run selected APIs and generate report."""
+    req_data = request.get_json()
+    api_ids = req_data.get('apiIds', [])
+
+    if not api_ids:
+        return jsonify({'success': False, 'error': 'No APIs selected'}), 400
+
+    data = load_data()
+
+    # Find APIs to run
+    apis_to_run = []
+    for section in data['sections']:
+        for api in section['apis']:
+            if api['id'] in api_ids:
+                apis_to_run.append({
+                    'api': api,
+                    'section': section['name']
+                })
+
+    if not apis_to_run:
+        return jsonify({'success': False, 'error': 'No valid APIs found'}), 400
+
+    # Run each API
+    run_id = f'run-{generate_id()}'
+    run_date = datetime.now().isoformat()
+    results = []
+
+    for item in apis_to_run:
+        api = item['api']
+        section_name = item['section']
+
+        start_time = datetime.now()
+        test_result = run_test_pipeline(api['curl'])
+        end_time = datetime.now()
+        execution_time = int((end_time - start_time).total_seconds() * 1000)
+
+        # Determine overall result based on rule_type
+        structural_pass = all(
+            r['result'] == 'PASS'
+            for r in test_result.get('rule_results', [])
+            if r.get('rule_type') == 'structural'
+        )
+        functional_pass = all(
+            r['result'] == 'PASS'
+            for r in test_result.get('rule_results', [])
+            if r.get('rule_type') == 'functional'
+        )
+
+        overall_result = 'PASS' if (structural_pass and functional_pass) else 'FAIL'
+
+        # Get status code from rule results
+        status_code = None
+        error_message = None
+        for r in test_result.get('rule_results', []):
+            if r['rule_name'] == 'Status Code Rule':
+                if r['reason']:
+                    # Extract status code from reason
+                    import re
+                    match = re.search(r'got (\d+)', r['reason'])
+                    if match:
+                        status_code = int(match.group(1))
+                else:
+                    status_code = 200  # Assume 2xx if passed
+            if r['result'] == 'FAIL' and r['reason']:
+                error_message = r['reason']
+
+        result_entry = {
+            'apiId': api['id'],
+            'apiName': api['name'],
+            'section': section_name,
+            'statusCode': status_code,
+            'result': overall_result,
+            'structuralResult': 'PASS' if structural_pass else 'FAIL',
+            'functionalResult': 'PASS' if functional_pass else 'FAIL',
+            'executionTime': f'{execution_time}ms',
+            'errorMessage': error_message,
+            'ruleResults': test_result.get('rule_results', []),
+            'reportPaths': test_result.get('report_paths', {})
+        }
+
+        results.append(result_entry)
+
+        # Update API last status
+        api['lastStatus'] = status_code
+        api['lastResult'] = overall_result
+
+    # Save report
+    report = {
+        'runId': run_id,
+        'date': run_date,
+        'totalApis': len(results),
+        'passed': sum(1 for r in results if r['result'] == 'PASS'),
+        'failed': sum(1 for r in results if r['result'] == 'FAIL'),
+        'results': results
+    }
+
+    data['reports'].insert(0, report)  # Add to beginning
+
+    # Keep only last 50 reports
+    data['reports'] = data['reports'][:50]
+
+    save_data(data)
+
+    return jsonify({
+        'success': True,
+        'report': report
+    })
+
+
+@main_bp.route('/api/run-single', methods=['POST'])
+def run_single_api():
+    """Run a single API test (for Add API flow)."""
+    req_data = request.get_json()
+    curl = req_data.get('curl', '').strip()
+
+    if not curl:
+        return jsonify({'success': False, 'error': 'cURL command is required'}), 400
+
+    test_result = run_test_pipeline(curl)
+
+    return jsonify({
+        'success': True,
+        'result': test_result
+    })
+
+
+# =============================================================================
+# Reports API
+# =============================================================================
+
+@main_bp.route('/api/reports', methods=['GET'])
+def get_reports():
+    """Get all reports with optional filters."""
+    data = load_data()
+
+    section_filter = request.args.get('section')
+    result_filter = request.args.get('result')
+    api_filter = request.args.get('api')
+
+    reports = data.get('reports', [])
+
+    # Apply filters to results within reports
+    if section_filter or result_filter or api_filter:
+        filtered_reports = []
+        for report in reports:
+            filtered_results = report['results']
+
+            if section_filter:
+                filtered_results = [r for r in filtered_results if r['section'] == section_filter]
+            if result_filter:
+                filtered_results = [r for r in filtered_results if r['result'] == result_filter]
+            if api_filter:
+                filtered_results = [r for r in filtered_results if api_filter.lower() in r['apiName'].lower()]
+
+            if filtered_results:
+                filtered_report = report.copy()
+                filtered_report['results'] = filtered_results
+                filtered_reports.append(filtered_report)
+
+        reports = filtered_reports
+
+    return jsonify({
+        'success': True,
+        'reports': reports
+    })
+
+
+@main_bp.route('/api/reports/<run_id>', methods=['GET'])
+def get_report(run_id):
+    """Get a specific report by run ID."""
+    data = load_data()
+
+    for report in data.get('reports', []):
+        if report['runId'] == run_id:
             return jsonify({
-                'success': False,
-                'error': f'This API code already exists as "{existing_name}"'
-            }), 400
+                'success': True,
+                'report': report
+            })
 
-    # Save the API
-    apis[api_name] = api_curl
-    save_apis_to_file(apis)
-
-    return jsonify({
-        'success': True,
-        'message': f'API "{api_name}" saved successfully'
-    })
+    return jsonify({'success': False, 'error': 'Report not found'}), 404
 
 
-@main_bp.route('/api/saved-apis/<api_name>', methods=['DELETE'])
-def delete_api(api_name):
-    """Delete a saved API by name."""
-    apis = load_saved_apis()
+@main_bp.route('/api/reports/<run_id>/export', methods=['GET'])
+def export_report(run_id):
+    """Export report as JSON."""
+    data = load_data()
 
-    if api_name not in apis:
-        return jsonify({
-            'success': False,
-            'error': f'API "{api_name}" not found'
-        }), 404
+    for report in data.get('reports', []):
+        if report['runId'] == run_id:
+            return jsonify(report)
 
-    del apis[api_name]
-    save_apis_to_file(apis)
+    return jsonify({'error': 'Report not found'}), 404
 
-    return jsonify({
-        'success': True,
-        'message': f'API "{api_name}" deleted successfully'
-    })
+
+@main_bp.route('/api/reports/<run_id>', methods=['DELETE'])
+def delete_report(run_id):
+    """Delete a report."""
+    data = load_data()
+
+    for i, report in enumerate(data.get('reports', [])):
+        if report['runId'] == run_id:
+            del data['reports'][i]
+            save_data(data)
+            return jsonify({'success': True})
+
+    return jsonify({'success': False, 'error': 'Report not found'}), 404
+
+
+@main_bp.route('/api/reports/<run_id>/rerun-failed', methods=['POST'])
+def rerun_failed(run_id):
+    """Re-run failed APIs from a report."""
+    data = load_data()
+
+    for report in data.get('reports', []):
+        if report['runId'] == run_id:
+            failed_api_ids = [r['apiId'] for r in report['results'] if r['result'] == 'FAIL']
+            if not failed_api_ids:
+                return jsonify({'success': False, 'error': 'No failed APIs to re-run'}), 400
+
+            # Trigger run with failed APIs
+            return run_apis()  # Will use request body
+
+    return jsonify({'success': False, 'error': 'Report not found'}), 404

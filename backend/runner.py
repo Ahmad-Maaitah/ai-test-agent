@@ -165,11 +165,11 @@ class TestAPIValidation:
 
 def run_pytest(test_file_path: str, report_paths: dict) -> tuple:
     """
-    Run pytest on the generated test file.
+    Run pytest on the generated test file with Allure reporting.
 
     Args:
         test_file_path: Path to the pytest file
-        report_paths: Dictionary with html and json report paths
+        report_paths: Dictionary with html, json, and allure report paths
 
     Returns:
         Tuple of (return_code, stdout, stderr)
@@ -177,7 +177,11 @@ def run_pytest(test_file_path: str, report_paths: dict) -> tuple:
     # Ensure output directory exists
     os.makedirs(os.path.dirname(report_paths['html']), exist_ok=True)
 
-    # Build pytest command
+    # Allure results directory
+    allure_results_dir = report_paths.get('allure_results', os.path.join(os.path.dirname(report_paths['html']), 'allure-results'))
+    os.makedirs(allure_results_dir, exist_ok=True)
+
+    # Build pytest command with Allure
     pytest_args = [
         sys.executable, '-m', 'pytest',
         test_file_path,
@@ -186,6 +190,7 @@ def run_pytest(test_file_path: str, report_paths: dict) -> tuple:
         '--self-contained-html',
         f'--json-report',
         f'--json-report-file={report_paths["json"]}',
+        f'--alluredir={allure_results_dir}',
     ]
 
     # Run pytest
