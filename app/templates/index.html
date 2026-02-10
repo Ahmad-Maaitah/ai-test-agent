@@ -1627,6 +1627,7 @@
                     </div>
 
                     <h4>Response Fields</h4>
+                    <input type="text" id="page-field-search" placeholder="Search fields..." oninput="filterPageFields()" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
                     <div class="field-list" id="page-field-list">
                         <div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>
                     </div>
@@ -1673,6 +1674,7 @@
                     </div>
                     <div class="fields-section">
                         <h5>Available Fields (<span id="page-fields-count">0</span>)</h5>
+                        <input type="text" id="page-field-search-right" placeholder="Search..." oninput="filterPageFieldsRight()" style="width: 100%; padding: 6px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px;">
                         <div id="page-fields-list-right">
                             <span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>
                         </div>
@@ -2794,6 +2796,16 @@
         let pageLastResponse = null;
         let pageRulesValidated = false;
 
+        function setupPageFormListeners() {
+            // Add event listeners for form validation
+            document.getElementById('page-api-name').addEventListener('input', updatePageStatus);
+            document.getElementById('page-api-section').addEventListener('change', updatePageStatus);
+            document.getElementById('page-curl').addEventListener('input', updatePageStatus);
+        }
+
+        // Initialize form listeners once
+        document.addEventListener('DOMContentLoaded', setupPageFormListeners);
+
         function openCreateApiPage() {
             pageEditingApiId = null;
             pageCustomRules = [];
@@ -2814,6 +2826,8 @@
             document.getElementById('page-fields-count').textContent = '0';
             document.getElementById('page-fields-list-right').innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>';
             document.getElementById('page-field-list').innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>';
+            document.getElementById('page-field-search').value = '';
+            document.getElementById('page-field-search-right').value = '';
 
             // Reset rules
             renderPageRules();
@@ -2983,7 +2997,7 @@
             }
         }
 
-        function addRuleForField(field) {
+        async function addRuleForField(field) {
             const rule = {
                 id: 'rule-' + Math.random().toString(36).substr(2, 9),
                 type: 'field_exists',
@@ -2996,9 +3010,20 @@
             renderPageRules();
             updatePageStatus();
             showToast(`Added rule for field: ${field}`);
+
+            // Auto-validate
+            await autoValidateSingleRule(rule);
         }
 
-        function quickAddRule(ruleType) {
+        async function quickAddRule(ruleType) {
+            const curl = document.getElementById('page-curl').value.trim();
+
+            // Check if cURL has been executed
+            if (!pageLastResponse && !curl) {
+                showToast('Enter and execute cURL command first', 'error');
+                return;
+            }
+
             const rule = {
                 id: 'rule-' + Math.random().toString(36).substr(2, 9),
                 type: ruleType,
@@ -3026,10 +3051,97 @@
             pageRulesValidated = false;
             renderPageRules();
             updatePageStatus();
+
+            // Auto-validate the new rule if we have response data
+            if (pageLastResponse !== null || curl) {
+                await autoValidateSingleRule(rule);
+            }
         }
 
-        function addPageRule() {
-            quickAddRule('field_exists');
+        async function autoValidateSingleRule(rule) {
+            const curl = document.getElementById('page-curl').value.trim();
+            if (!curl) return;
+
+            try {
+                const response = await fetch('/api/test-rules', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        curl: curl,
+                        rules: [rule]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.results.length > 0) {
+                    const result = data.results[0];
+                    const card = document.getElementById(`page-rule-${rule.id}`);
+                    if (card) {
+                        card.classList.remove('valid', 'invalid');
+                        card.classList.add(result.result === 'PASS' ? 'valid' : 'invalid');
+
+                        let resultDiv = card.querySelector('.validation-result');
+                        if (!resultDiv) {
+                            resultDiv = document.createElement('div');
+                            resultDiv.className = 'validation-result';
+                            card.appendChild(resultDiv);
+                        }
+                        resultDiv.className = `validation-result ${result.result.toLowerCase()}`;
+                        resultDiv.innerHTML = result.result === 'PASS' ?
+                            `✓ PASS - Expected: ${result.expected}, Actual: ${result.actual}` :
+                            `✗ FAIL - ${result.reason}`;
+                    }
+
+                    // Check if all rules are now validated and passing
+                    checkAllRulesValidated();
+                }
+            } catch (error) {
+                console.error('Auto-validation failed:', error);
+            }
+        }
+
+        async function checkAllRulesValidated() {
+            // Re-validate all rules to update the overall status
+            if (pageCustomRules.length === 0) {
+                pageRulesValidated = false;
+                updatePageStatus();
+                return;
+            }
+
+            const curl = document.getElementById('page-curl').value.trim();
+            if (!curl) return;
+
+            try {
+                const response = await fetch('/api/test-rules', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        curl: curl,
+                        rules: pageCustomRules
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const allPassed = data.results.every(r => r.result === 'PASS');
+                    pageRulesValidated = allPassed;
+
+                    document.getElementById('page-validation-status').textContent = allPassed ?
+                        `✓ All ${data.results.length} rules passed` :
+                        `${data.results.filter(r => r.result === 'PASS').length}/${data.results.length} rules passed`;
+                    document.getElementById('page-validation-status').style.color = allPassed ? '#27ae60' : '#e74c3c';
+
+                    updatePageStatus();
+                }
+            } catch (error) {
+                console.error('Validation check failed:', error);
+            }
+        }
+
+        async function addPageRule() {
+            await quickAddRule('field_exists');
         }
 
         function removePageRule(ruleId) {
@@ -3243,22 +3355,115 @@
             const rulesStatus = document.getElementById('page-status-rules');
             const validatedStatus = document.getElementById('page-status-validated');
             const message = document.getElementById('page-status-message');
+            const saveBtn = document.getElementById('page-save-btn');
+
+            const name = document.getElementById('page-api-name').value.trim();
+            const curl = document.getElementById('page-curl').value.trim();
+            const sectionId = document.getElementById('page-api-section').value;
 
             rulesStatus.innerHTML = `<span>Rules: ${pageCustomRules.length}</span>`;
 
-            if (pageRulesValidated) {
-                validatedStatus.className = 'status-item pass';
-                validatedStatus.innerHTML = '<span>✓ Validated</span>';
-                message.textContent = 'Ready to save';
-            } else if (pageCustomRules.length > 0) {
-                validatedStatus.className = 'status-item';
-                validatedStatus.innerHTML = '<span>Not validated</span>';
-                message.textContent = 'Click "Validate All Rules" to enable save';
-            } else {
+            // Check all conditions for enabling save
+            const hasName = name.length > 0;
+            const hasCurl = curl.length > 0;
+            const hasSection = sectionId && sectionId.length > 0;
+            const hasRules = pageCustomRules.length > 0;
+
+            // Rules are valid if all have been auto-validated and passed
+            const allRulesPassed = hasRules && pageRulesValidated;
+
+            const canSave = hasName && hasCurl && hasSection && hasRules && allRulesPassed;
+            saveBtn.disabled = !canSave;
+
+            // Update status display
+            if (!hasName) {
+                validatedStatus.className = 'status-item fail';
+                validatedStatus.innerHTML = '<span>Missing info</span>';
+                message.textContent = 'API name is required';
+            } else if (!hasSection) {
+                validatedStatus.className = 'status-item fail';
+                validatedStatus.innerHTML = '<span>Missing info</span>';
+                message.textContent = 'Select a module';
+            } else if (!hasCurl) {
+                validatedStatus.className = 'status-item fail';
+                validatedStatus.innerHTML = '<span>Missing info</span>';
+                message.textContent = 'Enter cURL command';
+            } else if (!hasRules) {
                 validatedStatus.className = 'status-item';
                 validatedStatus.innerHTML = '<span>No rules</span>';
-                message.textContent = 'Add rules to create test cases';
+                message.textContent = 'Add at least one test rule';
+            } else if (!allRulesPassed) {
+                validatedStatus.className = 'status-item fail';
+                validatedStatus.innerHTML = '<span>Rules failing</span>';
+                message.textContent = 'Fix failing rules to save';
+            } else {
+                validatedStatus.className = 'status-item pass';
+                validatedStatus.innerHTML = '<span>✓ Ready</span>';
+                message.textContent = 'All checks passed - ready to save';
             }
+        }
+
+        function filterPageFields() {
+            const search = document.getElementById('page-field-search').value.toLowerCase();
+            const container = document.getElementById('page-field-list');
+
+            if (pageAvailableFields.length === 0) {
+                container.innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">No fields found</div>';
+                return;
+            }
+
+            const filtered = pageAvailableFields.filter(f => f.toLowerCase().includes(search));
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">No matching fields</div>';
+            } else {
+                container.innerHTML = filtered.map(f =>
+                    `<div class="field-item" onclick="addRuleForField('${f}')">${f}</div>`
+                ).join('');
+            }
+        }
+
+        function filterPageFieldsRight() {
+            const search = document.getElementById('page-field-search-right').value.toLowerCase();
+            const container = document.getElementById('page-fields-list-right');
+
+            if (pageAvailableFields.length === 0) {
+                container.innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No fields found</span>';
+                return;
+            }
+
+            const filtered = pageAvailableFields.filter(f => f.toLowerCase().includes(search));
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No matching fields</span>';
+            } else {
+                container.innerHTML = filtered.slice(0, 30).map(f =>
+                    `<div class="field-item" onclick="addRuleForField('${f}')">${f}</div>`
+                ).join('') + (filtered.length > 30 ? `<div class="field-item" style="color: #7f8c8d;">... ${filtered.length - 30} more</div>` : '');
+            }
+        }
+
+        // Check for duplicate API name in section
+        function checkDuplicateName(name, sectionId) {
+            const section = sections.find(s => s.id === sectionId);
+            if (!section) return false;
+
+            return section.apis.some(api =>
+                api.name.toLowerCase() === name.toLowerCase() &&
+                api.id !== pageEditingApiId
+            );
+        }
+
+        // Check for duplicate cURL command
+        function checkDuplicateCurl(curl) {
+            for (const section of sections) {
+                for (const api of section.apis) {
+                    if (api.curl === curl && api.id !== pageEditingApiId) {
+                        return { exists: true, apiName: api.name, sectionName: section.name };
+                    }
+                }
+            }
+            return { exists: false };
         }
 
         async function saveApiFromPage() {
@@ -3266,12 +3471,38 @@
             const name = document.getElementById('page-api-name').value.trim();
             const curl = document.getElementById('page-curl').value.trim();
 
+            // Validate required fields
             if (!name) {
                 showToast('API name is required', 'error');
                 return;
             }
+            if (!sectionId) {
+                showToast('Please select a module', 'error');
+                return;
+            }
             if (!curl) {
                 showToast('cURL command is required', 'error');
+                return;
+            }
+            if (pageCustomRules.length === 0) {
+                showToast('Add at least one test rule', 'error');
+                return;
+            }
+            if (!pageRulesValidated) {
+                showToast('All rules must pass before saving', 'error');
+                return;
+            }
+
+            // Check for duplicate API name in section
+            if (checkDuplicateName(name, sectionId)) {
+                showToast(`API name "${name}" already exists in this module`, 'error');
+                return;
+            }
+
+            // Check for duplicate cURL
+            const curlCheck = checkDuplicateCurl(curl);
+            if (curlCheck.exists) {
+                showToast(`This cURL is already used by "${curlCheck.apiName}" in ${curlCheck.sectionName}`, 'error');
                 return;
             }
 
