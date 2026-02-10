@@ -1644,19 +1644,43 @@
                     </div>
 
                     <div class="rules-section-full" id="page-rules-section">
+                        <!-- New Rule Builder -->
+                        <div class="new-rule-builder" id="new-rule-builder" style="background: #e8f4fd; border: 2px dashed #2196f3; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                            <h4 style="margin-bottom: 15px; color: #1976d2;">Create New Test Rule</h4>
+                            <div class="rule-fields" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                                <div>
+                                    <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">Rule Type</label>
+                                    <select id="new-rule-type" onchange="onNewRuleTypeChange()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div id="new-rule-field-container">
+                                    <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">Field</label>
+                                    <input type="text" id="new-rule-field-search" placeholder="Search field..." oninput="filterNewRuleFields()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 5px;">
+                                    <select id="new-rule-field" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                        <option value="">Select field...</option>
+                                    </select>
+                                </div>
+                                <div id="new-rule-config-container">
+                                    <!-- Config fields populated dynamically -->
+                                </div>
+                            </div>
+                            <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center;">
+                                <button class="btn btn-primary" onclick="testNewRule()" id="test-new-rule-btn">Test Rule</button>
+                                <button class="btn btn-success" onclick="addTestedRule()" id="add-rule-btn" disabled>+ Add Rule</button>
+                                <span id="new-rule-test-result" style="font-size: 13px;"></span>
+                            </div>
+                        </div>
+
+                        <!-- Saved Rules List -->
                         <div class="rules-section-header">
-                            <h4>Test Rules <span id="page-rules-count">(0)</span></h4>
-                            <button class="btn btn-sm btn-success" onclick="addPageRule()">+ Add Rule</button>
+                            <h4>Saved Test Rules <span id="page-rules-count">(0)</span></h4>
                         </div>
                         <div class="rules-list-full" id="page-rules-list">
                             <div class="empty-rules-full">
                                 <p>No test rules yet</p>
-                                <span>Execute cURL first, then add rules using the quick actions or the "+ Add Rule" button</span>
+                                <span>Create a rule above, test it, then add it to your test cases</span>
                             </div>
-                        </div>
-                        <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center;">
-                            <button class="btn btn-secondary" onclick="validatePageRules()" id="page-validate-btn">Validate All Rules</button>
-                            <span id="page-validation-status" style="font-size: 13px; color: #7f8c8d;"></span>
                         </div>
                     </div>
                 </div>
@@ -2836,6 +2860,9 @@
             // Populate section dropdown
             populatePageSectionDropdown();
 
+            // Initialize new rule builder
+            initNewRuleBuilder();
+
             // Switch to Create API tab
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -2882,6 +2909,9 @@
             // Render existing rules
             renderPageRules();
             updatePageStatus();
+
+            // Initialize new rule builder
+            initNewRuleBuilder();
 
             // Switch to Create API tab
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -2997,65 +3027,53 @@
             }
         }
 
-        async function addRuleForField(field) {
-            const rule = {
-                id: 'rule-' + Math.random().toString(36).substr(2, 9),
-                type: 'field_exists',
-                field: field,
-                config: {},
-                enabled: true
-            };
-            pageCustomRules.push(rule);
-            pageRulesValidated = false;
-            renderPageRules();
-            updatePageStatus();
-            showToast(`Added rule for field: ${field}`);
+        function addRuleForField(field) {
+            // Pre-select field_exists type in the new rule builder
+            const typeSelect = document.getElementById('new-rule-type');
+            if (typeSelect) {
+                typeSelect.value = 'field_exists';
+                onNewRuleTypeChange();
+            }
 
-            // Auto-validate
-            await autoValidateSingleRule(rule);
+            // Set the field in the field selector
+            const fieldSearch = document.getElementById('new-rule-field-search');
+            const fieldSelect = document.getElementById('new-rule-field');
+            if (fieldSearch) fieldSearch.value = field;
+            populateNewRuleFieldDropdown();
+            if (fieldSelect) fieldSelect.value = field;
+
+            // Scroll to the new rule builder
+            const builder = document.getElementById('new-rule-builder');
+            if (builder) {
+                builder.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                builder.style.boxShadow = '0 0 10px rgba(33, 150, 243, 0.5)';
+                setTimeout(() => {
+                    builder.style.boxShadow = '';
+                }, 1500);
+            }
+
+            showToast(`Configure rule for "${field}" and click "Test Rule"`);
         }
 
-        async function quickAddRule(ruleType) {
-            const curl = document.getElementById('page-curl').value.trim();
-
-            // Check if cURL has been executed
-            if (!pageLastResponse && !curl) {
-                showToast('Enter and execute cURL command first', 'error');
-                return;
+        function quickAddRule(ruleType) {
+            // Pre-select the rule type in the new rule builder
+            const typeSelect = document.getElementById('new-rule-type');
+            if (typeSelect) {
+                typeSelect.value = ruleType;
+                onNewRuleTypeChange();
             }
 
-            const rule = {
-                id: 'rule-' + Math.random().toString(36).substr(2, 9),
-                type: ruleType,
-                field: pageAvailableFields[0] || '',
-                config: {},
-                enabled: true
-            };
-
-            // Set defaults based on rule type
-            const typeConfig = ruleTypes[ruleType];
-            if (typeConfig && typeConfig.configFields) {
-                typeConfig.configFields.forEach(cf => {
-                    if (cf.default !== undefined) {
-                        rule.config[cf.name] = cf.default;
-                    }
-                });
+            // Scroll to the new rule builder
+            const builder = document.getElementById('new-rule-builder');
+            if (builder) {
+                builder.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                builder.style.boxShadow = '0 0 10px rgba(33, 150, 243, 0.5)';
+                setTimeout(() => {
+                    builder.style.boxShadow = '';
+                }, 1500);
             }
 
-            // Clear field if not required
-            if (typeConfig && !typeConfig.requiresField) {
-                rule.field = '';
-            }
-
-            pageCustomRules.push(rule);
-            pageRulesValidated = false;
-            renderPageRules();
-            updatePageStatus();
-
-            // Auto-validate the new rule if we have response data
-            if (pageLastResponse !== null || curl) {
-                await autoValidateSingleRule(rule);
-            }
+            showToast(`Configure ${ruleTypes[ruleType]?.name || ruleType} and click "Test Rule"`);
         }
 
         async function autoValidateSingleRule(rule) {
@@ -3438,9 +3456,245 @@
                 container.innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No matching fields</span>';
             } else {
                 container.innerHTML = filtered.slice(0, 30).map(f =>
-                    `<div class="field-item" onclick="addRuleForField('${f}')">${f}</div>`
+                    `<div class="field-item" onclick="selectFieldForNewRule('${f}')">${f}</div>`
                 ).join('') + (filtered.length > 30 ? `<div class="field-item" style="color: #7f8c8d;">... ${filtered.length - 30} more</div>` : '');
             }
+        }
+
+        // =============================================================================
+        // New Rule Builder Functions
+        // =============================================================================
+
+        let newRuleTested = false;
+        let newRuleTestResult = null;
+
+        function initNewRuleBuilder() {
+            // Populate rule type dropdown
+            const typeSelect = document.getElementById('new-rule-type');
+            typeSelect.innerHTML = Object.entries(ruleTypes).map(([key, config]) =>
+                `<option value="${key}">${config.name}</option>`
+            ).join('');
+
+            // Initialize with first rule type
+            onNewRuleTypeChange();
+        }
+
+        function onNewRuleTypeChange() {
+            const ruleType = document.getElementById('new-rule-type').value;
+            const typeConfig = ruleTypes[ruleType] || {};
+
+            // Show/hide field selector based on rule type
+            const fieldContainer = document.getElementById('new-rule-field-container');
+            if (typeConfig.requiresField === false) {
+                fieldContainer.style.display = 'none';
+            } else {
+                fieldContainer.style.display = 'block';
+                populateNewRuleFieldDropdown();
+            }
+
+            // Populate config fields
+            renderNewRuleConfigFields(ruleType, typeConfig);
+
+            // Reset test state
+            resetNewRuleTest();
+        }
+
+        function populateNewRuleFieldDropdown() {
+            const select = document.getElementById('new-rule-field');
+            const search = document.getElementById('new-rule-field-search').value.toLowerCase();
+
+            const filtered = pageAvailableFields.filter(f => f.toLowerCase().includes(search));
+
+            select.innerHTML = '<option value="">Select field...</option>' +
+                filtered.map(f => `<option value="${f}">${f}</option>`).join('');
+        }
+
+        function filterNewRuleFields() {
+            populateNewRuleFieldDropdown();
+            resetNewRuleTest();
+        }
+
+        function selectFieldForNewRule(field) {
+            document.getElementById('new-rule-field').value = field;
+            document.getElementById('new-rule-field-search').value = field;
+            populateNewRuleFieldDropdown();
+            document.getElementById('new-rule-field').value = field;
+            resetNewRuleTest();
+        }
+
+        function renderNewRuleConfigFields(ruleType, typeConfig) {
+            const container = document.getElementById('new-rule-config-container');
+
+            if (!typeConfig.configFields || typeConfig.configFields.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = typeConfig.configFields.map(cf => {
+                const value = cf.default !== undefined ? cf.default : '';
+
+                if (cf.type === 'select') {
+                    return `
+                        <div>
+                            <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">${cf.label}</label>
+                            <select id="new-rule-config-${cf.name}" onchange="resetNewRuleTest()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                ${cf.options.map(opt => `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                } else if (cf.type === 'boolean') {
+                    return `
+                        <div>
+                            <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">${cf.label}</label>
+                            <select id="new-rule-config-${cf.name}" onchange="resetNewRuleTest()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="true" ${value === true ? 'selected' : ''}>true</option>
+                                <option value="false" ${value === false ? 'selected' : ''}>false</option>
+                            </select>
+                        </div>
+                    `;
+                } else if (cf.type === 'number') {
+                    return `
+                        <div>
+                            <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">${cf.label}</label>
+                            <input type="number" id="new-rule-config-${cf.name}" value="${value}" onchange="resetNewRuleTest()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div>
+                            <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">${cf.label}</label>
+                            <input type="text" id="new-rule-config-${cf.name}" value="${value}" onchange="resetNewRuleTest()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        function resetNewRuleTest() {
+            newRuleTested = false;
+            newRuleTestResult = null;
+            document.getElementById('add-rule-btn').disabled = true;
+            document.getElementById('new-rule-test-result').textContent = '';
+            document.getElementById('new-rule-test-result').style.color = '#7f8c8d';
+        }
+
+        function buildNewRuleObject() {
+            const ruleType = document.getElementById('new-rule-type').value;
+            const typeConfig = ruleTypes[ruleType] || {};
+            const field = typeConfig.requiresField !== false ? document.getElementById('new-rule-field').value : '';
+
+            const config = {};
+            if (typeConfig.configFields) {
+                typeConfig.configFields.forEach(cf => {
+                    const el = document.getElementById(`new-rule-config-${cf.name}`);
+                    if (el) {
+                        let val = el.value;
+                        if (cf.type === 'number') val = parseInt(val) || 0;
+                        if (cf.type === 'boolean') val = val === 'true';
+                        config[cf.name] = val;
+                    }
+                });
+            }
+
+            return {
+                id: 'rule-' + Math.random().toString(36).substr(2, 9),
+                type: ruleType,
+                field: field,
+                config: config,
+                enabled: true
+            };
+        }
+
+        async function testNewRule() {
+            const curl = document.getElementById('page-curl').value.trim();
+            if (!curl) {
+                showToast('Execute cURL first', 'error');
+                return;
+            }
+
+            const ruleType = document.getElementById('new-rule-type').value;
+            const typeConfig = ruleTypes[ruleType] || {};
+
+            // Validate field is selected if required
+            if (typeConfig.requiresField !== false) {
+                const field = document.getElementById('new-rule-field').value;
+                if (!field) {
+                    showToast('Please select a field', 'error');
+                    return;
+                }
+            }
+
+            const rule = buildNewRuleObject();
+            const btn = document.getElementById('test-new-rule-btn');
+            const resultSpan = document.getElementById('new-rule-test-result');
+
+            btn.disabled = true;
+            btn.textContent = 'Testing...';
+            resultSpan.textContent = '';
+
+            try {
+                const response = await fetch('/api/test-rules', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ curl, rules: [rule] })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.results.length > 0) {
+                    const result = data.results[0];
+                    newRuleTested = true;
+                    newRuleTestResult = result;
+
+                    if (result.result === 'PASS') {
+                        resultSpan.innerHTML = `✓ PASS - Expected: ${result.expected}, Actual: ${result.actual}`;
+                        resultSpan.style.color = '#27ae60';
+                        document.getElementById('add-rule-btn').disabled = false;
+                        showToast('Rule test passed! Click "Add Rule" to save it.');
+                    } else {
+                        resultSpan.innerHTML = `✗ FAIL - ${result.reason}`;
+                        resultSpan.style.color = '#e74c3c';
+                        document.getElementById('add-rule-btn').disabled = true;
+                        showToast('Rule test failed. Fix the rule and try again.', 'error');
+                    }
+                } else {
+                    resultSpan.textContent = 'Test failed';
+                    resultSpan.style.color = '#e74c3c';
+                }
+            } catch (error) {
+                resultSpan.textContent = 'Test error: ' + error.message;
+                resultSpan.style.color = '#e74c3c';
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Test Rule';
+        }
+
+        function addTestedRule() {
+            if (!newRuleTested || !newRuleTestResult || newRuleTestResult.result !== 'PASS') {
+                showToast('Test the rule first', 'error');
+                return;
+            }
+
+            const rule = buildNewRuleObject();
+            rule.testResult = newRuleTestResult; // Store test result with rule
+
+            pageCustomRules.push(rule);
+            pageRulesValidated = true; // All added rules are pre-tested
+
+            renderPageRules();
+            updatePageStatus();
+            resetNewRuleBuilder();
+
+            showToast('Rule added successfully!');
+        }
+
+        function resetNewRuleBuilder() {
+            // Reset to default state
+            document.getElementById('new-rule-type').selectedIndex = 0;
+            document.getElementById('new-rule-field-search').value = '';
+            onNewRuleTypeChange();
+            resetNewRuleTest();
         }
 
         // Check for duplicate API name in section
