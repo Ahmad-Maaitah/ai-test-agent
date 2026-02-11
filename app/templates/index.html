@@ -215,6 +215,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            z-index: 1;
         }
 
         .apis-header-left {
@@ -2847,26 +2849,44 @@
         document.addEventListener('DOMContentLoaded', setupPageFormListeners);
 
         function openCreateApiPage() {
+            // Close any open modals first
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+
             pageEditingApiId = null;
             pageCustomRules = [];
             pageAvailableFields = [];
             pageLastResponse = null;
             pageRulesValidated = false;
 
-            document.getElementById('create-api-title').textContent = 'Create New API';
-            document.getElementById('page-api-name').value = '';
-            document.getElementById('page-curl').value = '';
-            document.getElementById('page-save-btn').disabled = true;
+            // Safe element updates
+            const title = document.getElementById('create-api-title');
+            const nameInput = document.getElementById('page-api-name');
+            const curlInput = document.getElementById('page-curl');
+            const saveBtn = document.getElementById('page-save-btn');
+            const responseMeta = document.getElementById('page-response-meta');
+            const responseJson = document.getElementById('page-response-json');
+            const fieldsCount = document.getElementById('page-fields-count');
+            const fieldsListRight = document.getElementById('page-fields-list-right');
+            const fieldList = document.getElementById('page-field-list');
+            const fieldSearch = document.getElementById('page-field-search');
+            const fieldSearchRight = document.getElementById('page-field-search-right');
+
+            if (title) title.textContent = 'Create New API';
+            if (nameInput) nameInput.value = '';
+            if (curlInput) curlInput.value = '';
+            if (saveBtn) saveBtn.disabled = true;
 
             // Reset response panel
-            document.getElementById('page-response-meta').innerHTML = '<span class="meta-badge neutral">No response yet</span>';
-            document.getElementById('page-response-json').textContent = 'Execute cURL to see response';
-            document.getElementById('page-response-json').classList.add('empty');
-            document.getElementById('page-fields-count').textContent = '0';
-            document.getElementById('page-fields-list-right').innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>';
-            document.getElementById('page-field-list').innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>';
-            document.getElementById('page-field-search').value = '';
-            document.getElementById('page-field-search-right').value = '';
+            if (responseMeta) responseMeta.innerHTML = '<span class="meta-badge neutral">No response yet</span>';
+            if (responseJson) {
+                responseJson.textContent = 'Execute cURL to see response';
+                responseJson.classList.add('empty');
+            }
+            if (fieldsCount) fieldsCount.textContent = '0';
+            if (fieldsListRight) fieldsListRight.innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>';
+            if (fieldList) fieldList.innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>';
+            if (fieldSearch) fieldSearch.value = '';
+            if (fieldSearchRight) fieldSearchRight.value = '';
 
             // Reset rules
             renderPageRules();
@@ -3006,15 +3026,23 @@
         }
 
         async function executePageCurl() {
-            const curl = document.getElementById('page-curl').value.trim();
+            const curlInput = document.getElementById('page-curl');
+            if (!curlInput) {
+                showToast('Page not initialized properly', 'error');
+                return;
+            }
+
+            const curl = curlInput.value.trim();
             if (!curl) {
                 showToast('Please enter a cURL command', 'error');
                 return;
             }
 
             const btn = document.getElementById('page-execute-btn');
-            btn.disabled = true;
-            btn.textContent = 'Executing...';
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Executing...';
+            }
 
             try {
                 const response = await fetch('/api/execute-curl', {
@@ -3031,22 +3059,30 @@
 
                     // Update response meta
                     const statusClass = data.status_code >= 200 && data.status_code < 300 ? 'status-ok' : 'status-error';
-                    document.getElementById('page-response-meta').innerHTML = `
-                        <span class="meta-badge ${statusClass}">Status: ${data.status_code}</span>
-                        <span class="meta-badge neutral">${data.response_time_ms}ms</span>
-                    `;
+                    const responseMeta = document.getElementById('page-response-meta');
+                    if (responseMeta) {
+                        responseMeta.innerHTML = `
+                            <span class="meta-badge ${statusClass}">Status: ${data.status_code}</span>
+                            <span class="meta-badge neutral">${data.response_time_ms}ms</span>
+                        `;
+                    }
 
                     // Update response JSON
                     const jsonDiv = document.getElementById('page-response-json');
-                    jsonDiv.classList.remove('empty');
-                    if (data.response) {
-                        jsonDiv.textContent = JSON.stringify(data.response, null, 2);
-                    } else {
-                        jsonDiv.textContent = data.response_text || 'No JSON response';
+                    if (jsonDiv) {
+                        jsonDiv.classList.remove('empty');
+                        if (data.response) {
+                            jsonDiv.textContent = JSON.stringify(data.response, null, 2);
+                        } else {
+                            jsonDiv.textContent = data.response_text || 'No JSON response';
+                        }
                     }
 
                     // Update fields count and list
-                    document.getElementById('page-fields-count').textContent = pageAvailableFields.length;
+                    const fieldsCount = document.getElementById('page-fields-count');
+                    if (fieldsCount) {
+                        fieldsCount.textContent = pageAvailableFields.length;
+                    }
                     renderPageFieldsList();
 
                     // Add default status_code rule if no rules exist
@@ -3055,7 +3091,10 @@
                     }
 
                     pageRulesValidated = false;
-                    document.getElementById('page-save-btn').disabled = true;
+                    const saveBtn = document.getElementById('page-save-btn');
+                    if (saveBtn) {
+                        saveBtn.disabled = true;
+                    }
 
                     updatePageStatus();
                     showToast('Response parsed successfully');
@@ -3063,11 +3102,14 @@
                     showToast(data.error || 'Failed to execute cURL', 'error');
                 }
             } catch (error) {
+                console.error('executePageCurl error:', error);
                 showToast('Failed to execute cURL: ' + error.message, 'error');
             }
 
-            btn.disabled = false;
-            btn.textContent = 'Execute & Parse Response';
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Execute & Parse Response';
+            }
         }
 
         function renderPageFieldsList() {
@@ -3426,9 +3468,18 @@
             const message = document.getElementById('page-status-message');
             const saveBtn = document.getElementById('page-save-btn');
 
-            const name = document.getElementById('page-api-name').value.trim();
-            const curl = document.getElementById('page-curl').value.trim();
-            const sectionId = document.getElementById('page-api-section').value;
+            // Check if we're on the Create API page
+            if (!rulesStatus || !validatedStatus || !message || !saveBtn) {
+                return; // Elements not available, skip update
+            }
+
+            const nameInput = document.getElementById('page-api-name');
+            const curlInput = document.getElementById('page-curl');
+            const sectionInput = document.getElementById('page-api-section');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const curl = curlInput ? curlInput.value.trim() : '';
+            const sectionId = sectionInput ? sectionInput.value : '';
 
             rulesStatus.innerHTML = `<span>Rules: ${pageCustomRules.length}</span>`;
 
