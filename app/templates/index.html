@@ -1908,9 +1908,61 @@
 
                     if (tab.dataset.tab === 'reports') {
                         loadReports();
+                    } else if (tab.dataset.tab === 'create-api') {
+                        // Reset Create API page to default state
+                        resetCreateApiPage();
                     }
                 });
             });
+        }
+
+        // Reset Create API page to default empty state
+        function resetCreateApiPage() {
+            // Close any open modals
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+
+            pageEditingApiId = null;
+            pageCustomRules = [];
+            pageAvailableFields = [];
+            pageLastResponse = null;
+            pageRulesValidated = false;
+
+            const title = document.getElementById('create-api-title');
+            const nameInput = document.getElementById('page-api-name');
+            const curlInput = document.getElementById('page-curl');
+            const saveBtn = document.getElementById('page-save-btn');
+            const responseMeta = document.getElementById('page-response-meta');
+            const responseJson = document.getElementById('page-response-json');
+            const fieldsCount = document.getElementById('page-fields-count');
+            const fieldsListRight = document.getElementById('page-fields-list-right');
+            const fieldList = document.getElementById('page-field-list');
+            const fieldSearch = document.getElementById('page-field-search');
+            const fieldSearchRight = document.getElementById('page-field-search-right');
+
+            if (title) title.textContent = 'Create New API';
+            if (nameInput) nameInput.value = '';
+            if (curlInput) curlInput.value = '';
+            if (saveBtn) saveBtn.disabled = true;
+
+            if (responseMeta) responseMeta.innerHTML = '<span class="meta-badge neutral">No response yet</span>';
+            if (responseJson) {
+                responseJson.textContent = 'Execute cURL to see response';
+                responseJson.classList.add('empty');
+            }
+            if (fieldsCount) fieldsCount.textContent = '0';
+            if (fieldsListRight) fieldsListRight.innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>';
+            if (fieldList) fieldList.innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>';
+            if (fieldSearch) fieldSearch.value = '';
+            if (fieldSearchRight) fieldSearchRight.value = '';
+
+            // Hide inline module form if open
+            const inlineModule = document.getElementById('inline-add-module');
+            if (inlineModule) inlineModule.style.display = 'none';
+
+            renderPageRules();
+            updatePageStatus();
+            populatePageSectionDropdown();
+            initNewRuleBuilder();
         }
 
         // Toast
