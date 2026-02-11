@@ -334,9 +334,10 @@ def generate_run_html_report(
 
             api_result_class = api['result'].lower()
             api_icon = '✓' if api['result'] == 'PASS' else '✗'
+            api_id = api.get('apiId', '')
 
             apis_html += f'''
-            <div class="api-card {api_result_class}">
+            <div class="api-card {api_result_class}" id="{api_id}">
                 <div class="api-header">
                     <div class="api-info">
                         <span class="api-icon {api_result_class}">{api_icon}</span>

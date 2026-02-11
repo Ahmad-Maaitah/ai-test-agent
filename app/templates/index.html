@@ -506,6 +506,102 @@
             gap: 10px;
         }
 
+        /* Execution Logs */
+        .execution-logs-container {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .execution-logs {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 4px 0;
+        }
+
+        .log-entry.running {
+            color: #3498db;
+        }
+
+        .log-entry.pass {
+            color: #27ae60;
+        }
+
+        .log-entry.fail {
+            color: #e74c3c;
+        }
+
+        .log-icon {
+            flex-shrink: 0;
+            width: 18px;
+            text-align: center;
+        }
+
+        .log-entry.running .log-icon::before {
+            content: "▶";
+        }
+
+        .log-entry.pass .log-icon::before {
+            content: "✓";
+        }
+
+        .log-entry.fail .log-icon::before {
+            content: "✗";
+        }
+
+        .log-text {
+            flex: 1;
+        }
+
+        .log-time {
+            color: #7f8c8d;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+
+        .log-reason {
+            color: #95a5a6;
+            font-size: 11px;
+            margin-left: 28px;
+            display: block;
+        }
+
+        .execution-summary {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .execution-summary .summary-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .execution-summary .stat-passed {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .execution-summary .stat-failed {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
         /* Form */
         .form-group {
             margin-bottom: 20px;
@@ -1829,6 +1925,25 @@
             color: #7f8c8d;
         }
 
+        .failed-api-rule {
+            font-size: 12px;
+            color: #e74c3c;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .failed-api-reason {
+            font-size: 11px;
+            color: #95a5a6;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        .failed-api-more {
+            font-size: 11px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
         .failed-api-actions {
             display: flex;
             gap: 8px;
@@ -2410,6 +2525,25 @@
                     <div class="spinner"></div>
                     <span id="running-status">Running tests...</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Execution Logs Modal -->
+    <div class="modal-overlay" id="execution-logs-modal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Execution Logs</h2>
+                <button class="modal-close" onclick="closeExecutionLogs()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="execution-logs-container">
+                    <div class="execution-logs" id="execution-logs"></div>
+                </div>
+                <div class="execution-summary" id="execution-summary"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="closeExecutionLogs()">Close</button>
             </div>
         </div>
     </div>
@@ -4905,7 +5039,30 @@
 
         function viewLatestReport() {
             if (latestReportId) {
-                viewDashboardReport(latestReportId);
+                viewReport(latestReportId);
+            }
+        }
+
+        function openReportInNewTab(runId) {
+            viewReport(runId);
+        }
+
+        async function openReportAndScrollToApi(runId, apiId) {
+            try {
+                const response = await fetch(`/api/reports/${runId}`);
+                const data = await response.json();
+
+                if (data.success && data.report) {
+                    const htmlPath = data.report.htmlReport || data.report.results[0]?.reportPaths?.html;
+                    if (htmlPath) {
+                        // Open with hash anchor to scroll to specific API
+                        window.open(`/output/${htmlPath}#${apiId}`, '_blank');
+                    } else {
+                        showToast('No HTML report available', 'error');
+                    }
+                }
+            } catch (error) {
+                showToast('Failed to open report', 'error');
             }
         }
 
@@ -4951,14 +5108,7 @@
 
             // Build failed APIs HTML
             let failedHtml = '';
-            if (failedApis.length === 0) {
-                failedHtml = `
-                    <div class="all-passed-message">
-                        <div class="all-passed-icon">✓</div>
-                        <div class="all-passed-text">All APIs Passed!</div>
-                    </div>
-                `;
-            } else {
+            if (failedApis.length > 0) {
                 failedHtml = `
                     <div class="failed-section">
                         <div class="failed-section-header">
@@ -4976,10 +5126,7 @@
                                     <span class="failed-api-module">Module: ${escapeHtml(api.section || 'Unknown')}</span>
                                 </div>
                             </div>
-                            <div class="failed-api-actions">
-                                <button type="button" class="btn btn-sm btn-secondary" onclick="rerunSingleApi('${api.apiId}'); return false;">↻ Run Again</button>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="viewApiInReport('${runId}', '${api.apiId}'); return false;">View Report →</button>
-                            </div>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="openReportAndScrollToApi('${runId}', '${api.apiId}'); return false;">View Report →</button>
                         </li>
                     `;
                 });
@@ -5095,8 +5242,21 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></span>Running...';
 
+            // Show execution logs modal
+            const logsModal = document.getElementById('execution-logs-modal');
+            const logsContainer = document.getElementById('execution-logs');
+            const summaryContainer = document.getElementById('execution-summary');
+            logsContainer.innerHTML = `
+                <div class="log-entry running">
+                    <span class="log-icon"></span>
+                    <span class="log-text">Running ${allApiIds.length} APIs...</span>
+                </div>
+            `;
+            summaryContainer.innerHTML = '';
+            logsModal.classList.add('active');
+
             try {
-                // Run all APIs directly via API
+                // Run all APIs in a single batch request
                 const response = await fetch('/api/run', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -5106,22 +5266,40 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast(`Executed ${allApiIds.length} APIs successfully!`, 'success');
+                    // Show completion
+                    logsContainer.innerHTML = `
+                        <div class="log-entry pass">
+                            <span class="log-icon"></span>
+                            <span class="log-text">Completed running ${allApiIds.length} APIs</span>
+                        </div>
+                    `;
+
                     // Reload dashboard data
                     await loadDashboard();
-                    // Also reload sections to update status
                     await loadSections();
+
+                    // Close modal after short delay
+                    setTimeout(() => {
+                        closeExecutionLogs();
+                    }, 1500);
                 } else {
                     showToast('Failed to run APIs: ' + (data.error || 'Unknown error'), 'error');
+                    closeExecutionLogs();
                 }
+
             } catch (error) {
                 console.error('Error running all APIs:', error);
                 showToast('Error running APIs', 'error');
+                closeExecutionLogs();
             } finally {
                 // Restore button
                 btn.disabled = false;
                 btn.textContent = originalText;
             }
+        }
+
+        function closeExecutionLogs() {
+            document.getElementById('execution-logs-modal').classList.remove('active');
         }
 
         // =============================================================================
