@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Test Agent for API | OpenSooq</title>
+    <title>OpenSooq API Tester</title>
     <style>
         * {
             box-sizing: border-box;
@@ -18,53 +18,68 @@
             min-height: 100vh;
         }
 
-        /* Header */
+        /* Header - Modern SaaS Style */
         .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            padding: 20px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px 30px;
             display: flex;
             align-items: center;
-            gap: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            gap: 20px;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
         }
 
         .logo-container {
             background: white;
-            padding: 8px 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 10px 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            z-index: 1;
         }
 
         .logo {
-            height: 45px;
+            height: 40px;
             display: block;
         }
 
         .header-text {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
+            z-index: 1;
         }
 
         .header h1 {
             color: white;
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .header h1 .highlight {
-            color: #00d4ff;
+            letter-spacing: 0.3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .header-subtitle {
-            color: rgba(255,255,255,0.7);
-            font-size: 0.85rem;
+            color: rgba(255,255,255,0.85);
+            font-size: 0.8rem;
             font-weight: 400;
         }
 
         .header-badge {
-            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
             color: white;
             padding: 6px 14px;
             border-radius: 20px;
@@ -73,6 +88,8 @@
             margin-left: auto;
             text-transform: uppercase;
             letter-spacing: 1px;
+            border: 1px solid rgba(255,255,255,0.3);
+            z-index: 1;
         }
 
         /* Tabs */
@@ -1574,30 +1591,72 @@
 
         .stat-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
             transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #e0e0e0;
         }
 
         .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .stat-card-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            display: block;
         }
 
         .stat-card-label {
-            font-size: 13px;
+            font-size: 12px;
             color: #7f8c8d;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+            font-weight: 500;
         }
 
         .stat-card-value {
-            font-size: 32px;
-            font-weight: 700;
+            font-size: 36px;
+            font-weight: 800;
             color: #2c3e50;
+            line-height: 1;
         }
+
+        /* Card Color Variants */
+        .stat-card.blue::before { background: linear-gradient(180deg, #3498db, #2980b9); }
+        .stat-card.blue { background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%); }
+        .stat-card.blue .stat-card-value { color: #2980b9; }
+
+        .stat-card.purple::before { background: linear-gradient(180deg, #9b59b6, #8e44ad); }
+        .stat-card.purple { background: linear-gradient(135deg, #ffffff 0%, #f8f0ff 100%); }
+        .stat-card.purple .stat-card-value { color: #8e44ad; }
+
+        .stat-card.orange::before { background: linear-gradient(180deg, #e67e22, #d35400); }
+        .stat-card.orange { background: linear-gradient(135deg, #ffffff 0%, #fff8f0 100%); }
+        .stat-card.orange .stat-card-value { color: #d35400; }
+
+        .stat-card.green::before { background: linear-gradient(180deg, #27ae60, #1e8449); }
+        .stat-card.green { background: linear-gradient(135deg, #ffffff 0%, #f0fff5 100%); }
+        .stat-card.green .stat-card-value { color: #1e8449; }
+
+        .stat-card.red::before { background: linear-gradient(180deg, #e74c3c, #c0392b); }
+        .stat-card.red { background: linear-gradient(135deg, #ffffff 0%, #fff5f5 100%); }
+        .stat-card.red .stat-card-value { color: #c0392b; }
 
         .stat-card-value.success {
             color: #27ae60;
@@ -1824,13 +1883,13 @@
     <!-- Header -->
     <div class="header">
         <div class="logo-container">
-            <img src="https://media.licdn.com/dms/image/v2/D4D3DAQGr3Y_cI3wCZw/image-scale_191_1128/B4DZv.wy5vGgAg-/0/1769505763568/opensooq_cover?e=1771243200&v=beta&t=kdbeMvd0tzTXioTgCxzDTf7PdGyDCwn4M0fYYK8qXFs" alt="OpenSooq Logo" class="logo">
+            <img src="https://opensooqui2.os-cdn.com/prod/public/images/osLogo/osLogo.svg" alt="OpenSooq Logo" class="logo">
         </div>
         <div class="header-text">
-            <h1><span class="highlight">AI Test Agent</span> for API</h1>
+            <h1>OpenSooq API Tester</h1>
             <span class="header-subtitle">Automated API Testing & Validation Platform</span>
         </div>
-        <span class="header-badge">OpenSooq</span>
+        <span class="header-badge">v1.0</span>
     </div>
 
     <!-- Tabs -->
@@ -1860,19 +1919,23 @@
 
                 <!-- Summary Cards -->
                 <div class="summary-cards">
-                    <div class="stat-card">
+                    <div class="stat-card blue">
+                        <span class="stat-card-icon">📦</span>
                         <div class="stat-card-label">Total Modules</div>
                         <div class="stat-card-value" id="dash-total-modules">0</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card purple">
+                        <span class="stat-card-icon">🔌</span>
                         <div class="stat-card-label">Total APIs</div>
                         <div class="stat-card-value" id="dash-total-apis">0</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card orange">
+                        <span class="stat-card-icon">✓</span>
                         <div class="stat-card-label">Total Rules</div>
                         <div class="stat-card-value" id="dash-total-rules">0</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card" id="dash-status-card">
+                        <span class="stat-card-icon">📊</span>
                         <div class="stat-card-label">Last Run Status</div>
                         <div class="stat-card-value" id="dash-last-status">--</div>
                     </div>
@@ -4701,13 +4764,17 @@
 
         function updateLastRunStatus(report) {
             const statusEl = document.getElementById('dash-last-status');
+            const cardEl = document.getElementById('dash-status-card');
             if (report.passed !== undefined && report.totalApis > 0) {
                 const percentage = Math.round((report.passed / report.totalApis) * 100);
                 statusEl.textContent = percentage + '% Passed';
                 statusEl.className = 'stat-card-value ' + (percentage >= 80 ? 'success' : 'danger');
+                // Update card color
+                cardEl.className = 'stat-card ' + (percentage >= 80 ? 'green' : 'red');
             } else {
                 statusEl.textContent = '--';
                 statusEl.className = 'stat-card-value';
+                cardEl.className = 'stat-card';
             }
         }
 
@@ -4846,7 +4913,7 @@
         }
 
         async function runAllApis() {
-            // Select all APIs and run them
+            // Collect all API IDs
             const allApiIds = [];
             sections.forEach(section => {
                 section.apis?.forEach(api => {
@@ -4859,21 +4926,39 @@
                 return;
             }
 
-            // Switch to saved-apis tab first
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            // Get the button and show loading state
+            const btn = document.querySelector('.dashboard-actions .btn-secondary');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></span>Running...';
 
-            document.querySelector('[data-tab="saved-apis"]').classList.add('active');
-            document.getElementById('saved-apis').classList.add('active');
+            try {
+                // Run all APIs directly via API
+                const response = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiIds: allApiIds })
+                });
 
-            // Select all checkboxes
-            document.querySelectorAll('.api-item input[type="checkbox"]').forEach(cb => {
-                cb.checked = true;
-            });
-            updateSelectedCount();
+                const data = await response.json();
 
-            // Run selected APIs
-            await runSelectedApis();
+                if (data.success) {
+                    showToast(`Executed ${allApiIds.length} APIs successfully!`, 'success');
+                    // Reload dashboard data
+                    await loadDashboard();
+                    // Also reload sections to update status
+                    await loadSections();
+                } else {
+                    showToast('Failed to run APIs: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error running all APIs:', error);
+                showToast('Error running APIs', 'error');
+            } finally {
+                // Restore button
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         }
 
         // =============================================================================
