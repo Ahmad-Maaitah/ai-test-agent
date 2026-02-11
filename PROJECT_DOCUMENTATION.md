@@ -9,15 +9,16 @@
 
 1. [Project Overview](#1-project-overview)
 2. [System Architecture](#2-system-architecture)
-3. [Functional Requirements](#3-functional-requirements)
-4. [Business Rules](#4-business-rules)
-5. [Validation Rules Engine](#5-validation-rules-engine)
-6. [API Handling Logic](#6-api-handling-logic)
-7. [Automation & Testing Rules](#7-automation--testing-rules)
-8. [Edge Cases & Limitations](#8-edge-cases--limitations)
-9. [Data Structures Reference](#9-data-structures-reference)
-10. [API Endpoints Reference](#10-api-endpoints-reference)
-11. [Future Enhancement Notes](#11-future-enhancement-notes)
+3. [UI to Backend Connection](#3-ui-to-backend-connection)
+4. [Functional Requirements](#4-functional-requirements)
+5. [Business Rules](#5-business-rules)
+6. [Validation Rules Engine](#6-validation-rules-engine)
+7. [API Handling Logic](#7-api-handling-logic)
+8. [Automation & Testing Rules](#8-automation--testing-rules)
+9. [Edge Cases & Limitations](#9-edge-cases--limitations)
+10. [Data Structures Reference](#10-data-structures-reference)
+11. [API Endpoints Reference](#11-api-endpoints-reference)
+12. [Future Enhancement Notes](#12-future-enhancement-notes)
 
 ---
 
@@ -186,7 +187,175 @@ User Input (cURL)
 
 ---
 
-## 3. Functional Requirements
+## 3. UI to Backend Connection
+
+### 3.1 How UI Connects to Code
+
+The application uses a client-server architecture where the browser (UI) communicates with the Python backend via HTTP REST API calls.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. USER ACTION IN BROWSER                                               │
+│                                                                         │
+│    Click "Save API" button                                              │
+│         ↓                                                               │
+│    JavaScript collects: {name, curl, customRules}                       │
+│         ↓                                                               │
+│    fetch('/api/sections/{id}/apis', {method: 'POST', body: JSON})       │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                    HTTP Request    │    JSON Data
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 2. FLASK ROUTE (routes.py)                                              │
+│                                                                         │
+│    @main_bp.route('/api/sections/<id>/apis', methods=['POST'])          │
+│    def create_api(section_id):                                          │
+│        data = request.get_json()     ← Receives JSON                    │
+│        save_data(data)               ← Saves to data.json               │
+│        return jsonify({success: True})                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 3. WHEN USER CLICKS "Run Selected"                                      │
+│                                                                         │
+│    routes.py → run_test_pipeline()                                      │
+│         ↓                                                               │
+│    runner.py:                                                           │
+│      • parse_curl()           → Extract URL, headers, body              │
+│      • execute_api_request()  → Make HTTP call                          │
+│      • apply_dynamic_rules()  → Evaluate all test rules                 │
+│      • generate_pytest_code() → Create tests/test_api_*.py              │
+│      • generate_html_report() → Create output/report_*.html             │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 4. FILES GENERATED                                                      │
+│                                                                         │
+│    data.json          ← Your saved APIs and rules                       │
+│    tests/test_*.py    ← Dynamic pytest code                             │
+│    output/report_*.html ← Test results report                           │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 3.2 Key Connection Points
+
+| UI Action | JavaScript Function | API Endpoint | Backend Function |
+|-----------|--------------------|--------------| -----------------|
+| Save API | `saveApiFromPage()` | `POST /api/sections/{id}/apis` | `create_api()` |
+| Execute cURL | `executePageCurl()` | `POST /api/execute-curl` | `parse_curl()` + `requests` |
+| Test Rule | `testNewRule()` | `POST /api/test-rules` | `evaluate_rule()` |
+| Run Tests | `runSelectedApis()` | `POST /api/run` | `run_test_pipeline()` |
+| Delete API | `deleteApi()` | `DELETE /api/apis/{id}` | `delete_api()` |
+| Delete Module | `deleteSection()` | `DELETE /api/sections/{id}` | `delete_section()` |
+
+### 3.3 Dynamic Test Generation
+
+When you run tests, the system **dynamically generates**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  YOUR RULES (stored in data.json)                               │
+│                                                                 │
+│  customRules: [                                                 │
+│    {type: "status_code", config: {expectedStatus: 200}},        │
+│    {type: "field_exists", field: "data.user.id"},               │
+│    {type: "response_time", config: {maxMs: 2000}}               │
+│  ]                                                              │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ run_test_pipeline()
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  GENERATED PYTEST FILE (tests/test_api_*.py)                    │
+│                                                                 │
+│  class TestAPIValidation:                                       │
+│      def test_status_code_rule(self, api_response):             │
+│          assert 200 <= api_response.status_code < 300           │
+│                                                                 │
+│      def test_field_exists(self, api_response):                 │
+│          data = api_response.json()                             │
+│          assert 'data' in data                                  │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ pytest execution
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  GENERATED REPORT (output/report_*.html)                        │
+│                                                                 │
+│  ✓ Status Code: PASS - Expected: 200, Actual: 200               │
+│  ✓ Field Exists: PASS - data.user.id found                      │
+│  ✓ Response Time: PASS - 245ms < 2000ms                         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 3.4 Storage Locations
+
+| What | Where | Purpose |
+|------|-------|---------|
+| **APIs & Rules** | `data.json` | Persistent storage of all configurations |
+| **Pytest Files** | `tests/test_api_*.py` | Auto-generated test code |
+| **HTML Reports** | `output/report_*.html` | Visual test results |
+| **JSON Reports** | `output/report_*.json` | Machine-readable results |
+| **Metadata** | `output/metadata/*.json` | Execution context |
+| **Allure Data** | `output/allure-results/` | Allure reporting data |
+
+### 3.5 Code Examples
+
+**UI (JavaScript) - Sends Request:**
+```javascript
+async function saveApiFromPage() {
+    const apiData = {
+        name: document.getElementById('page-api-name').value,
+        curl: document.getElementById('page-curl').value,
+        customRules: pageCustomRules
+    };
+
+    const response = await fetch(`/api/sections/${sectionId}/apis`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(apiData)
+    });
+}
+```
+
+**Flask (Python) - Receives Request:**
+```python
+@main_bp.route('/api/sections/<section_id>/apis', methods=['POST'])
+def create_api(section_id):
+    req_data = request.get_json()
+    name = req_data.get('name')
+    curl = req_data.get('curl')
+    custom_rules = req_data.get('customRules', [])
+
+    # Save to data.json
+    data = load_data()
+    # ... add API to section
+    save_data(data)
+
+    return jsonify({'success': True, 'api': new_api})
+```
+
+**Backend (Python) - Evaluates Rules:**
+```python
+def evaluate_rule(rule, response, response_time_ms, status_code):
+    rule_type = rule.get('type')
+
+    if rule_type == 'status_code':
+        expected = rule['config']['expectedStatus']
+        return 'PASS' if status_code == expected else 'FAIL'
+
+    elif rule_type == 'field_exists':
+        field = rule.get('field')
+        value, found = get_nested_field(response, field)
+        return 'PASS' if found else 'FAIL'
+```
+
+---
+
+## 4. Functional Requirements
 
 ### 3.1 Module (Section) Management
 
@@ -245,7 +414,7 @@ User Input (cURL)
 
 ---
 
-## 4. Business Rules
+## 5. Business Rules
 
 ### 4.1 Naming Conventions
 
@@ -284,7 +453,7 @@ User Input (cURL)
 
 ---
 
-## 5. Validation Rules Engine
+## 6. Validation Rules Engine
 
 ### 5.1 Rule Types Overview
 
@@ -433,7 +602,7 @@ When an API has no custom rules, these 4 rules apply:
 
 ---
 
-## 6. API Handling Logic
+## 7. API Handling Logic
 
 ### 6.1 cURL Parsing
 
@@ -487,7 +656,7 @@ response = requests.request(
 
 ---
 
-## 7. Automation & Testing Rules
+## 8. Automation & Testing Rules
 
 ### 7.1 Test Pipeline
 
@@ -568,7 +737,7 @@ class TestAPIValidation:
 
 ---
 
-## 8. Edge Cases & Limitations
+## 9. Edge Cases & Limitations
 
 ### 8.1 Known Limitations
 
@@ -609,7 +778,7 @@ class TestAPIValidation:
 
 ---
 
-## 9. Data Structures Reference
+## 10. Data Structures Reference
 
 ### 9.1 Section (Module)
 
@@ -705,9 +874,9 @@ class TestAPIValidation:
 
 ---
 
-## 10. API Endpoints Reference
+## 11. API Endpoints Reference
 
-### 10.1 Section Endpoints
+### 11.1 Section Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -717,7 +886,7 @@ class TestAPIValidation:
 | DELETE | `/api/sections/<id>` | Delete section and APIs |
 | POST | `/api/sections/reorder` | Reorder sections |
 
-### 10.2 API Endpoints
+### 11.2 API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -727,7 +896,7 @@ class TestAPIValidation:
 | POST | `/api/apis/<id>/move` | Move API to section |
 | POST | `/api/sections/<id>/apis/reorder` | Reorder APIs |
 
-### 10.3 Test Execution Endpoints
+### 11.3 Test Execution Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -737,13 +906,13 @@ class TestAPIValidation:
 | POST | `/api/test-rules` | Test rules without saving |
 | POST | `/api/validate-rules` | Validate rule config |
 
-### 10.4 Rule Endpoints
+### 11.4 Rule Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/rule-types` | Get rule type definitions |
 
-### 10.5 Report Endpoints
+### 11.5 Report Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -753,7 +922,7 @@ class TestAPIValidation:
 | DELETE | `/api/reports/<id>` | Delete report |
 | POST | `/api/reports/<id>/rerun-failed` | Re-run failed APIs |
 
-### 10.6 Static File Endpoints
+### 11.6 Static File Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -763,9 +932,9 @@ class TestAPIValidation:
 
 ---
 
-## 11. Future Enhancement Notes
+## 12. Future Enhancement Notes
 
-### 11.1 High Priority
+### 12.1 High Priority
 
 | Enhancement | Description |
 |-------------|-------------|
@@ -775,7 +944,7 @@ class TestAPIValidation:
 | **Email Notifications** | Send alerts on test failures |
 | **Database Storage** | Migrate from JSON to SQLite/PostgreSQL |
 
-### 11.2 Medium Priority
+### 12.2 Medium Priority
 
 | Enhancement | Description |
 |-------------|-------------|
@@ -785,7 +954,7 @@ class TestAPIValidation:
 | **Response Assertions** | JSON schema validation |
 | **Performance Trends** | Track response time over multiple runs |
 
-### 11.3 Low Priority
+### 12.3 Low Priority
 
 | Enhancement | Description |
 |-------------|-------------|
@@ -795,7 +964,7 @@ class TestAPIValidation:
 | **Mock Server** | Generate mock responses for testing |
 | **CI/CD Integration** | GitHub Actions / Jenkins plugins |
 
-### 11.4 Technical Debt
+### 12.4 Technical Debt
 
 | Item | Description |
 |------|-------------|
