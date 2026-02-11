@@ -2095,14 +2095,23 @@
         }
 
         async function deleteSection(sectionId) {
-            if (!confirm('Delete this module and all its APIs?')) return;
+            // Find the section name and API count for confirmation message
+            const section = sections.find(s => s.id === sectionId);
+            const sectionName = section ? section.name : 'this module';
+            const apiCount = section ? section.apis.length : 0;
+
+            const message = apiCount > 0
+                ? `Are you sure you want to delete "${sectionName}"?\n\nThis will also delete ${apiCount} API(s) in this module.\n\nThis action cannot be undone.`
+                : `Are you sure you want to delete "${sectionName}"?\n\nThis action cannot be undone.`;
+
+            if (!confirm(message)) return;
 
             try {
                 const response = await fetch(`/api/sections/${sectionId}`, { method: 'DELETE' });
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast('Module deleted');
+                    showToast(`Module "${sectionName}" deleted successfully`);
                     if (currentSectionId === sectionId) {
                         currentSectionId = sections[0]?.id || null;
                     }
@@ -2757,14 +2766,24 @@
         }
 
         async function deleteApi(apiId) {
-            if (!confirm('Delete this API?')) return;
+            // Find the API name for confirmation message
+            let apiName = 'this API';
+            for (const section of sections) {
+                const api = section.apis.find(a => a.id === apiId);
+                if (api) {
+                    apiName = api.name;
+                    break;
+                }
+            }
+
+            if (!confirm(`Are you sure you want to delete "${apiName}"?\n\nThis action cannot be undone.`)) return;
 
             try {
                 const response = await fetch(`/api/apis/${apiId}`, { method: 'DELETE' });
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast('API deleted');
+                    showToast(`API "${apiName}" deleted successfully`);
                     selectedApis.delete(apiId);
                     loadSections();
                 } else {
