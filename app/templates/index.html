@@ -1647,21 +1647,26 @@
                         <!-- New Rule Builder -->
                         <div class="new-rule-builder" id="new-rule-builder" style="background: #e8f4fd; border: 2px dashed #2196f3; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
                             <h4 style="margin-bottom: 15px; color: #1976d2;">Create New Test Rule</h4>
-                            <div class="rule-fields" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
-                                <div>
+                            <div class="rule-fields" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+                                <div style="min-width: 180px;">
                                     <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">Rule Type</label>
                                     <select id="new-rule-type" onchange="onNewRuleTypeChange()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                                         <!-- Populated dynamically -->
                                     </select>
                                 </div>
-                                <div id="new-rule-field-container">
-                                    <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">Field</label>
-                                    <input type="text" id="new-rule-field-search" placeholder="Search field..." oninput="filterNewRuleFields()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 5px;">
-                                    <select id="new-rule-field" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                                        <option value="">Select field...</option>
-                                    </select>
+                                <div id="new-rule-field-container" style="min-width: 200px; position: relative;">
+                                    <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">Field (type to search)</label>
+                                    <input type="text" id="new-rule-field-search" placeholder="Search or select field..."
+                                        oninput="filterNewRuleFields()"
+                                        onfocus="showFieldDropdown()"
+                                        onblur="hideFieldDropdown()"
+                                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <input type="hidden" id="new-rule-field" value="">
+                                    <div id="new-rule-field-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 100;">
+                                        <!-- Field options populated dynamically -->
+                                    </div>
                                 </div>
-                                <div id="new-rule-config-container">
+                                <div id="new-rule-config-container" style="display: flex; gap: 15px; flex-wrap: wrap;">
                                     <!-- Config fields populated dynamically -->
                                 </div>
                             </div>
@@ -2841,7 +2846,6 @@
             document.getElementById('page-api-name').value = '';
             document.getElementById('page-curl').value = '';
             document.getElementById('page-save-btn').disabled = true;
-            document.getElementById('page-validation-status').textContent = '';
 
             // Reset response panel
             document.getElementById('page-response-meta').innerHTML = '<span class="meta-badge neutral">No response yet</span>';
@@ -2892,7 +2896,6 @@
             document.getElementById('page-api-name').value = api.name;
             document.getElementById('page-curl').value = api.curl;
             document.getElementById('page-save-btn').disabled = true;
-            document.getElementById('page-validation-status').textContent = pageCustomRules.length > 0 ? 'Re-validate rules to save' : '';
 
             // Reset response panel
             document.getElementById('page-response-meta').innerHTML = '<span class="meta-badge neutral">Execute to refresh</span>';
@@ -2989,8 +2992,6 @@
 
                     pageRulesValidated = false;
                     document.getElementById('page-save-btn').disabled = true;
-                    document.getElementById('page-validation-status').textContent = 'Validate rules to enable save';
-                    document.getElementById('page-validation-status').style.color = '#7f8c8d';
 
                     updatePageStatus();
                     showToast('Response parsed successfully');
@@ -3036,11 +3037,7 @@
             }
 
             // Set the field in the field selector
-            const fieldSearch = document.getElementById('new-rule-field-search');
-            const fieldSelect = document.getElementById('new-rule-field');
-            if (fieldSearch) fieldSearch.value = field;
-            populateNewRuleFieldDropdown();
-            if (fieldSelect) fieldSelect.value = field;
+            selectNewRuleField(field);
 
             // Scroll to the new rule builder
             const builder = document.getElementById('new-rule-builder');
@@ -3145,11 +3142,6 @@
                 if (data.success) {
                     const allPassed = data.results.every(r => r.result === 'PASS');
                     pageRulesValidated = allPassed;
-
-                    document.getElementById('page-validation-status').textContent = allPassed ?
-                        `✓ All ${data.results.length} rules passed` :
-                        `${data.results.filter(r => r.result === 'PASS').length}/${data.results.length} rules passed`;
-                    document.getElementById('page-validation-status').style.color = allPassed ? '#27ae60' : '#e74c3c';
 
                     updatePageStatus();
                 }
@@ -3349,11 +3341,6 @@
                     const allPassed = data.results.every(r => r.result === 'PASS');
                     pageRulesValidated = allPassed;
 
-                    document.getElementById('page-validation-status').textContent = allPassed ?
-                        `✓ All ${data.results.length} rules passed` :
-                        `${data.results.filter(r => r.result === 'PASS').length}/${data.results.length} rules passed`;
-                    document.getElementById('page-validation-status').style.color = allPassed ? '#27ae60' : '#e74c3c';
-
                     document.getElementById('page-save-btn').disabled = !allPassed;
                     updatePageStatus();
 
@@ -3468,12 +3455,30 @@
         let newRuleTested = false;
         let newRuleTestResult = null;
 
-        function initNewRuleBuilder() {
+        async function initNewRuleBuilder() {
+            // Wait for rule types to load if not yet available
+            if (Object.keys(ruleTypes).length === 0) {
+                await loadRuleTypes();
+            }
+
             // Populate rule type dropdown
             const typeSelect = document.getElementById('new-rule-type');
-            typeSelect.innerHTML = Object.entries(ruleTypes).map(([key, config]) =>
+            const ruleTypeEntries = Object.entries(ruleTypes);
+
+            if (ruleTypeEntries.length === 0) {
+                typeSelect.innerHTML = '<option value="">No rule types available</option>';
+                console.error('No rule types loaded');
+                return;
+            }
+
+            typeSelect.innerHTML = ruleTypeEntries.map(([key, config]) =>
                 `<option value="${key}">${config.name}</option>`
             ).join('');
+
+            // Ensure first option is selected
+            if (typeSelect.options.length > 0) {
+                typeSelect.selectedIndex = 0;
+            }
 
             // Initialize with first rule type
             onNewRuleTypeChange();
@@ -3500,26 +3505,48 @@
         }
 
         function populateNewRuleFieldDropdown() {
-            const select = document.getElementById('new-rule-field');
+            const dropdown = document.getElementById('new-rule-field-dropdown');
             const search = document.getElementById('new-rule-field-search').value.toLowerCase();
 
             const filtered = pageAvailableFields.filter(f => f.toLowerCase().includes(search));
 
-            select.innerHTML = '<option value="">Select field...</option>' +
-                filtered.map(f => `<option value="${f}">${f}</option>`).join('');
+            if (filtered.length === 0) {
+                dropdown.innerHTML = '<div style="padding: 8px; color: #7f8c8d; font-size: 12px;">No fields found</div>';
+            } else {
+                dropdown.innerHTML = filtered.map(f =>
+                    `<div class="field-dropdown-item" onclick="selectNewRuleField('${f}')" style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;"
+                        onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">${f}</div>`
+                ).join('');
+            }
+        }
+
+        function showFieldDropdown() {
+            const dropdown = document.getElementById('new-rule-field-dropdown');
+            populateNewRuleFieldDropdown();
+            dropdown.style.display = 'block';
+        }
+
+        function hideFieldDropdown() {
+            setTimeout(() => {
+                document.getElementById('new-rule-field-dropdown').style.display = 'none';
+            }, 200);
+        }
+
+        function selectNewRuleField(field) {
+            document.getElementById('new-rule-field').value = field;
+            document.getElementById('new-rule-field-search').value = field;
+            document.getElementById('new-rule-field-dropdown').style.display = 'none';
+            resetNewRuleTest();
         }
 
         function filterNewRuleFields() {
             populateNewRuleFieldDropdown();
+            document.getElementById('new-rule-field').value = '';
             resetNewRuleTest();
         }
 
         function selectFieldForNewRule(field) {
-            document.getElementById('new-rule-field').value = field;
-            document.getElementById('new-rule-field-search').value = field;
-            populateNewRuleFieldDropdown();
-            document.getElementById('new-rule-field').value = field;
-            resetNewRuleTest();
+            selectNewRuleField(field);
         }
 
         function renderNewRuleConfigFields(ruleType, typeConfig) {
@@ -3579,7 +3606,20 @@
         }
 
         function buildNewRuleObject() {
-            const ruleType = document.getElementById('new-rule-type').value;
+            const typeSelect = document.getElementById('new-rule-type');
+            let ruleType = typeSelect.value;
+
+            // Fallback if no rule type selected
+            if (!ruleType && typeSelect.options.length > 0) {
+                ruleType = typeSelect.options[0].value;
+                typeSelect.selectedIndex = 0;
+            }
+
+            if (!ruleType) {
+                console.error('No rule type available');
+                return null;
+            }
+
             const typeConfig = ruleTypes[ruleType] || {};
             const field = typeConfig.requiresField !== false ? document.getElementById('new-rule-field').value : '';
 
@@ -3612,7 +3652,14 @@
                 return;
             }
 
-            const ruleType = document.getElementById('new-rule-type').value;
+            const typeSelect = document.getElementById('new-rule-type');
+            const ruleType = typeSelect.value;
+
+            if (!ruleType) {
+                showToast('Please select a rule type', 'error');
+                return;
+            }
+
             const typeConfig = ruleTypes[ruleType] || {};
 
             // Validate field is selected if required
@@ -3677,6 +3724,11 @@
             }
 
             const rule = buildNewRuleObject();
+            if (!rule) {
+                showToast('Failed to create rule - no rule type selected', 'error');
+                return;
+            }
+
             rule.testResult = newRuleTestResult; // Store test result with rule
 
             pageCustomRules.push(rule);

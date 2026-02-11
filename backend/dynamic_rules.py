@@ -18,40 +18,45 @@ from typing import Any, Dict, List, Optional, Tuple
 # Rule type definitions with metadata
 RULE_TYPES = {
     "status_code": {
-        "name": "HTTP Status Code Check",
-        "description": "Verify the HTTP response status code",
+        "name": "Status Code (e.g., 200, 404, 500)",
+        "description": "Verify HTTP status code equals expected value",
+        "example": "Check if API returns 200 OK",
         "requiresField": False,
         "ruleType": "functional",
         "configFields": [
             {"name": "expectedStatus", "type": "number", "label": "Expected Status Code", "default": 200}
         ]
     },
-    "success_flag": {
-        "name": "Success Flag Check",
-        "description": "Check if a boolean field matches expected value",
-        "requiresField": True,
-        "ruleType": "functional",
+    "response_time": {
+        "name": "Response Time (e.g., < 2000ms)",
+        "description": "Verify API response time is within acceptable threshold",
+        "example": "Ensure response completes within 2 seconds",
+        "requiresField": False,
+        "ruleType": "performance",
         "configFields": [
-            {"name": "expectedValue", "type": "boolean", "label": "Expected Value", "default": True}
+            {"name": "maxMs", "type": "number", "label": "Max Response Time (ms)", "default": 2000}
         ]
     },
     "field_exists": {
-        "name": "Field Exists",
-        "description": "Verify that a field exists in the response",
+        "name": "Field Exists (e.g., data.id exists)",
+        "description": "Verify that a specific field exists in the response",
+        "example": "Check if 'data.user.email' field is present",
         "requiresField": True,
         "ruleType": "structural",
         "configFields": []
     },
     "field_not_null": {
-        "name": "Field Not Null/Empty",
-        "description": "Check that a field is not null or empty",
+        "name": "Field Not Null (e.g., data.id != null)",
+        "description": "Check that a field has a value (not null/empty)",
+        "example": "Ensure 'data.token' is not empty",
         "requiresField": True,
         "ruleType": "structural",
         "configFields": []
     },
     "field_type": {
-        "name": "Field Type Check",
-        "description": "Validate the data type of a field",
+        "name": "Field Type (e.g., data.count is number)",
+        "description": "Validate the data type of a field value",
+        "example": "Verify 'data.items' is an array",
         "requiresField": True,
         "ruleType": "structural",
         "configFields": [
@@ -64,18 +69,20 @@ RULE_TYPES = {
             }
         ]
     },
-    "response_time": {
-        "name": "Response Time Check",
-        "description": "Verify response time is within threshold",
-        "requiresField": False,
+    "success_flag": {
+        "name": "Boolean Check (e.g., success == true)",
+        "description": "Check if a boolean field matches expected true/false",
+        "example": "Verify 'data.isActive' equals true",
+        "requiresField": True,
         "ruleType": "functional",
         "configFields": [
-            {"name": "maxMs", "type": "number", "label": "Max Response Time (ms)", "default": 2000}
+            {"name": "expectedValue", "type": "boolean", "label": "Expected Value", "default": True}
         ]
     },
     "custom_expression": {
-        "name": "Custom Expression",
-        "description": "Evaluate a custom comparison expression",
+        "name": "Custom Compare (e.g., data.status == 'active')",
+        "description": "Compare field value using operators: equals, contains, greater_than, etc.",
+        "example": "Check if 'data.role' contains 'admin'",
         "requiresField": True,
         "ruleType": "functional",
         "configFields": [
@@ -206,12 +213,21 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
         elif rule_type == 'field_exists':
             value, found = get_nested_field(response, field)
 
-            result['expected'] = 'Field exists'
-            result['actual'] = 'Exists' if found else 'Not found'
-
+            result['expected'] = f"'{field}' exists"
             if found:
                 result['result'] = 'PASS'
+                # Show actual value (truncated if too long)
+                if value is None:
+                    result['actual'] = 'Found (null)'
+                elif isinstance(value, str):
+                    display_val = value[:50] + '...' if len(value) > 50 else value
+                    result['actual'] = f'Found: "{display_val}"'
+                elif isinstance(value, (dict, list)):
+                    result['actual'] = f'Found: {get_type_name(value)} ({len(value)} items)'
+                else:
+                    result['actual'] = f'Found: {value}'
             else:
+                result['actual'] = 'Not found'
                 result['reason'] = f"Field '{field}' does not exist"
 
         elif rule_type == 'field_not_null':
