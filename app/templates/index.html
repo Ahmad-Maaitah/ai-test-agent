@@ -1666,98 +1666,225 @@
             color: #e74c3c;
         }
 
-        /* Dashboard Row - Two Columns */
-        .dashboard-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
+        /* Dashboard Card */
         .dashboard-card {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
             overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.04);
         }
 
         .dashboard-card-header {
-            padding: 18px 24px;
+            padding: 20px 28px;
             border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
         }
 
         .dashboard-card-header h3 {
-            font-size: 16px;
+            font-size: 18px;
             color: #2c3e50;
-            font-weight: 600;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .dashboard-card-body {
-            padding: 24px;
+            padding: 28px;
         }
 
-        /* Last Execution Stats */
-        .execution-stats {
+        /* Execution Stats Row */
+        .execution-stats-row {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
         }
 
-        .execution-stat {
-            display: flex;
-            flex-direction: column;
+        .exec-stat-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #eee;
+            transition: all 0.2s;
         }
 
-        .execution-stat-label {
-            font-size: 12px;
-            color: #7f8c8d;
+        .exec-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .exec-stat-card.passed {
+            background: linear-gradient(135deg, #f0fff4 0%, #e8f5e9 100%);
+            border-color: #c8e6c9;
+        }
+
+        .exec-stat-card.failed {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffebee 100%);
+            border-color: #ffcdd2;
+        }
+
+        .exec-stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .exec-stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #2c3e50;
+            line-height: 1;
             margin-bottom: 4px;
         }
 
-        .execution-stat-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .execution-stat-value.pass {
+        .exec-stat-card.passed .exec-stat-value {
             color: #27ae60;
         }
 
-        .execution-stat-value.fail {
+        .exec-stat-card.failed .exec-stat-value {
             color: #e74c3c;
         }
 
-        /* Failed APIs List */
+        .exec-stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        /* Failed APIs Section */
+        .failed-section {
+            margin-top: 20px;
+        }
+
+        .failed-section-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .failed-apis-list {
             list-style: none;
+            background: #fafafa;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eee;
         }
 
         .failed-api-item {
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background 0.2s;
         }
 
         .failed-api-item:last-child {
             border-bottom: none;
         }
 
+        .failed-api-item:hover {
+            background: #fff;
+        }
+
+        .failed-api-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .failed-api-indicator {
+            width: 10px;
+            height: 10px;
+            background: #e74c3c;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .failed-api-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
         .failed-api-name {
             font-size: 14px;
+            font-weight: 600;
             color: #2c3e50;
         }
 
-        .failed-api-status {
+        .failed-api-module {
             font-size: 12px;
-            color: #e74c3c;
+            color: #7f8c8d;
+        }
+
+        .failed-api-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .failed-api-actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
             font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .failed-api-actions .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .failed-api-actions .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .failed-api-actions .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .failed-api-actions .btn-secondary:hover {
+            background: #d5dbdb;
+        }
+
+        @keyframes highlightPulse {
+            0%, 100% { background-color: transparent; }
+            25%, 75% { background-color: rgba(52, 152, 219, 0.2); }
+        }
+
+        .all-passed-message {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f0fff4 0%, #e8f5e9 100%);
+            border-radius: 12px;
+            border: 1px solid #c8e6c9;
+        }
+
+        .all-passed-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .all-passed-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #27ae60;
         }
 
         .no-failed-apis {
@@ -1851,16 +1978,23 @@
             .summary-cards {
                 grid-template-columns: repeat(2, 1fr);
             }
+            .execution-stats-row {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         @media (max-width: 900px) {
-            .dashboard-row {
-                grid-template-columns: 1fr;
+            .execution-stats-row {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
         @media (max-width: 600px) {
             .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .execution-stats-row {
                 grid-template-columns: 1fr;
             }
 
@@ -1875,6 +2009,16 @@
 
             .dashboard-actions .btn {
                 flex: 1;
+            }
+
+            .failed-api-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .failed-api-action {
+                align-self: flex-end;
             }
         }
     </style>
@@ -1912,8 +2056,8 @@
                         <p>Overview of your API testing activity</p>
                     </div>
                     <div class="dashboard-actions">
-                        <button class="btn btn-primary" onclick="openCreateApiPage()">+ Create API</button>
-                        <button class="btn btn-secondary" onclick="runAllApis()">Run All APIs</button>
+                        <button type="button" class="btn btn-primary" onclick="openCreateApiPage(); return false;">+ Create API</button>
+                        <button type="button" class="btn btn-secondary" onclick="runAllApis(); return false;">Run All APIs</button>
                     </div>
                 </div>
 
@@ -1930,8 +2074,8 @@
                         <div class="stat-card-value" id="dash-total-apis">0</div>
                     </div>
                     <div class="stat-card orange">
-                        <span class="stat-card-icon">✓</span>
-                        <div class="stat-card-label">Total Rules</div>
+                        <span class="stat-card-icon">📋</span>
+                        <div class="stat-card-label">Test Cases</div>
                         <div class="stat-card-value" id="dash-total-rules">0</div>
                     </div>
                     <div class="stat-card" id="dash-status-card">
@@ -1941,41 +2085,18 @@
                     </div>
                 </div>
 
-                <!-- Two Column Layout -->
-                <div class="dashboard-row">
-                    <!-- Last Execution Card -->
-                    <div class="dashboard-card">
-                        <div class="dashboard-card-header">
-                            <h3>Last Execution</h3>
-                        </div>
-                        <div class="dashboard-card-body" id="dash-last-execution">
-                            <div class="empty-state">
-                                <div class="empty-state-icon">📊</div>
-                                <div class="empty-state-text">No test runs yet. Run your APIs to see results here.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Failed APIs Card -->
-                    <div class="dashboard-card">
-                        <div class="dashboard-card-header">
-                            <h3>Failed APIs</h3>
-                        </div>
-                        <div class="dashboard-card-body" id="dash-failed-apis">
-                            <div class="no-failed-apis">No failed APIs</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activity Card -->
-                <div class="dashboard-card">
+                <!-- Last Execution Card (Full Width) -->
+                <div class="dashboard-card execution-card">
                     <div class="dashboard-card-header">
-                        <h3>Recent Activity</h3>
+                        <h3>Last Execution</h3>
+                        <button type="button" class="btn btn-primary" id="view-report-btn" onclick="viewLatestReport(); return false;" style="display: none;">
+                            View Full Report →
+                        </button>
                     </div>
-                    <div class="dashboard-card-body" id="dash-recent-activity" style="padding: 0;">
+                    <div class="dashboard-card-body" id="dash-last-execution">
                         <div class="empty-state">
-                            <div class="empty-state-icon">📋</div>
-                            <div class="empty-state-text">No recent activity. Execute some APIs to see results.</div>
+                            <div class="empty-state-icon">📊</div>
+                            <div class="empty-state-text">No test runs yet. Run your APIs to see results here.</div>
                         </div>
                     </div>
                 </div>
@@ -2309,10 +2430,10 @@
         let rulesValidated = false;
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadSections();
+        document.addEventListener('DOMContentLoaded', async () => {
             setupTabs();
             loadRuleTypes();
+            await loadSections();
             loadDashboard();
         });
 
@@ -4591,7 +4712,7 @@
                                         const failedTests = (api.ruleResults || []).filter(r => r.result === 'FAIL').length;
                                         const totalTests = (api.ruleResults || []).length;
                                         return `
-                                        <div class="api-report-item">
+                                        <div class="api-report-item" data-api-id="${api.apiId}">
                                             <div class="api-report-header" onclick="event.stopPropagation(); toggleApiDetails('${report.runId}-${api.apiId}')">
                                                 <div class="api-report-info">
                                                     <h5>${escapeHtml(api.apiName)}</h5>
@@ -4722,24 +4843,42 @@
             await loadLastExecution();
         }
 
-        function updateDashboardStats() {
+        async function updateDashboardStats() {
             // Calculate totals from sections data
             const totalModules = sections.length;
             let totalApis = 0;
-            let totalRules = 0;
 
             sections.forEach(section => {
                 totalApis += section.apis ? section.apis.length : 0;
-                section.apis?.forEach(api => {
-                    totalRules += api.customRules ? api.customRules.length : 0;
-                });
             });
 
             // Update DOM
             document.getElementById('dash-total-modules').textContent = totalModules;
             document.getElementById('dash-total-apis').textContent = totalApis;
-            document.getElementById('dash-total-rules').textContent = totalRules;
+
+            // Get test cases count from last report (actual executed test cases)
+            try {
+                const response = await fetch('/api/reports?limit=1');
+                const data = await response.json();
+                if (data.success && data.reports && data.reports.length > 0) {
+                    const lastReport = data.reports[0];
+                    let totalTestCases = 0;
+                    if (lastReport.results) {
+                        lastReport.results.forEach(api => {
+                            totalTestCases += (api.ruleResults || []).length;
+                        });
+                    }
+                    document.getElementById('dash-total-rules').textContent = totalTestCases;
+                } else {
+                    document.getElementById('dash-total-rules').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Failed to get test cases count:', error);
+                document.getElementById('dash-total-rules').textContent = '0';
+            }
         }
+
+        let latestReportId = null;
 
         async function loadLastExecution() {
             try {
@@ -4748,17 +4887,25 @@
 
                 if (data.success && data.reports && data.reports.length > 0) {
                     const lastReport = data.reports[0];
+                    latestReportId = lastReport.runId;
                     renderLastExecution(lastReport);
-                    renderFailedApis(lastReport);
-                    renderRecentActivity(lastReport);
                     updateLastRunStatus(lastReport);
+                    // Show the View Full Report button
+                    document.getElementById('view-report-btn').style.display = 'inline-flex';
                 } else {
                     // No reports yet
                     document.getElementById('dash-last-status').textContent = '--';
                     document.getElementById('dash-last-status').className = 'stat-card-value';
+                    document.getElementById('view-report-btn').style.display = 'none';
                 }
             } catch (error) {
                 console.error('Failed to load last execution:', error);
+            }
+        }
+
+        function viewLatestReport() {
+            if (latestReportId) {
+                viewDashboardReport(latestReportId);
             }
         }
 
@@ -4784,119 +4931,135 @@
             const formattedDate = date.toLocaleDateString('en-US', {
                 day: 'numeric',
                 month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                year: 'numeric'
             });
-
-            // Calculate duration from results if available
-            let totalDuration = 0;
-            if (report.results) {
-                report.results.forEach(r => {
-                    const time = parseFloat(r.executionTime) || 0;
-                    totalDuration += time;
-                });
-            }
-
-            container.innerHTML = `
-                <div class="execution-stats">
-                    <div class="execution-stat">
-                        <span class="execution-stat-label">Date</span>
-                        <span class="execution-stat-value">${formattedDate}</span>
-                    </div>
-                    <div class="execution-stat">
-                        <span class="execution-stat-label">APIs Run</span>
-                        <span class="execution-stat-value">${report.totalApis || 0}</span>
-                    </div>
-                    <div class="execution-stat">
-                        <span class="execution-stat-label">Passed</span>
-                        <span class="execution-stat-value pass">${report.passed || 0}</span>
-                    </div>
-                    <div class="execution-stat">
-                        <span class="execution-stat-label">Failed</span>
-                        <span class="execution-stat-value fail">${report.failed || 0}</span>
-                    </div>
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="viewDashboardReport('${report.runId}')">View Full Report</button>
-            `;
-        }
-
-        function renderFailedApis(report) {
-            const container = document.getElementById('dash-failed-apis');
-            const failedApis = report.results ? report.results.filter(r => r.result === 'FAIL') : [];
-
-            if (failedApis.length === 0) {
-                container.innerHTML = '<div class="no-failed-apis">All APIs passed!</div>';
-                return;
-            }
-
-            let html = '<ul class="failed-apis-list">';
-            failedApis.slice(0, 5).forEach(api => {
-                html += `
-                    <li class="failed-api-item">
-                        <span class="failed-api-name">${escapeHtml(api.apiName)}</span>
-                        <span class="failed-api-status">Failed</span>
-                    </li>
-                `;
-            });
-            if (failedApis.length > 5) {
-                html += `<li class="failed-api-item" style="color: #7f8c8d; font-size: 12px;">+${failedApis.length - 5} more failed</li>`;
-            }
-            html += '</ul>';
-            container.innerHTML = html;
-        }
-
-        function renderRecentActivity(report) {
-            const container = document.getElementById('dash-recent-activity');
-
-            if (!report.results || report.results.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📋</div>
-                        <div class="empty-state-text">No activity data available.</div>
-                    </div>
-                `;
-                return;
-            }
-
-            const date = new Date(report.date);
             const formattedTime = date.toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            const formattedDate = date.toLocaleDateString('en-US', {
-                day: 'numeric',
-                month: 'short'
-            });
 
-            let html = `
-                <table class="activity-table">
-                    <thead>
-                        <tr>
-                            <th>API Name</th>
-                            <th>Status</th>
-                            <th>Duration</th>
-                            <th>Time</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+            const failedApis = report.results ? report.results.filter(r => r.result === 'FAIL') : [];
+            const runId = report.runId;
 
-            report.results.slice(0, 10).forEach(result => {
-                const statusClass = result.result === 'PASS' ? 'pass' : 'fail';
-                const statusIcon = result.result === 'PASS' ? '✓' : '✗';
-                html += `
-                    <tr>
-                        <td>${escapeHtml(result.apiName)}</td>
-                        <td><span class="activity-status ${statusClass}">${statusIcon} ${result.result}</span></td>
-                        <td class="activity-duration">${result.executionTime || '--'}</td>
-                        <td class="activity-time">${formattedDate} ${formattedTime}</td>
-                    </tr>
+            // Calculate total test cases from all API results
+            let totalTestCases = 0;
+            if (report.results) {
+                report.results.forEach(api => {
+                    totalTestCases += (api.ruleResults || []).length;
+                });
+            }
+
+            // Build failed APIs HTML
+            let failedHtml = '';
+            if (failedApis.length === 0) {
+                failedHtml = `
+                    <div class="all-passed-message">
+                        <div class="all-passed-icon">✓</div>
+                        <div class="all-passed-text">All APIs Passed!</div>
+                    </div>
                 `;
-            });
+            } else {
+                failedHtml = `
+                    <div class="failed-section">
+                        <div class="failed-section-header">
+                            <span>⚠️</span> Failed APIs (${failedApis.length})
+                        </div>
+                        <ul class="failed-apis-list">
+                `;
+                failedApis.forEach(api => {
+                    failedHtml += `
+                        <li class="failed-api-item">
+                            <div class="failed-api-info">
+                                <div class="failed-api-indicator"></div>
+                                <div class="failed-api-details">
+                                    <span class="failed-api-name">${escapeHtml(api.apiName)}</span>
+                                    <span class="failed-api-module">Module: ${escapeHtml(api.section || 'Unknown')}</span>
+                                </div>
+                            </div>
+                            <div class="failed-api-actions">
+                                <button type="button" class="btn btn-sm btn-secondary" onclick="rerunSingleApi('${api.apiId}'); return false;">↻ Run Again</button>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="viewApiInReport('${runId}', '${api.apiId}'); return false;">View Report →</button>
+                            </div>
+                        </li>
+                    `;
+                });
+                failedHtml += '</ul></div>';
+            }
 
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            container.innerHTML = `
+                <div class="execution-stats-row">
+                    <div class="exec-stat-card">
+                        <div class="exec-stat-icon">📅</div>
+                        <div class="exec-stat-value">${formattedDate}</div>
+                        <div class="exec-stat-label">${formattedTime}</div>
+                    </div>
+                    <div class="exec-stat-card">
+                        <div class="exec-stat-icon">🔢</div>
+                        <div class="exec-stat-value">${report.totalApis || 0}</div>
+                        <div class="exec-stat-label">APIs Run</div>
+                    </div>
+                    <div class="exec-stat-card">
+                        <div class="exec-stat-icon">📋</div>
+                        <div class="exec-stat-value">${totalTestCases}</div>
+                        <div class="exec-stat-label">Test Cases</div>
+                    </div>
+                    <div class="exec-stat-card passed">
+                        <div class="exec-stat-icon">✓</div>
+                        <div class="exec-stat-value">${report.passed || 0}</div>
+                        <div class="exec-stat-label">Passed</div>
+                    </div>
+                    <div class="exec-stat-card failed">
+                        <div class="exec-stat-icon">✗</div>
+                        <div class="exec-stat-value">${report.failed || 0}</div>
+                        <div class="exec-stat-label">Failed</div>
+                    </div>
+                </div>
+                ${failedHtml}
+            `;
+        }
+
+        function viewApiInReport(runId, apiId) {
+            // Switch to reports tab and view the specific report, then scroll to API
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            document.querySelector('[data-tab="reports"]').classList.add('active');
+            document.getElementById('reports').classList.add('active');
+
+            loadReports().then(() => {
+                viewReport(runId);
+                // Wait for modal to open then scroll to the API
+                setTimeout(() => {
+                    const apiElement = document.querySelector(`[data-api-id="${apiId}"]`);
+                    if (apiElement) {
+                        apiElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        apiElement.style.animation = 'highlightPulse 2s ease';
+                    }
+                }, 500);
+            });
+        }
+
+        async function rerunSingleApi(apiId) {
+            try {
+                showToast('Running API...', 'success');
+                const response = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiIds: [apiId] })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showToast('API executed successfully!', 'success');
+                    await loadSections();
+                    await loadDashboard();
+                } else {
+                    showToast('Failed to run API: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error running API:', error);
+                showToast('Error running API', 'error');
+            }
         }
 
         function viewDashboardReport(runId) {
