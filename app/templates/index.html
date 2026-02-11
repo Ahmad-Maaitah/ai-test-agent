@@ -1600,14 +1600,24 @@
                 <div class="left-panel">
                     <h4>API Details</h4>
                     <div class="form-group">
-                        <label>Module</label>
-                        <select id="page-api-section">
-                            <!-- Populated dynamically -->
-                        </select>
+                        <label>Module <span style="color: #e74c3c;">*</span></label>
+                        <div style="display: flex; gap: 8px;">
+                            <select id="page-api-section" style="flex: 1;">
+                                <!-- Populated dynamically -->
+                            </select>
+                            <button class="btn btn-sm" onclick="openAddModuleInline()" title="Add New Module" style="padding: 8px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">+</button>
+                        </div>
+                        <div id="inline-add-module" style="display: none; margin-top: 8px;">
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="inline-module-name" placeholder="New module name..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <button class="btn btn-sm btn-success" onclick="saveInlineModule()" style="padding: 8px 12px;">Save</button>
+                                <button class="btn btn-sm" onclick="cancelInlineModule()" style="padding: 8px 12px; background: #95a5a6; color: white; border: none; border-radius: 4px;">Cancel</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>API Name</label>
-                        <input type="text" id="page-api-name" placeholder="e.g., Get User Profile">
+                        <label>API Name <span style="color: #e74c3c;">*</span></label>
+                        <input type="text" id="page-api-name" placeholder="e.g., Get User Profile" required>
                     </div>
 
                     <h4>Quick Add Rules</h4>
@@ -1636,8 +1646,8 @@
                 <!-- Center Panel -->
                 <div class="center-panel">
                     <div class="curl-editor-section">
-                        <h4>cURL Command</h4>
-                        <textarea class="curl-editor" id="page-curl" placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'"></textarea>
+                        <h4>cURL Command <span style="color: #e74c3c; font-size: 12px;">*</span></h4>
+                        <textarea class="curl-editor" id="page-curl" placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'" required></textarea>
                         <div class="curl-editor-actions">
                             <button class="btn btn-primary" onclick="executePageCurl()" id="page-execute-btn">Execute & Parse Response</button>
                         </div>
@@ -1646,15 +1656,15 @@
                     <div class="rules-section-full" id="page-rules-section">
                         <!-- New Rule Builder -->
                         <div class="new-rule-builder" id="new-rule-builder" style="background: #e8f4fd; border: 2px dashed #2196f3; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                            <h4 style="margin-bottom: 15px; color: #1976d2;">Create New Test Rule</h4>
+                            <h4 style="margin-bottom: 15px; color: #1976d2;">Create New Test Rule <span style="color: #e74c3c; font-size: 12px;">*</span></h4>
                             <div class="rule-fields" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
-                                <div style="min-width: 180px;">
+                                <div style="min-width: 220px; flex: 1;">
                                     <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">Rule Type</label>
                                     <select id="new-rule-type" onchange="onNewRuleTypeChange()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                                        <!-- Populated dynamically -->
+                                        <option value="">-- Select Rule Type --</option>
                                     </select>
                                 </div>
-                                <div id="new-rule-field-container" style="min-width: 200px; position: relative;">
+                                <div id="new-rule-field-container" style="min-width: 220px; flex: 1; position: relative;">
                                     <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">Field (type to search)</label>
                                     <input type="text" id="new-rule-field-search" placeholder="Search or select field..."
                                         oninput="filterNewRuleFields()"
@@ -1666,7 +1676,7 @@
                                         <!-- Field options populated dynamically -->
                                     </div>
                                 </div>
-                                <div id="new-rule-config-container" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                <div id="new-rule-config-container" style="display: flex; gap: 15px; flex-wrap: wrap; flex: 1;">
                                     <!-- Config fields populated dynamically -->
                                 </div>
                             </div>
@@ -1675,6 +1685,7 @@
                                 <button class="btn btn-success" onclick="addTestedRule()" id="add-rule-btn" disabled>+ Add Rule</button>
                                 <span id="new-rule-test-result" style="font-size: 13px;"></span>
                             </div>
+                            <p style="margin-top: 10px; font-size: 11px; color: #7f8c8d;">Rules must be tested and pass before they can be added.</p>
                         </div>
 
                         <!-- Saved Rules List -->
@@ -2925,11 +2936,64 @@
 
         function populatePageSectionDropdown() {
             const select = document.getElementById('page-api-section');
-            select.innerHTML = sections.map(s =>
-                `<option value="${s.id}">${escapeHtml(s.name)}</option>`
-            ).join('');
-            if (currentSectionId) {
-                select.value = currentSectionId;
+            if (sections.length === 0) {
+                select.innerHTML = '<option value="">-- No modules yet --</option>';
+            } else {
+                select.innerHTML = sections.map(s =>
+                    `<option value="${s.id}">${escapeHtml(s.name)}</option>`
+                ).join('');
+                if (currentSectionId) {
+                    select.value = currentSectionId;
+                }
+            }
+        }
+
+        function openAddModuleInline() {
+            document.getElementById('inline-add-module').style.display = 'block';
+            document.getElementById('inline-module-name').value = '';
+            document.getElementById('inline-module-name').focus();
+        }
+
+        function cancelInlineModule() {
+            document.getElementById('inline-add-module').style.display = 'none';
+            document.getElementById('inline-module-name').value = '';
+        }
+
+        async function saveInlineModule() {
+            const name = document.getElementById('inline-module-name').value.trim();
+            if (!name) {
+                showToast('Module name is required', 'error');
+                return;
+            }
+
+            // Check for duplicate
+            if (sections.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+                showToast('Module name already exists', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/sections', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    sections.push(data.section);
+                    populatePageSectionDropdown();
+                    document.getElementById('page-api-section').value = data.section.id;
+                    cancelInlineModule();
+                    showToast('Module created successfully');
+
+                    // Also update main sections list
+                    renderSections();
+                } else {
+                    showToast(data.error || 'Failed to create module', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to create module: ' + error.message, 'error');
             }
         }
 
@@ -3471,25 +3535,39 @@
                 return;
             }
 
-            typeSelect.innerHTML = ruleTypeEntries.map(([key, config]) =>
-                `<option value="${key}">${config.name}</option>`
-            ).join('');
+            // Add placeholder option first, then rule types
+            typeSelect.innerHTML = '<option value="">-- Select Rule Type --</option>' +
+                ruleTypeEntries.map(([key, config]) =>
+                    `<option value="${key}">${config.name}</option>`
+                ).join('');
 
-            // Ensure first option is selected
-            if (typeSelect.options.length > 0) {
-                typeSelect.selectedIndex = 0;
-            }
+            // Keep placeholder selected initially
+            typeSelect.selectedIndex = 0;
 
-            // Initialize with first rule type
-            onNewRuleTypeChange();
+            // Initialize field container (hide it until rule type selected)
+            document.getElementById('new-rule-field-container').style.display = 'none';
+            document.getElementById('new-rule-config-container').innerHTML = '';
+
+            // Reset test state
+            resetNewRuleTest();
         }
 
         function onNewRuleTypeChange() {
             const ruleType = document.getElementById('new-rule-type').value;
+            const fieldContainer = document.getElementById('new-rule-field-container');
+            const configContainer = document.getElementById('new-rule-config-container');
+
+            // If no rule type selected (placeholder), hide everything
+            if (!ruleType) {
+                fieldContainer.style.display = 'none';
+                configContainer.innerHTML = '';
+                resetNewRuleTest();
+                return;
+            }
+
             const typeConfig = ruleTypes[ruleType] || {};
 
             // Show/hide field selector based on rule type
-            const fieldContainer = document.getElementById('new-rule-field-container');
             if (typeConfig.requiresField === false) {
                 fieldContainer.style.display = 'none';
             } else {
