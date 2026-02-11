@@ -3085,11 +3085,6 @@
                     }
                     renderPageFieldsList();
 
-                    // Add default status_code rule if no rules exist
-                    if (pageCustomRules.length === 0) {
-                        quickAddRule('status_code');
-                    }
-
                     pageRulesValidated = false;
                     const saveBtn = document.getElementById('page-save-btn');
                     if (saveBtn) {
