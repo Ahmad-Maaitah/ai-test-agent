@@ -2544,6 +2544,428 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        /* Variables Tab Styles */
+        .variables-page {
+            padding: 20px 30px;
+        }
+
+        .variables-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .variables-page-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .variables-description {
+            flex: 1 1 100%;
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .variables-table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .variables-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .variables-table th,
+        .variables-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .variables-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+        }
+
+        .variables-table td {
+            font-size: 13px;
+        }
+
+        .variables-table .empty-state {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .var-value-cell {
+            font-family: 'Monaco', 'Menlo', monospace;
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            background: #f8f9fa;
+            padding: 4px 8px !important;
+            border-radius: 4px;
+        }
+
+        .var-name-code {
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .btn-icon:hover {
+            background: #f0f0f0;
+        }
+
+        /* Structured Request Editor Styles */
+        .request-editor-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .request-editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .request-editor-header h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        #import-curl-input {
+            width: 100%;
+            min-height: 150px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            resize: vertical;
+        }
+
+        .modal-hint {
+            color: #7f8c8d;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .request-url-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .method-select {
+            width: 110px;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            color: #2c3e50;
+        }
+
+        .method-select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .url-input-wrapper {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+        }
+
+        .url-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .insert-var-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .insert-var-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .insert-var-btn.small {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .request-section {
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .section-header h5 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 13px;
+        }
+
+        .section-header select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .headers-table {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .header-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .header-key,
+        .header-value {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+        }
+
+        .header-key {
+            max-width: 200px;
+        }
+
+        .header-key:focus,
+        .header-value:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .remove-row-btn {
+            background: #fee;
+            color: #e74c3c;
+            border: 1px solid #fcc;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .remove-row-btn:hover {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+
+        .body-editor {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .body-editor:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .request-variable-indicator {
+            font-size: 12px;
+            padding: 8px 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+            min-height: 20px;
+        }
+
+        .request-variable-indicator.valid {
+            background: #e8f8f0;
+            border: 1px solid #27ae60;
+        }
+
+        .request-variable-indicator.has-errors {
+            background: #fde8e8;
+            border: 1px solid #e74c3c;
+        }
+
+        .request-variable-indicator .var-found {
+            color: #27ae60;
+            margin-right: 15px;
+        }
+
+        .request-variable-indicator .var-missing {
+            color: #e74c3c;
+        }
+
+        .request-actions {
+            margin-top: 15px;
+        }
+
+        /* Variable Picker Dropdown */
+        .var-picker-dropdown {
+            display: none;
+            position: fixed;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            z-index: 1001;
+            min-width: 280px;
+            max-height: 300px;
+            overflow: hidden;
+        }
+
+        .var-picker-dropdown.show {
+            display: block;
+        }
+
+        .var-picker-search {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .var-picker-search input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .var-picker-search input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .var-picker-list {
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .var-picker-empty {
+            padding: 20px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+
+        .var-picker-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.15s;
+        }
+
+        .var-picker-item:last-child {
+            border-bottom: none;
+        }
+
+        .var-picker-item:hover {
+            background: #f8f9fa;
+        }
+
+        .var-picker-item-name {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: #667eea;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .var-picker-item-preview {
+            font-size: 11px;
+            color: #7f8c8d;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -2566,6 +2988,7 @@
         <div class="tab" data-tab="saved-apis">Saved APIs</div>
         <div class="tab" data-tab="create-api">Create API</div>
         <div class="tab" data-tab="reports">Reports</div>
+        <div class="tab" data-tab="variables">Variables</div>
     </div>
 
     <!-- Main Content -->
@@ -2724,22 +3147,79 @@
 
                 <!-- Center Panel -->
                 <div class="center-panel">
-                    <div class="curl-editor-section">
-                        <div class="curl-editor-toolbar">
-                            <h4>cURL Command <span style="color: #e74c3c; font-size: 12px;">*</span></h4>
-                            <div class="insert-variable-dropdown">
-                                <button id="insert-variable-btn" onclick="toggleInsertVariableDropdown()">
-                                    <span>{{</span> Insert Variable
-                                </button>
-                                <div class="variable-dropdown-menu" id="variable-dropdown-menu">
-                                    <div class="dropdown-empty">No variables saved yet</div>
+                    <!-- Structured Request Editor -->
+                    <div class="request-editor-section">
+                        <div class="request-editor-header">
+                            <h4>Request Configuration <span style="color: #e74c3c; font-size: 12px;">*</span></h4>
+                            <button class="btn btn-secondary" onclick="openImportCurlModal()">Import cURL</button>
+                        </div>
+
+                        <!-- Method & URL Row -->
+                        <div class="request-url-row">
+                            <select id="request-method" class="method-select">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                                <option value="PATCH">PATCH</option>
+                                <option value="HEAD">HEAD</option>
+                                <option value="OPTIONS">OPTIONS</option>
+                            </select>
+                            <div class="url-input-wrapper">
+                                <input type="text" id="request-url" placeholder="https://api.example.com/endpoint" class="url-input" oninput="updateRequestVariableIndicator()">
+                                <button type="button" class="insert-var-btn" onclick="openVarPicker('request-url')" title="Insert Variable">{{</button>
+                            </div>
+                        </div>
+
+                        <!-- Headers Section -->
+                        <div class="request-section">
+                            <div class="section-header">
+                                <h5>Headers</h5>
+                                <button type="button" class="btn btn-sm" onclick="addHeaderRow()">+ Add Header</button>
+                            </div>
+                            <div class="headers-table" id="headers-table">
+                                <div class="header-row">
+                                    <input type="text" placeholder="Key" class="header-key" value="Content-Type">
+                                    <input type="text" placeholder="Value" class="header-value" value="application/json" oninput="updateRequestVariableIndicator()">
+                                    <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this)" title="Insert Variable">{{</button>
+                                    <button type="button" class="remove-row-btn" onclick="removeHeaderRow(this)">&times;</button>
                                 </div>
                             </div>
                         </div>
-                        <textarea class="curl-editor" id="page-curl" placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'" required oninput="updateCurlVariableIndicator()"></textarea>
-                        <div class="curl-variable-indicator" id="curl-variable-indicator"></div>
-                        <div class="curl-editor-actions">
-                            <button class="btn btn-primary" onclick="executePageCurl()" id="page-execute-btn">Execute & Parse Response</button>
+
+                        <!-- Body Section -->
+                        <div class="request-section" id="body-section">
+                            <div class="section-header">
+                                <h5>Body</h5>
+                                <select id="body-type" onchange="onBodyTypeChange()">
+                                    <option value="none">None</option>
+                                    <option value="json" selected>JSON</option>
+                                    <option value="form">Form Data</option>
+                                    <option value="raw">Raw</option>
+                                </select>
+                                <button type="button" class="insert-var-btn" onclick="openVarPicker('request-body')" title="Insert Variable">{{</button>
+                            </div>
+                            <textarea id="request-body" class="body-editor" placeholder='{"key": "value"}' oninput="updateRequestVariableIndicator()"></textarea>
+                        </div>
+
+                        <!-- Variable Indicator -->
+                        <div class="request-variable-indicator" id="request-variable-indicator"></div>
+
+                        <!-- Execute Button -->
+                        <div class="request-actions">
+                            <button class="btn btn-primary" onclick="executeRequest()" id="execute-request-btn">
+                                Execute & Parse Response
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Variable Picker Dropdown (reusable) -->
+                    <div class="var-picker-dropdown" id="var-picker-dropdown">
+                        <div class="var-picker-search">
+                            <input type="text" id="var-picker-search-input" placeholder="Search variables..." oninput="filterVarPicker(this.value)">
+                        </div>
+                        <div class="var-picker-list" id="var-picker-list">
+                            <div class="var-picker-empty">No variables saved yet</div>
                         </div>
                     </div>
 
@@ -2866,6 +3346,99 @@
             </div>
             <div class="reports-list" id="reports-list">
                 <!-- Reports loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- Variables Tab -->
+        <div id="variables" class="tab-content">
+            <div class="variables-page">
+                <div class="variables-page-header">
+                    <h2>Saved Variables</h2>
+                    <p class="variables-description">Manage persistent variables that can be used in API requests with {{variableName}} syntax.</p>
+                    <button class="btn btn-primary" onclick="openAddVariableModal()">+ Add Variable</button>
+                </div>
+
+                <div class="variables-table-container">
+                    <table class="variables-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Value</th>
+                                <th>Type</th>
+                                <th>Source</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="variables-table-body">
+                            <tr>
+                                <td colspan="5" class="empty-state">No variables saved yet. Click "+ Add Variable" to create one.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Variable Modal -->
+    <div class="modal-overlay" id="add-variable-modal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="add-variable-modal-title">Add Variable</h2>
+                <button class="modal-close" onclick="closeAddVariableModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="add-var-name">Variable Name <span style="color: #e74c3c;">*</span></label>
+                    <div class="var-name-input-container">
+                        <span class="var-prefix">{{</span>
+                        <input type="text" id="add-var-name" placeholder="e.g., authToken">
+                        <span class="var-suffix">}}</span>
+                    </div>
+                    <small class="form-hint">Use letters, numbers, and underscores. Must start with a letter or underscore.</small>
+                </div>
+                <div class="form-group">
+                    <label for="add-var-value">Value <span style="color: #e74c3c;">*</span></label>
+                    <textarea id="add-var-value" rows="3" placeholder="Enter the value"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="add-var-type">Type</label>
+                    <select id="add-var-type">
+                        <option value="string">String</option>
+                        <option value="number">Number</option>
+                        <option value="boolean">Boolean</option>
+                        <option value="object">Object/Array</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="add-var-description">Description</label>
+                    <input type="text" id="add-var-description" placeholder="Optional description for this variable">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeAddVariableModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNewVariable()">Save Variable</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import cURL Modal -->
+    <div class="modal-overlay" id="import-curl-modal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Import cURL Command</h2>
+                <button class="modal-close" onclick="closeImportCurlModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-hint">Paste your cURL command below. It will auto-fill the request fields so you can edit them and add variables.</p>
+                <textarea id="import-curl-input" placeholder="curl -X POST 'https://api.example.com/endpoint' \
+  -H 'Authorization: Bearer token' \
+  -H 'Content-Type: application/json' \
+  -d '{&quot;key&quot;: &quot;value&quot;}'"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeImportCurlModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="importCurlCommand()">Import & Fill Fields</button>
             </div>
         </div>
     </div>
@@ -3039,6 +3612,7 @@
             setupTabs();
             loadRuleTypes();
             await loadSections();
+            await loadVariables();
             loadDashboard();
         });
 
@@ -3072,6 +3646,9 @@
                     } else if (tab.dataset.tab === 'create-api') {
                         // Reset Create API page to default state
                         resetCreateApiPage();
+                    } else if (tab.dataset.tab === 'variables') {
+                        // Refresh variables when entering the tab
+                        loadVariables();
                     }
                 });
             });
@@ -3081,6 +3658,7 @@
         function resetCreateApiPage() {
             // Close any open modals
             document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+            closeVarPicker();
 
             pageEditingApiId = null;
             pageCustomRules = [];
@@ -3090,7 +3668,6 @@
 
             const title = document.getElementById('create-api-title');
             const nameInput = document.getElementById('page-api-name');
-            const curlInput = document.getElementById('page-curl');
             const saveBtn = document.getElementById('page-save-btn');
             const responseMeta = document.getElementById('page-response-meta');
             const responseJson = document.getElementById('page-response-json');
@@ -3102,17 +3679,42 @@
 
             if (title) title.textContent = 'Create New API';
             if (nameInput) nameInput.value = '';
-            if (curlInput) curlInput.value = '';
             if (saveBtn) saveBtn.disabled = true;
+
+            // Reset Structured Request Editor
+            const methodSelect = document.getElementById('request-method');
+            const urlInput = document.getElementById('request-url');
+            const bodyType = document.getElementById('body-type');
+            const bodyTextarea = document.getElementById('request-body');
+            const headersTable = document.getElementById('headers-table');
+            const bodySection = document.getElementById('body-section');
+
+            if (methodSelect) methodSelect.value = 'GET';
+            if (urlInput) urlInput.value = '';
+            if (bodyType) bodyType.value = 'none';
+            if (bodyTextarea) bodyTextarea.value = '';
+            if (bodySection) bodySection.style.display = 'none';
+
+            // Reset headers table to single empty row
+            if (headersTable) {
+                headersTable.innerHTML = `
+                    <div class="header-row">
+                        <input type="text" placeholder="Key" class="header-key" oninput="updateRequestVariableIndicator()">
+                        <input type="text" placeholder="Value" class="header-value" oninput="updateRequestVariableIndicator()">
+                        <button type="button" class="insert-var-btn" onclick="openVarPickerForRow(this, 'value')" title="Insert Variable">{{</button>
+                        <button type="button" class="remove-row-btn" onclick="removeHeaderRow(this)">&times;</button>
+                    </div>
+                `;
+            }
 
             if (responseMeta) responseMeta.innerHTML = '<span class="meta-badge neutral">No response yet</span>';
             if (responseJson) {
-                responseJson.textContent = 'Execute cURL to see response';
+                responseJson.textContent = 'Execute request to see response';
                 responseJson.classList.add('empty');
             }
             if (fieldsCount) fieldsCount.textContent = '0';
             if (fieldsListRight) fieldsListRight.innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>';
-            if (fieldList) fieldList.innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>';
+            if (fieldList) fieldList.innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute request to see fields</div>';
             if (fieldSearch) fieldSearch.value = '';
             if (fieldSearchRight) fieldSearchRight.value = '';
 
@@ -3132,7 +3734,7 @@
 
             // Update variables panel and indicator
             renderVariablesPanel();
-            updateCurlVariableIndicator();
+            updateRequestVariableIndicator();
         }
 
         // Toast
@@ -4081,6 +4683,611 @@
 
         // Runtime Variables System
         let runtimeVariables = {};  // { varName: { value, type, source: { apiName, fieldPath, timestamp } } }
+        let savedVariables = [];    // Variables loaded from backend
+        let editingVariableId = null;  // For edit mode
+        let varPickerTargetInput = null;  // For variable picker
+
+        // =============================================================================
+        // Variables Tab Functions
+        // =============================================================================
+
+        async function loadVariables() {
+            try {
+                const response = await fetch('/api/variables');
+                const data = await response.json();
+                if (data.success) {
+                    savedVariables = data.variables || [];
+                    // Sync to runtimeVariables for use in requests
+                    runtimeVariables = {};
+                    savedVariables.forEach(v => {
+                        runtimeVariables[v.name] = {
+                            value: v.value,
+                            type: v.type,
+                            source: v.source
+                        };
+                    });
+                    renderVariablesTable();
+                }
+            } catch (error) {
+                console.error('Failed to load variables:', error);
+            }
+        }
+
+        function renderVariablesTable() {
+            const tbody = document.getElementById('variables-table-body');
+            if (!tbody) return;
+
+            if (savedVariables.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No variables saved yet. Click "+ Add Variable" to create one.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = savedVariables.map(v => {
+                const displayValue = truncateValue(v.value, 40);
+                const sourceName = v.source ? (v.source.apiName || 'Manual') : 'Manual';
+                return `
+                    <tr>
+                        <td><span class="var-name-code">{{${escapeHtml(v.name)}}}</span></td>
+                        <td><span class="var-value-cell">${escapeHtml(displayValue)}</span></td>
+                        <td><span class="type-badge type-${v.type}">${v.type}</span></td>
+                        <td>${escapeHtml(sourceName)}</td>
+                        <td>
+                            <button class="btn-icon" onclick="editVariableInModal('${v.id}')" title="Edit">✏️</button>
+                            <button class="btn-icon" onclick="deleteVariableFromBackend('${v.id}')" title="Delete">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function truncateValue(value, maxLen = 50) {
+            const str = typeof value === 'object' ? JSON.stringify(value) : String(value);
+            return str.length > maxLen ? str.substring(0, maxLen) + '...' : str;
+        }
+
+        function openAddVariableModal() {
+            editingVariableId = null;
+            document.getElementById('add-variable-modal-title').textContent = 'Add Variable';
+            document.getElementById('add-var-name').value = '';
+            document.getElementById('add-var-value').value = '';
+            document.getElementById('add-var-type').value = 'string';
+            document.getElementById('add-var-description').value = '';
+            document.getElementById('add-variable-modal').classList.add('active');
+            document.getElementById('add-var-name').focus();
+        }
+
+        function closeAddVariableModal() {
+            document.getElementById('add-variable-modal').classList.remove('active');
+            editingVariableId = null;
+        }
+
+        function editVariableInModal(varId) {
+            const variable = savedVariables.find(v => v.id === varId);
+            if (!variable) return;
+
+            editingVariableId = varId;
+            document.getElementById('add-variable-modal-title').textContent = 'Edit Variable';
+            document.getElementById('add-var-name').value = variable.name;
+            document.getElementById('add-var-value').value = typeof variable.value === 'object' ? JSON.stringify(variable.value, null, 2) : variable.value;
+            document.getElementById('add-var-type').value = variable.type || 'string';
+            document.getElementById('add-var-description').value = variable.description || '';
+            document.getElementById('add-variable-modal').classList.add('active');
+            document.getElementById('add-var-name').focus();
+        }
+
+        async function saveNewVariable() {
+            const name = document.getElementById('add-var-name').value.trim();
+            let value = document.getElementById('add-var-value').value;
+            const type = document.getElementById('add-var-type').value;
+            const description = document.getElementById('add-var-description').value.trim();
+
+            if (!name) {
+                showToast('Variable name is required', 'error');
+                return;
+            }
+
+            if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+                showToast('Invalid variable name. Use only letters, numbers, and underscores.', 'error');
+                return;
+            }
+
+            // Parse value based on type
+            if (type === 'number') {
+                value = parseFloat(value);
+                if (isNaN(value)) {
+                    showToast('Invalid number value', 'error');
+                    return;
+                }
+            } else if (type === 'boolean') {
+                value = value.toLowerCase() === 'true';
+            } else if (type === 'object') {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    showToast('Invalid JSON for object type', 'error');
+                    return;
+                }
+            }
+
+            try {
+                const url = editingVariableId ? `/api/variables/${editingVariableId}` : '/api/variables';
+                const method = editingVariableId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, value, type, description })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    closeAddVariableModal();
+                    await loadVariables();
+                    showToast(editingVariableId ? 'Variable updated' : 'Variable saved');
+                } else {
+                    showToast(data.error || 'Failed to save variable', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to save variable: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteVariableFromBackend(varId) {
+            if (!confirm('Delete this variable?')) return;
+
+            try {
+                const response = await fetch(`/api/variables/${varId}`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (data.success) {
+                    await loadVariables();
+                    showToast('Variable deleted');
+                } else {
+                    showToast(data.error || 'Failed to delete variable', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete variable: ' + error.message, 'error');
+            }
+        }
+
+        // =============================================================================
+        // Structured Request Editor Functions
+        // =============================================================================
+
+        function addHeaderRow() {
+            const table = document.getElementById('headers-table');
+            const row = document.createElement('div');
+            row.className = 'header-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Key" class="header-key">
+                <input type="text" placeholder="Value" class="header-value" oninput="updateRequestVariableIndicator()">
+                <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this)" title="Insert Variable">{{</button>
+                <button type="button" class="remove-row-btn" onclick="removeHeaderRow(this)">&times;</button>
+            `;
+            table.appendChild(row);
+        }
+
+        function removeHeaderRow(btn) {
+            const row = btn.closest('.header-row');
+            const table = document.getElementById('headers-table');
+            if (table.querySelectorAll('.header-row').length > 1) {
+                row.remove();
+            } else {
+                row.querySelector('.header-key').value = '';
+                row.querySelector('.header-value').value = '';
+            }
+            updateRequestVariableIndicator();
+        }
+
+        function getHeadersFromTable() {
+            const rows = document.querySelectorAll('#headers-table .header-row');
+            const headers = {};
+            rows.forEach(row => {
+                const key = row.querySelector('.header-key').value.trim();
+                const value = row.querySelector('.header-value').value.trim();
+                if (key) headers[key] = value;
+            });
+            return headers;
+        }
+
+        // Import cURL Modal Functions
+        function openImportCurlModal() {
+            document.getElementById('import-curl-modal').classList.add('active');
+            document.getElementById('import-curl-input').value = '';
+            setTimeout(() => {
+                document.getElementById('import-curl-input').focus();
+            }, 100);
+        }
+
+        function closeImportCurlModal() {
+            document.getElementById('import-curl-modal').classList.remove('active');
+        }
+
+        function importCurlCommand() {
+            const curlInput = document.getElementById('import-curl-input').value.trim();
+            if (!curlInput) {
+                showToast('Please paste a cURL command', 'error');
+                return;
+            }
+
+            // Validate it looks like a cURL command
+            if (!curlInput.toLowerCase().startsWith('curl')) {
+                showToast('Invalid cURL command. Must start with "curl"', 'error');
+                return;
+            }
+
+            // Use existing parser function
+            parseCurlToEditor(curlInput);
+            closeImportCurlModal();
+            showToast('cURL imported! You can now edit fields and insert variables.');
+        }
+
+        // Parse a cURL command and populate the Structured Request Editor
+        function parseCurlToEditor(curlCommand) {
+            if (!curlCommand) return;
+
+            // Default values
+            let method = 'GET';
+            let url = '';
+            const headers = {};
+            let body = '';
+
+            // Parse method
+            const methodMatch = curlCommand.match(/-X\s+(\w+)/i);
+            if (methodMatch) {
+                method = methodMatch[1].toUpperCase();
+            } else if (curlCommand.includes('-d ') || curlCommand.includes('--data')) {
+                method = 'POST';
+            }
+
+            // Parse URL - handle both quoted and unquoted
+            const urlMatch = curlCommand.match(/curl\s+(?:-[^\s]+\s+)*['"]?([^'"\s]+)['"]?/i) ||
+                            curlCommand.match(/'(https?:\/\/[^']+)'/) ||
+                            curlCommand.match(/"(https?:\/\/[^"]+)"/) ||
+                            curlCommand.match(/(https?:\/\/[^\s]+)/);
+            if (urlMatch) {
+                url = urlMatch[1];
+            }
+
+            // Parse headers
+            const headerRegex = /-H\s+['"]([^:]+):\s*([^'"]+)['"]/gi;
+            let headerMatch;
+            while ((headerMatch = headerRegex.exec(curlCommand)) !== null) {
+                headers[headerMatch[1].trim()] = headerMatch[2].trim();
+            }
+
+            // Parse body data
+            const dataMatch = curlCommand.match(/-d\s+'([^']*)'/) ||
+                             curlCommand.match(/-d\s+"([^"]*)"/) ||
+                             curlCommand.match(/--data\s+'([^']*)'/) ||
+                             curlCommand.match(/--data\s+"([^"]*)"/);
+            if (dataMatch) {
+                body = dataMatch[1];
+            }
+
+            // Populate the editor
+            document.getElementById('request-method').value = method;
+            document.getElementById('request-url').value = url;
+
+            // Populate headers table
+            const headersTable = document.getElementById('headers-table');
+            const headerEntries = Object.entries(headers);
+            if (headerEntries.length > 0) {
+                headersTable.innerHTML = headerEntries.map(([key, value]) => `
+                    <div class="header-row">
+                        <input type="text" placeholder="Key" class="header-key" value="${escapeHtml(key)}" oninput="updateRequestVariableIndicator()">
+                        <input type="text" placeholder="Value" class="header-value" value="${escapeHtml(value)}" oninput="updateRequestVariableIndicator()">
+                        <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this)" title="Insert Variable">{{</button>
+                        <button type="button" class="remove-row-btn" onclick="removeHeaderRow(this)">&times;</button>
+                    </div>
+                `).join('');
+            } else {
+                headersTable.innerHTML = `
+                    <div class="header-row">
+                        <input type="text" placeholder="Key" class="header-key" oninput="updateRequestVariableIndicator()">
+                        <input type="text" placeholder="Value" class="header-value" oninput="updateRequestVariableIndicator()">
+                        <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this)" title="Insert Variable">{{</button>
+                        <button type="button" class="remove-row-btn" onclick="removeHeaderRow(this)">&times;</button>
+                    </div>
+                `;
+            }
+
+            // Set body type and content
+            const bodyTypeSelect = document.getElementById('body-type');
+            const bodyTextarea = document.getElementById('request-body');
+
+            if (body) {
+                // Try to detect body type
+                try {
+                    JSON.parse(body);
+                    bodyTypeSelect.value = 'json';
+                } catch {
+                    if (body.includes('=') && !body.includes('{')) {
+                        bodyTypeSelect.value = 'form';
+                    } else {
+                        bodyTypeSelect.value = 'raw';
+                    }
+                }
+                bodyTextarea.value = body;
+                bodyTextarea.style.display = 'block';
+            } else {
+                bodyTypeSelect.value = 'none';
+                bodyTextarea.value = '';
+                bodyTextarea.style.display = 'none';
+            }
+
+            updateRequestVariableIndicator();
+        }
+
+        function onBodyTypeChange() {
+            const bodyType = document.getElementById('body-type').value;
+            const bodyTextarea = document.getElementById('request-body');
+
+            if (bodyType === 'none') {
+                bodyTextarea.style.display = 'none';
+                bodyTextarea.value = '';
+            } else {
+                bodyTextarea.style.display = 'block';
+                if (bodyType === 'json') {
+                    bodyTextarea.placeholder = '{"key": "value"}';
+                } else if (bodyType === 'form') {
+                    bodyTextarea.placeholder = 'key1=value1&key2=value2';
+                } else {
+                    bodyTextarea.placeholder = 'Raw body content';
+                }
+            }
+            updateRequestVariableIndicator();
+        }
+
+        function buildCurlCommand(method, url, headers, body, bodyType) {
+            let curl = `curl -X ${method} '${url}'`;
+            for (const [key, value] of Object.entries(headers)) {
+                curl += ` -H '${key}: ${value}'`;
+            }
+            if (body && bodyType !== 'none') {
+                // Escape single quotes in body
+                const escapedBody = body.replace(/'/g, "'\\''");
+                curl += ` -d '${escapedBody}'`;
+            }
+            return curl;
+        }
+
+        // Get the current cURL command from the Structured Request Editor
+        function getCurrentCurlCommand() {
+            const method = document.getElementById('request-method')?.value || 'GET';
+            const url = document.getElementById('request-url')?.value?.trim() || '';
+            const headers = getHeadersFromTable();
+            const bodyType = document.getElementById('body-type')?.value || 'none';
+            const body = document.getElementById('request-body')?.value || '';
+
+            if (!url) return '';
+            return buildCurlCommand(method, url, headers, body, bodyType);
+        }
+
+        async function executeRequest() {
+            const method = document.getElementById('request-method').value;
+            const url = document.getElementById('request-url').value.trim();
+            const headers = getHeadersFromTable();
+            const bodyType = document.getElementById('body-type').value;
+            const body = document.getElementById('request-body').value;
+
+            if (!url) {
+                showToast('URL is required', 'error');
+                return;
+            }
+
+            // Validate variables in all fields
+            const allText = url + Object.values(headers).join(' ') + body;
+            const validation = validateVariablesInText(allText);
+            if (!validation.valid) {
+                showToast(`Missing variables: ${validation.missing.map(v => '{{' + v + '}}').join(', ')}`, 'error');
+                return;
+            }
+
+            // Replace variables
+            const processedUrl = replaceVariables(url).text;
+            const processedHeaders = {};
+            for (const [key, value] of Object.entries(headers)) {
+                processedHeaders[replaceVariables(key).text] = replaceVariables(value).text;
+            }
+            const processedBody = replaceVariables(body).text;
+
+            // Build cURL command
+            const curl = buildCurlCommand(method, processedUrl, processedHeaders, processedBody, bodyType);
+
+            const btn = document.getElementById('execute-request-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Executing...';
+            }
+
+            try {
+                const response = await fetch('/api/execute-curl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ curl })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    pageLastResponse = data.response;
+                    pageAvailableFields = data.fields || [];
+
+                    // Update response meta
+                    const statusClass = data.status_code >= 200 && data.status_code < 300 ? 'status-ok' : 'status-error';
+                    const responseMeta = document.getElementById('page-response-meta');
+                    if (responseMeta) {
+                        responseMeta.innerHTML = `
+                            <span class="meta-badge ${statusClass}">Status: ${data.status_code}</span>
+                            <span class="meta-badge neutral">${data.response_time_ms}ms</span>
+                        `;
+                    }
+
+                    // Update response JSON with interactive rendering
+                    const jsonDiv = document.getElementById('page-response-json');
+                    if (jsonDiv) {
+                        jsonDiv.classList.remove('empty');
+                        if (data.response) {
+                            jsonDiv.classList.add('interactive');
+                            jsonDiv.innerHTML = renderInteractiveJson(data.response);
+                        } else {
+                            jsonDiv.classList.remove('interactive');
+                            jsonDiv.textContent = data.response_text || 'No JSON response';
+                        }
+                    }
+
+                    // Update fields count and list
+                    const fieldsCount = document.getElementById('page-fields-count');
+                    if (fieldsCount) {
+                        fieldsCount.textContent = pageAvailableFields.length;
+                    }
+                    renderPageFieldsList();
+
+                    pageRulesValidated = false;
+                    const saveBtn = document.getElementById('page-save-btn');
+                    if (saveBtn) {
+                        saveBtn.disabled = true;
+                    }
+
+                    updatePageStatus();
+                    showToast('Response parsed. Click on values to save as variables.');
+                } else {
+                    showToast(data.error || 'Failed to execute request', 'error');
+                }
+            } catch (error) {
+                console.error('executeRequest error:', error);
+                showToast('Failed to execute request: ' + error.message, 'error');
+            }
+
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Execute & Parse Response';
+            }
+        }
+
+        function updateRequestVariableIndicator() {
+            const url = document.getElementById('request-url')?.value || '';
+            const headers = getHeadersFromTable();
+            const body = document.getElementById('request-body')?.value || '';
+
+            const allText = url + Object.values(headers).join(' ') + body;
+            const indicator = document.getElementById('request-variable-indicator');
+
+            if (!indicator) return;
+
+            const validation = validateVariablesInText(allText);
+
+            if (validation.found.length === 0 && validation.missing.length === 0) {
+                indicator.innerHTML = '';
+                indicator.className = 'request-variable-indicator';
+                return;
+            }
+
+            let html = '';
+            if (validation.found.length > 0) {
+                html += `<span class="var-found">Variables: ${validation.found.map(v => '{{' + v + '}}').join(', ')}</span>`;
+            }
+            if (validation.missing.length > 0) {
+                html += `<span class="var-missing">Missing: ${validation.missing.map(v => '{{' + v + '}}').join(', ')}</span>`;
+            }
+
+            indicator.innerHTML = html;
+            indicator.className = 'request-variable-indicator ' + (validation.missing.length > 0 ? 'has-errors' : 'valid');
+        }
+
+        // =============================================================================
+        // Variable Picker Functions
+        // =============================================================================
+
+        function openVarPicker(inputId) {
+            varPickerTargetInput = document.getElementById(inputId);
+            showVarPicker(event.target);
+        }
+
+        function openVarPickerForRow(btn) {
+            const row = btn.closest('.header-row');
+            varPickerTargetInput = row.querySelector('.header-value');
+            showVarPicker(btn);
+        }
+
+        function showVarPicker(triggerElement) {
+            const picker = document.getElementById('var-picker-dropdown');
+            renderVarPickerList();
+
+            // Position near the button
+            const rect = triggerElement.getBoundingClientRect();
+            picker.style.top = (rect.bottom + 5) + 'px';
+            picker.style.left = rect.left + 'px';
+            picker.classList.add('show');
+
+            // Focus search input
+            const searchInput = document.getElementById('var-picker-search-input');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+            }
+        }
+
+        function closeVarPicker() {
+            const picker = document.getElementById('var-picker-dropdown');
+            if (picker) picker.classList.remove('show');
+            varPickerTargetInput = null;
+        }
+
+        function renderVarPickerList(filter = '') {
+            const list = document.getElementById('var-picker-list');
+            if (!list) return;
+
+            const filtered = savedVariables.filter(v =>
+                v.name.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="var-picker-empty">No variables found</div>';
+                return;
+            }
+
+            list.innerHTML = filtered.map(v => {
+                const preview = truncateValue(v.value, 30);
+                return `
+                    <div class="var-picker-item" onclick="insertVariableFromPicker('${escapeHtml(v.name)}')">
+                        <span class="var-picker-item-name">{{${escapeHtml(v.name)}}}</span>
+                        <span class="var-picker-item-preview">${escapeHtml(preview)}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterVarPicker(filter) {
+            renderVarPickerList(filter);
+        }
+
+        function insertVariableFromPicker(varName) {
+            if (varPickerTargetInput) {
+                const start = varPickerTargetInput.selectionStart || 0;
+                const end = varPickerTargetInput.selectionEnd || 0;
+                const text = varPickerTargetInput.value;
+                const insertion = `{{${varName}}}`;
+
+                varPickerTargetInput.value = text.slice(0, start) + insertion + text.slice(end);
+                varPickerTargetInput.selectionStart = varPickerTargetInput.selectionEnd = start + insertion.length;
+                varPickerTargetInput.focus();
+            }
+            closeVarPicker();
+            updateRequestVariableIndicator();
+        }
+
+        // Close var picker when clicking outside
+        document.addEventListener('click', function(e) {
+            const picker = document.getElementById('var-picker-dropdown');
+            if (picker && picker.classList.contains('show')) {
+                if (!picker.contains(e.target) && !e.target.classList.contains('insert-var-btn')) {
+                    closeVarPicker();
+                }
+            }
+        });
 
         // Variable Helper Functions
         function getValueType(value) {
@@ -4158,7 +5365,7 @@
             saveVariableValue = null;
         }
 
-        function saveVariable() {
+        async function saveVariable() {
             const nameInput = document.getElementById('save-var-name');
             const varName = nameInput.value.trim();
 
@@ -4173,36 +5380,69 @@
                 return;
             }
 
-            // Check for duplicates
-            if (runtimeVariables[varName]) {
-                if (!confirm(`Variable "${varName}" already exists. Do you want to overwrite it?`)) {
-                    return;
-                }
-            }
-
             const apiName = document.getElementById('page-api-name').value || 'Unnamed API';
+            const valueType = getValueType(saveVariableValue);
 
-            runtimeVariables[varName] = {
-                value: saveVariableValue,
-                type: getValueType(saveVariableValue),
-                source: {
-                    apiName: apiName,
-                    fieldPath: saveVariableFieldPath,
-                    timestamp: new Date().toISOString()
+            // Check if variable already exists
+            const existingVar = savedVariables.find(v => v.name === varName);
+
+            try {
+                let response;
+                if (existingVar) {
+                    if (!confirm(`Variable "${varName}" already exists. Do you want to overwrite it?`)) {
+                        return;
+                    }
+                    // Update existing variable
+                    response = await fetch(`/api/variables/${existingVar.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: varName,
+                            value: saveVariableValue,
+                            type: valueType,
+                            source: {
+                                apiName: apiName,
+                                fieldPath: saveVariableFieldPath
+                            }
+                        })
+                    });
+                } else {
+                    // Create new variable
+                    response = await fetch('/api/variables', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: varName,
+                            value: saveVariableValue,
+                            type: valueType,
+                            source: {
+                                apiName: apiName,
+                                fieldPath: saveVariableFieldPath
+                            }
+                        })
+                    });
                 }
-            };
 
-            closeSaveVariableModal();
-            renderVariablesPanel();
-            updateCurlVariableIndicator();
-            showToast(`Variable "{{${varName}}}" saved successfully`);
+                const data = await response.json();
+
+                if (data.success) {
+                    closeSaveVariableModal();
+                    await loadVariables();  // Refresh from backend
+                    updateRequestVariableIndicator();
+                    showToast(`Variable "{{${varName}}}" saved successfully`);
+                } else {
+                    showToast(data.error || 'Failed to save variable', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to save variable: ' + error.message, 'error');
+            }
         }
 
         function deleteVariable(name) {
             if (confirm(`Delete variable "{{${name}}}"?`)) {
                 delete runtimeVariables[name];
                 renderVariablesPanel();
-                updateCurlVariableIndicator();
+                updateRequestVariableIndicator();
                 showToast(`Variable deleted`);
             }
         }
@@ -4215,7 +5455,7 @@
             if (confirm('Clear all runtime variables?')) {
                 runtimeVariables = {};
                 renderVariablesPanel();
-                updateCurlVariableIndicator();
+                updateRequestVariableIndicator();
                 showToast('All variables cleared');
             }
         }
@@ -4383,97 +5623,15 @@
             return { valid: missing.length === 0, found, missing };
         }
 
-        function updateCurlVariableIndicator() {
-            const curl = document.getElementById('page-curl');
-            const indicator = document.getElementById('curl-variable-indicator');
-
-            if (!curl || !indicator) return;
-
-            const validation = validateVariablesInText(curl.value);
-
-            if (validation.found.length === 0 && validation.missing.length === 0) {
-                indicator.innerHTML = '';
-                indicator.className = 'curl-variable-indicator';
-                return;
-            }
-
-            let html = '';
-            if (validation.found.length > 0) {
-                html += `<span class="var-indicator-found">Variables: ${validation.found.map(v => `{{${v}}}`).join(', ')}</span>`;
-            }
-            if (validation.missing.length > 0) {
-                html += `<span class="var-indicator-missing">Missing: ${validation.missing.map(v => `{{${v}}}`).join(', ')}</span>`;
-            }
-
-            indicator.innerHTML = html;
-            indicator.className = 'curl-variable-indicator ' + (validation.missing.length > 0 ? 'has-errors' : 'valid');
-        }
-
-        // Insert Variable Dropdown
-        function toggleInsertVariableDropdown() {
-            const dropdown = document.getElementById('variable-dropdown-menu');
-            dropdown.classList.toggle('show');
-
-            if (dropdown.classList.contains('show')) {
-                renderVariableDropdownItems();
-            }
-        }
-
-        function renderVariableDropdownItems() {
-            const dropdown = document.getElementById('variable-dropdown-menu');
-            const varNames = Object.keys(runtimeVariables);
-
-            if (varNames.length === 0) {
-                dropdown.innerHTML = '<div class="dropdown-empty">No variables saved yet</div>';
-                return;
-            }
-
-            dropdown.innerHTML = varNames.map(name => {
-                const data = runtimeVariables[name];
-                const displayValue = formatValueForDisplay(data.value, data.type);
-                return `
-                    <div class="dropdown-item" onclick="insertVariableAtCursor('${name}')">
-                        <span class="dropdown-var-name">{{${name}}}</span>
-                        <span class="dropdown-var-preview">${displayValue}</span>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function insertVariableAtCursor(varName) {
-            const textarea = document.getElementById('page-curl');
-            if (!textarea) return;
-
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const text = textarea.value;
-            const insertion = `{{${varName}}}`;
-
-            textarea.value = text.substring(0, start) + insertion + text.substring(end);
-            textarea.selectionStart = textarea.selectionEnd = start + insertion.length;
-            textarea.focus();
-
-            // Close dropdown if open
-            const dropdown = document.getElementById('variable-dropdown-menu');
-            if (dropdown) dropdown.classList.remove('show');
-
-            updateCurlVariableIndicator();
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            const dropdown = document.getElementById('variable-dropdown-menu');
-            const btn = document.getElementById('insert-variable-btn');
-            if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
-                dropdown.classList.remove('show');
-            }
-        });
-
         function setupPageFormListeners() {
             // Add event listeners for form validation
-            document.getElementById('page-api-name').addEventListener('input', updatePageStatus);
-            document.getElementById('page-api-section').addEventListener('change', updatePageStatus);
-            document.getElementById('page-curl').addEventListener('input', updatePageStatus);
+            document.getElementById('page-api-name')?.addEventListener('input', updatePageStatus);
+            document.getElementById('page-api-section')?.addEventListener('change', updatePageStatus);
+            // Request editor fields
+            document.getElementById('request-method')?.addEventListener('change', updatePageStatus);
+            document.getElementById('request-url')?.addEventListener('input', updatePageStatus);
+            document.getElementById('body-type')?.addEventListener('change', updatePageStatus);
+            document.getElementById('request-body')?.addEventListener('input', updatePageStatus);
         }
 
         // Initialize form listeners once
@@ -4482,6 +5640,7 @@
         function openCreateApiPage() {
             // Close any open modals first
             document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+            closeVarPicker();
 
             pageEditingApiId = null;
             pageCustomRules = [];
@@ -4492,7 +5651,6 @@
             // Safe element updates
             const title = document.getElementById('create-api-title');
             const nameInput = document.getElementById('page-api-name');
-            const curlInput = document.getElementById('page-curl');
             const saveBtn = document.getElementById('page-save-btn');
             const responseMeta = document.getElementById('page-response-meta');
             const responseJson = document.getElementById('page-response-json');
@@ -4504,19 +5662,45 @@
 
             if (title) title.textContent = 'Create New API';
             if (nameInput) nameInput.value = '';
-            if (curlInput) curlInput.value = '';
             if (saveBtn) saveBtn.disabled = true;
+
+            // Reset Structured Request Editor
+            const methodSelect = document.getElementById('request-method');
+            const urlInput = document.getElementById('request-url');
+            const bodyType = document.getElementById('body-type');
+            const bodyTextarea = document.getElementById('request-body');
+            const headersTable = document.getElementById('headers-table');
+
+            if (methodSelect) methodSelect.value = 'GET';
+            if (urlInput) urlInput.value = '';
+            if (bodyType) bodyType.value = 'none';
+            if (bodyTextarea) {
+                bodyTextarea.value = '';
+                bodyTextarea.style.display = 'none';
+            }
+
+            // Reset headers table to single empty row
+            if (headersTable) {
+                headersTable.innerHTML = `
+                    <div class="header-row">
+                        <input type="text" placeholder="Key" class="header-key" oninput="updateRequestVariableIndicator()">
+                        <input type="text" placeholder="Value" class="header-value" oninput="updateRequestVariableIndicator()">
+                        <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this)" title="Insert Variable">{{</button>
+                        <button type="button" class="remove-row-btn" onclick="removeHeaderRow(this)">&times;</button>
+                    </div>
+                `;
+            }
 
             // Reset response panel
             if (responseMeta) responseMeta.innerHTML = '<span class="meta-badge neutral">No response yet</span>';
             if (responseJson) {
-                responseJson.textContent = 'Execute cURL to see response';
+                responseJson.textContent = 'Execute request to see response';
                 responseJson.classList.add('empty');
                 responseJson.classList.remove('interactive');
             }
             if (fieldsCount) fieldsCount.textContent = '0';
             if (fieldsListRight) fieldsListRight.innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>';
-            if (fieldList) fieldList.innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>';
+            if (fieldList) fieldList.innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute request to see fields</div>';
             if (fieldSearch) fieldSearch.value = '';
             if (fieldSearchRight) fieldSearchRight.value = '';
 
@@ -4532,7 +5716,7 @@
 
             // Update variables panel and indicator
             renderVariablesPanel();
-            updateCurlVariableIndicator();
+            updateRequestVariableIndicator();
 
             // Switch to Create API tab
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -4561,18 +5745,20 @@
 
             document.getElementById('create-api-title').textContent = `Edit: ${api.name}`;
             document.getElementById('page-api-name').value = api.name;
-            document.getElementById('page-curl').value = api.curl;
             document.getElementById('page-save-btn').disabled = true;
+
+            // Parse saved cURL and populate the Structured Request Editor
+            parseCurlToEditor(api.curl);
 
             // Reset response panel
             const responseJson = document.getElementById('page-response-json');
             document.getElementById('page-response-meta').innerHTML = '<span class="meta-badge neutral">Execute to refresh</span>';
-            responseJson.textContent = 'Execute cURL to see response';
+            responseJson.textContent = 'Execute request to see response';
             responseJson.classList.add('empty');
             responseJson.classList.remove('interactive');
             document.getElementById('page-fields-count').textContent = '0';
-            document.getElementById('page-fields-list-right').innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">Execute cURL to refresh fields</span>';
-            document.getElementById('page-field-list').innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>';
+            document.getElementById('page-fields-list-right').innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">Execute request to refresh fields</span>';
+            document.getElementById('page-field-list').innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute request to see fields</div>';
 
             // Populate section dropdown
             populatePageSectionDropdown();
@@ -4587,7 +5773,7 @@
 
             // Update variables panel and indicator
             renderVariablesPanel();
-            updateCurlVariableIndicator();
+            updateRequestVariableIndicator();
 
             // Switch to Create API tab
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -4667,101 +5853,6 @@
             document.getElementById('saved-apis').classList.add('active');
         }
 
-        async function executePageCurl() {
-            const curlInput = document.getElementById('page-curl');
-            if (!curlInput) {
-                showToast('Page not initialized properly', 'error');
-                return;
-            }
-
-            const curlOriginal = curlInput.value.trim();
-            if (!curlOriginal) {
-                showToast('Please enter a cURL command', 'error');
-                return;
-            }
-
-            // Check for missing variables
-            const validation = validateVariablesInText(curlOriginal);
-            if (!validation.valid) {
-                showToast(`Missing variables: ${validation.missing.map(v => '{{' + v + '}}').join(', ')}`, 'error');
-                return;
-            }
-
-            // Replace variables
-            const replaced = replaceVariables(curlOriginal);
-            const curl = replaced.text;
-
-            const btn = document.getElementById('page-execute-btn');
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = 'Executing...';
-            }
-
-            try {
-                const response = await fetch('/api/execute-curl', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ curl })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    pageLastResponse = data.response;
-                    pageAvailableFields = data.fields || [];
-
-                    // Update response meta
-                    const statusClass = data.status_code >= 200 && data.status_code < 300 ? 'status-ok' : 'status-error';
-                    const responseMeta = document.getElementById('page-response-meta');
-                    if (responseMeta) {
-                        responseMeta.innerHTML = `
-                            <span class="meta-badge ${statusClass}">Status: ${data.status_code}</span>
-                            <span class="meta-badge neutral">${data.response_time_ms}ms</span>
-                        `;
-                    }
-
-                    // Update response JSON with interactive rendering
-                    const jsonDiv = document.getElementById('page-response-json');
-                    if (jsonDiv) {
-                        jsonDiv.classList.remove('empty');
-                        if (data.response) {
-                            jsonDiv.classList.add('interactive');
-                            jsonDiv.innerHTML = renderInteractiveJson(data.response);
-                        } else {
-                            jsonDiv.classList.remove('interactive');
-                            jsonDiv.textContent = data.response_text || 'No JSON response';
-                        }
-                    }
-
-                    // Update fields count and list
-                    const fieldsCount = document.getElementById('page-fields-count');
-                    if (fieldsCount) {
-                        fieldsCount.textContent = pageAvailableFields.length;
-                    }
-                    renderPageFieldsList();
-
-                    pageRulesValidated = false;
-                    const saveBtn = document.getElementById('page-save-btn');
-                    if (saveBtn) {
-                        saveBtn.disabled = true;
-                    }
-
-                    updatePageStatus();
-                    showToast('Response parsed successfully. Click on values to save as variables.');
-                } else {
-                    showToast(data.error || 'Failed to execute cURL', 'error');
-                }
-            } catch (error) {
-                console.error('executePageCurl error:', error);
-                showToast('Failed to execute cURL: ' + error.message, 'error');
-            }
-
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = 'Execute & Parse Response';
-            }
-        }
-
         function renderPageFieldsList() {
             // Left panel field list
             const leftList = document.getElementById('page-field-list');
@@ -4830,7 +5921,7 @@
         }
 
         async function autoValidateSingleRule(rule) {
-            const curl = document.getElementById('page-curl').value.trim();
+            const curl = getCurrentCurlCommand();
             if (!curl) return;
 
             try {
@@ -4880,7 +5971,7 @@
                 return;
             }
 
-            const curl = document.getElementById('page-curl').value.trim();
+            const curl = getCurrentCurlCommand();
             if (!curl) return;
 
             try {
@@ -5066,7 +6157,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        curl: document.getElementById('page-curl').value.trim(),
+                        curl: getCurrentCurlCommand(),
                         rules: pageCustomRules
                     })
                 });
@@ -5124,25 +6215,25 @@
             }
 
             const nameInput = document.getElementById('page-api-name');
-            const curlInput = document.getElementById('page-curl');
+            const urlInput = document.getElementById('request-url');
             const sectionInput = document.getElementById('page-api-section');
 
             const name = nameInput ? nameInput.value.trim() : '';
-            const curl = curlInput ? curlInput.value.trim() : '';
+            const url = urlInput ? urlInput.value.trim() : '';
             const sectionId = sectionInput ? sectionInput.value : '';
 
             rulesStatus.innerHTML = `<span>Rules: ${pageCustomRules.length}</span>`;
 
             // Check all conditions for enabling save
             const hasName = name.length > 0;
-            const hasCurl = curl.length > 0;
+            const hasUrl = url.length > 0;
             const hasSection = sectionId && sectionId.length > 0;
             const hasRules = pageCustomRules.length > 0;
 
             // Rules are valid if all have been auto-validated and passed
             const allRulesPassed = hasRules && pageRulesValidated;
 
-            const canSave = hasName && hasCurl && hasSection && hasRules && allRulesPassed;
+            const canSave = hasName && hasUrl && hasSection && hasRules && allRulesPassed;
             saveBtn.disabled = !canSave;
 
             // Update status display
@@ -5154,10 +6245,10 @@
                 validatedStatus.className = 'status-item fail';
                 validatedStatus.innerHTML = '<span>Missing info</span>';
                 message.textContent = 'Select a module';
-            } else if (!hasCurl) {
+            } else if (!hasUrl) {
                 validatedStatus.className = 'status-item fail';
                 validatedStatus.innerHTML = '<span>Missing info</span>';
-                message.textContent = 'Enter cURL command';
+                message.textContent = 'Enter request URL';
             } else if (!hasRules) {
                 validatedStatus.className = 'status-item';
                 validatedStatus.innerHTML = '<span>No rules</span>';
@@ -5425,9 +6516,9 @@
         }
 
         async function testNewRule() {
-            const curl = document.getElementById('page-curl').value.trim();
+            const curl = getCurrentCurlCommand();
             if (!curl) {
-                showToast('Execute cURL first', 'error');
+                showToast('Execute request first', 'error');
                 return;
             }
 
@@ -5542,7 +6633,7 @@
         async function saveApiFromPage() {
             const sectionId = document.getElementById('page-api-section').value;
             const name = document.getElementById('page-api-name').value.trim();
-            const curl = document.getElementById('page-curl').value.trim();
+            const curl = getCurrentCurlCommand();
 
             // Validate required fields
             if (!name) {
@@ -5554,7 +6645,7 @@
                 return;
             }
             if (!curl) {
-                showToast('cURL command is required', 'error');
+                showToast('Request URL is required', 'error');
                 return;
             }
             if (pageCustomRules.length === 0) {

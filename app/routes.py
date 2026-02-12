@@ -583,6 +583,94 @@ def serve_allure_report(filename):
 
 
 # =============================================================================
+# Variables API
+# =============================================================================
+
+@main_bp.route('/api/variables', methods=['GET'])
+def get_variables():
+    """Get all saved variables."""
+    data = load_data()
+    return jsonify({
+        'success': True,
+        'variables': data.get('variables', [])
+    })
+
+
+@main_bp.route('/api/variables', methods=['POST'])
+def create_variable():
+    """Create a new variable."""
+    req_data = request.get_json()
+
+    if not req_data.get('name'):
+        return jsonify({'success': False, 'error': 'Variable name is required'}), 400
+    if 'value' not in req_data:
+        return jsonify({'success': False, 'error': 'Variable value is required'}), 400
+
+    data = load_data()
+    if 'variables' not in data:
+        data['variables'] = []
+
+    # Check for duplicate name
+    for var in data['variables']:
+        if var['name'] == req_data['name']:
+            return jsonify({'success': False, 'error': 'Variable with this name already exists'}), 400
+
+    new_var = {
+        'id': f'var-{generate_id()}',
+        'name': req_data['name'],
+        'value': req_data['value'],
+        'type': req_data.get('type', 'string'),
+        'description': req_data.get('description', ''),
+        'source': req_data.get('source'),
+        'createdAt': datetime.now().isoformat()
+    }
+    data['variables'].append(new_var)
+    save_data(data)
+    return jsonify({'success': True, 'variable': new_var})
+
+
+@main_bp.route('/api/variables/<var_id>', methods=['PUT'])
+def update_variable(var_id):
+    """Update a variable."""
+    req_data = request.get_json()
+    data = load_data()
+    variables = data.get('variables', [])
+
+    for var in variables:
+        if var['id'] == var_id:
+            # Check for duplicate name if name is being changed
+            new_name = req_data.get('name', var['name'])
+            if new_name != var['name']:
+                for other_var in variables:
+                    if other_var['id'] != var_id and other_var['name'] == new_name:
+                        return jsonify({'success': False, 'error': 'Variable with this name already exists'}), 400
+
+            var['name'] = new_name
+            var['value'] = req_data.get('value', var['value'])
+            var['type'] = req_data.get('type', var.get('type', 'string'))
+            var['description'] = req_data.get('description', var.get('description', ''))
+            save_data(data)
+            return jsonify({'success': True, 'variable': var})
+
+    return jsonify({'success': False, 'error': 'Variable not found'}), 404
+
+
+@main_bp.route('/api/variables/<var_id>', methods=['DELETE'])
+def delete_variable(var_id):
+    """Delete a variable."""
+    data = load_data()
+    variables = data.get('variables', [])
+    original_count = len(variables)
+    data['variables'] = [v for v in variables if v['id'] != var_id]
+
+    if len(data['variables']) == original_count:
+        return jsonify({'success': False, 'error': 'Variable not found'}), 404
+
+    save_data(data)
+    return jsonify({'success': True})
+
+
+# =============================================================================
 # Dynamic Rules API
 # =============================================================================
 
