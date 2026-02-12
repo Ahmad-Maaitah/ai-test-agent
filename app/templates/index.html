@@ -1854,159 +1854,91 @@
             font-weight: 500;
         }
 
-        /* Failed APIs Section */
-        .failed-section {
+        /* Run Summary Chart */
+        .run-summary-chart {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
             margin-top: 20px;
         }
 
-        .failed-section-header {
-            font-size: 14px;
-            font-weight: 600;
+        .chart-container {
+            position: relative;
+        }
+
+        .donut-chart {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .donut-hole {
+            width: 80px;
+            height: 80px;
+            background: #f8f9fa;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .donut-percent {
+            font-size: 22px;
+            font-weight: 700;
             color: #2c3e50;
-            margin-bottom: 16px;
+        }
+
+        .donut-label {
+            font-size: 10px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-legend {
             display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .failed-apis-list {
-            list-style: none;
-            background: #fafafa;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #eee;
-        }
-
-        .failed-api-item {
-            padding: 16px 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s;
-        }
-
-        .failed-api-item:last-child {
-            border-bottom: none;
-        }
-
-        .failed-api-item:hover {
-            background: #fff;
-        }
-
-        .failed-api-info {
-            display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 12px;
         }
 
-        .failed-api-indicator {
-            width: 10px;
-            height: 10px;
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+        .legend-color.passed {
+            background: #27ae60;
+        }
+
+        .legend-color.failed {
             background: #e74c3c;
-            border-radius: 50%;
-            flex-shrink: 0;
         }
 
-        .failed-api-details {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .failed-api-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .failed-api-module {
-            font-size: 12px;
+        .legend-label {
+            font-size: 13px;
             color: #7f8c8d;
+            min-width: 50px;
         }
 
-        .failed-api-rule {
-            font-size: 12px;
-            color: #e74c3c;
-            font-weight: 500;
-            margin-top: 4px;
-        }
-
-        .failed-api-reason {
-            font-size: 11px;
-            color: #95a5a6;
-            font-family: 'Monaco', 'Consolas', monospace;
-        }
-
-        .failed-api-more {
-            font-size: 11px;
-            color: #7f8c8d;
-            font-style: italic;
-        }
-
-        .failed-api-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        .failed-api-actions .btn {
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 500;
-            border-radius: 6px;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-        }
-
-        .failed-api-actions .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-
-        .failed-api-actions .btn-primary:hover {
-            background: #2980b9;
-        }
-
-        .failed-api-actions .btn-secondary {
-            background: #ecf0f1;
-            color: #2c3e50;
-        }
-
-        .failed-api-actions .btn-secondary:hover {
-            background: #d5dbdb;
-        }
-
-        @keyframes highlightPulse {
-            0%, 100% { background-color: transparent; }
-            25%, 75% { background-color: rgba(52, 152, 219, 0.2); }
-        }
-
-        .all-passed-message {
-            text-align: center;
-            padding: 30px;
-            background: linear-gradient(135deg, #f0fff4 0%, #e8f5e9 100%);
-            border-radius: 12px;
-            border: 1px solid #c8e6c9;
-        }
-
-        .all-passed-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
-        }
-
-        .all-passed-text {
+        .legend-value {
             font-size: 16px;
             font-weight: 600;
-            color: #27ae60;
-        }
-
-        .no-failed-apis {
-            text-align: center;
-            color: #27ae60;
-            padding: 20px;
-            font-size: 14px;
+            color: #2c3e50;
         }
 
         /* Recent Activity Table */
@@ -7427,7 +7359,6 @@
                 minute: '2-digit'
             });
 
-            const failedApis = report.results ? report.results.filter(r => r.result === 'FAIL') : [];
             const runId = report.runId;
 
             // Calculate total test cases from all API results
@@ -7438,32 +7369,37 @@
                 });
             }
 
-            // Build failed APIs HTML
-            let failedHtml = '';
-            if (failedApis.length > 0) {
-                failedHtml = `
-                    <div class="failed-section">
-                        <div class="failed-section-header">
-                            <span>⚠️</span> Failed APIs (${failedApis.length})
-                        </div>
-                        <ul class="failed-apis-list">
-                `;
-                failedApis.forEach(api => {
-                    failedHtml += `
-                        <li class="failed-api-item">
-                            <div class="failed-api-info">
-                                <div class="failed-api-indicator"></div>
-                                <div class="failed-api-details">
-                                    <span class="failed-api-name">${escapeHtml(api.apiName)}</span>
-                                    <span class="failed-api-module">Module: ${escapeHtml(api.section || 'Unknown')}</span>
-                                </div>
+            // Build summary chart HTML
+            const totalApis = report.totalApis || 0;
+            const passed = report.passed || 0;
+            const failed = report.failed || 0;
+            const passRate = totalApis > 0 ? Math.round((passed / totalApis) * 100) : 0;
+            const passAngle = totalApis > 0 ? (passed / totalApis) * 360 : 0;
+
+            const chartHtml = `
+                <div class="run-summary-chart">
+                    <div class="chart-container">
+                        <div class="donut-chart" style="background: conic-gradient(#27ae60 0deg ${passAngle}deg, #e74c3c ${passAngle}deg 360deg);">
+                            <div class="donut-hole">
+                                <span class="donut-percent">${passRate}%</span>
+                                <span class="donut-label">Pass Rate</span>
                             </div>
-                            <button type="button" class="btn btn-sm btn-primary" onclick="openReportAndScrollToApi('${runId}', '${api.apiId}'); return false;">View Report →</button>
-                        </li>
-                    `;
-                });
-                failedHtml += '</ul></div>';
-            }
+                        </div>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <span class="legend-color passed"></span>
+                            <span class="legend-label">Passed</span>
+                            <span class="legend-value">${passed}</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color failed"></span>
+                            <span class="legend-label">Failed</span>
+                            <span class="legend-value">${failed}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
 
             container.innerHTML = `
                 <div class="execution-stats-row">
@@ -7493,7 +7429,7 @@
                         <div class="exec-stat-label">Failed</div>
                     </div>
                 </div>
-                ${failedHtml}
+                ${chartHtml}
             `;
         }
 
