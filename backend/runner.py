@@ -256,7 +256,8 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
         },
         'error': None,
         'status_code': None,
-        'response_time_ms': None
+        'response_time_ms': None,
+        'response_json': None  # Added for flow context extraction
     }
 
     try:
@@ -333,6 +334,12 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
         result['status_code'] = response.status_code
         result['response_time_ms'] = response_time_ms
 
+        # Store response JSON for flow context extraction
+        try:
+            result['response_json'] = response.json()
+        except Exception:
+            result['response_json'] = None
+
     except requests.exceptions.Timeout:
         result['error'] = f'API request timed out after {DEFAULT_TIMEOUT} seconds'
         result['rule_results'] = [
@@ -366,3 +373,105 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
         result['error'] = f'Unexpected error: {str(e)}'
 
     return result
+
+
+def run_flow_pipeline(flow_steps: List[dict]) -> dict:
+    """
+    Execute a flow of APIs with dynamic runtime context.
+
+    This creates a fresh ExecutionContext for each flow run.
+    Variables are extracted from responses and injected into subsequent API calls.
+    The context is discarded after the flow completes - no persistence.
+
+    Args:
+        flow_steps: List of step configurations, each containing:
+            - id: API identifier
+            - name: API name for display
+            - curl: The cURL command (may contain {{variables}})
+            - customRules: Validation rules to apply
+            - extractRules: Rules to extract values from response
+                Format: [{"path": "data.id", "variable": "userId"}, ...]
+
+    Returns:
+        {
+            "success": bool,
+            "results": [...],  # Results for each step
+            "executionContext": {...},  # Final context values (for debugging)
+            "errors": [...]  # Any errors encountered
+        }
+    """
+    from backend.flow_context import ExecutionContext, inject_variables, extract_from_response
+
+    # Create fresh execution context - lives only during this flow run
+    context = ExecutionContext()
+    results = []
+    errors = []
+
+    for i, step in enumerate(flow_steps):
+        step_result = {
+            "stepIndex": i,
+            "apiId": step.get("id"),
+            "apiName": step.get("name", f"Step {i+1}"),
+            "success": False,
+            "statusCode": None,
+            "responseTimeMs": None,
+            "ruleResults": [],
+            "extractedVars": {},
+            "error": None
+        }
+
+        try:
+            # 1. Inject variables into cURL command
+            original_curl = step.get("curl", "")
+            curl_with_vars = inject_variables(original_curl, context)
+
+            # 2. Execute the API
+            test_result = run_test_pipeline(
+                curl_with_vars,
+                api_name=step.get("name", "API"),
+                custom_rules=step.get("customRules", [])
+            )
+
+            step_result["success"] = test_result.get("success", False)
+            step_result["statusCode"] = test_result.get("status_code")
+            step_result["responseTimeMs"] = test_result.get("response_time_ms")
+            step_result["ruleResults"] = test_result.get("rule_results", [])
+            step_result["executionId"] = test_result.get("execution_id")
+            step_result["reportPaths"] = test_result.get("report_paths", {})
+
+            # Check for execution errors
+            if test_result.get("error"):
+                step_result["error"] = test_result["error"]
+                errors.append({"step": i, "apiName": step.get("name"), "error": test_result["error"]})
+            else:
+                # 3. Extract values from response (only if successful)
+                extract_rules = step.get("extractRules", [])
+                if extract_rules and test_result.get("response_json") is not None:
+                    response_json = test_result.get("response_json", {})
+                    extracted = extract_from_response(response_json, extract_rules)
+                    context.update(extracted)
+                    step_result["extractedVars"] = extracted
+
+        except ValueError as e:
+            # Variable injection failed (missing variable)
+            step_result["error"] = str(e)
+            errors.append({"step": i, "apiName": step.get("name"), "error": str(e)})
+
+        except Exception as e:
+            step_result["error"] = f"Execution error: {str(e)}"
+            errors.append({"step": i, "apiName": step.get("name"), "error": str(e)})
+
+        results.append(step_result)
+
+        # Stop flow on error (fail-fast behavior)
+        if step_result.get("error"):
+            break
+
+    return {
+        "success": len(errors) == 0 and all(r.get("success", False) for r in results),
+        "results": results,
+        "executionContext": context.all(),  # For debugging/display
+        "errors": errors,
+        "totalSteps": len(flow_steps),
+        "completedSteps": len(results)
+    }

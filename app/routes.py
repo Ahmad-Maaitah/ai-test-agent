@@ -167,6 +167,7 @@ def create_api(section_id):
     name = req_data.get('name', '').strip()
     curl = req_data.get('curl', '').strip()
     custom_rules = req_data.get('customRules', [])
+    extract_rules = req_data.get('extractRules', [])
 
     if not name:
         return jsonify({'success': False, 'error': 'API name is required'}), 400
@@ -191,7 +192,8 @@ def create_api(section_id):
                 'order': max_order + 1,
                 'lastStatus': None,
                 'lastResult': None,
-                'customRules': custom_rules
+                'customRules': custom_rules,
+                'extractRules': extract_rules
             }
 
             section['apis'].append(new_api)
@@ -209,6 +211,7 @@ def update_api(api_id):
     name = req_data.get('name', '').strip()
     curl = req_data.get('curl', '').strip()
     custom_rules = req_data.get('customRules')
+    extract_rules = req_data.get('extractRules')
 
     data = load_data()
 
@@ -221,6 +224,8 @@ def update_api(api_id):
                     api['curl'] = curl
                 if custom_rules is not None:
                     api['customRules'] = custom_rules
+                if extract_rules is not None:
+                    api['extractRules'] = extract_rules
                 save_data(data)
                 return jsonify({'success': True, 'api': api})
 
@@ -446,6 +451,66 @@ def run_single_api():
         'success': True,
         'result': test_result
     })
+
+
+@main_bp.route('/api/run-flow', methods=['POST'])
+def run_flow():
+    """
+    Run APIs as a flow with dynamic runtime context.
+
+    Creates a fresh ExecutionContext for each flow run.
+    Variables extracted from responses are injected into subsequent API calls.
+    Context is discarded after flow completes - no persistence.
+
+    Request body:
+    {
+        "apiIds": ["api-1", "api-2", ...]  // APIs to run in order
+    }
+
+    Returns:
+    {
+        "success": bool,
+        "results": [...],  // Results for each step
+        "executionContext": {...},  // Final extracted variables
+        "errors": [...]
+    }
+    """
+    from backend.runner import run_flow_pipeline
+
+    req_data = request.get_json()
+    api_ids = req_data.get('apiIds', [])
+
+    if not api_ids:
+        return jsonify({'success': False, 'error': 'No APIs selected'}), 400
+
+    data = load_data()
+
+    # Build flow steps in the order specified by apiIds
+    flow_steps = []
+    for api_id in api_ids:
+        found = False
+        for section in data['sections']:
+            for api in section['apis']:
+                if api['id'] == api_id:
+                    flow_steps.append({
+                        'id': api['id'],
+                        'name': api['name'],
+                        'curl': api['curl'],
+                        'customRules': api.get('customRules', []),
+                        'extractRules': api.get('extractRules', [])
+                    })
+                    found = True
+                    break
+            if found:
+                break
+
+    if not flow_steps:
+        return jsonify({'success': False, 'error': 'No valid APIs found'}), 400
+
+    # Execute the flow with dynamic runtime context
+    result = run_flow_pipeline(flow_steps)
+
+    return jsonify(result)
 
 
 # =============================================================================
