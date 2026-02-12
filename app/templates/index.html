@@ -4924,11 +4924,10 @@
         function getBodyFromTable() {
             const rows = document.querySelectorAll('#body-table .body-row');
             const parts = [];
-            rows.forEach(row => {
+            rows.forEach((row) => {
                 const key = row.querySelector('.body-key').value.trim();
                 const value = row.querySelector('.body-value').value.trim();
-                // Don't encode here - variables like {{draftId}} need to be replaced first
-                // The cURL command builder will handle proper escaping
+                // Don't encode here - variables like {{Draft_id}} need to be replaced first
                 if (key) parts.push(`${key}=${value}`);
             });
             return parts.join('&');
@@ -5056,57 +5055,60 @@
                 }
             }
 
-            // 4. Parse Body Data (-d, --data, --data-raw, --data-binary)
-            const dataPatterns = [
-                /-d\s+'((?:[^'\\]|\\.)*)'/,              // -d 'data'
-                /-d\s+"((?:[^"\\]|\\.)*)"/,              // -d "data"
-                /--data\s+'((?:[^'\\]|\\.)*)'/,          // --data 'data'
-                /--data\s+"((?:[^"\\]|\\.)*)"/,          // --data "data"
-                /--data-raw\s+'((?:[^'\\]|\\.)*)'/,      // --data-raw 'data'
-                /--data-raw\s+"((?:[^"\\]|\\.)*)"/,      // --data-raw "data"
-                /--data-binary\s+'((?:[^'\\]|\\.)*)'/,   // --data-binary 'data'
-                /--data-binary\s+"((?:[^"\\]|\\.)*)"/,   // --data-binary "data"
-            ];
+            // 4. Parse Body Data (-d, --data, --data-raw, --data-binary, --data-urlencode)
+            // First, collect all --data-urlencode entries
+            const urlencodePattern = /--data-urlencode\s+['"]?([^'"]+)['"]?/g;
+            const urlencodeParts = [];
+            let urlencodeMatch;
+            while ((urlencodeMatch = urlencodePattern.exec(curl)) !== null) {
+                urlencodeParts.push(urlencodeMatch[1]);
+            }
+            if (urlencodeParts.length > 0) {
+                body = urlencodeParts.join('&');
+            }
 
-            for (const pattern of dataPatterns) {
-                const match = curl.match(pattern);
-                if (match) {
-                    body = match[1]
-                        .replace(/\\'/g, "'")     // Unescape single quotes
-                        .replace(/\\"/g, '"')     // Unescape double quotes
-                        .replace(/\\\\/g, '\\');  // Unescape backslashes
-                    break;
+            // Then check for regular -d/--data (only if no --data-urlencode found)
+            if (!body) {
+                // Use global patterns to find ALL -d entries (some cURLs have multiple)
+                const allDataPattern = /(?:-d|--data|--data-raw)\s+['"]([^'"]+)['"]/g;
+                const dataParts = [];
+                let dataMatch;
+                while ((dataMatch = allDataPattern.exec(curl)) !== null) {
+                    let data = dataMatch[1]
+                        .replace(/\\'/g, "'")
+                        .replace(/\\"/g, '"')
+                        .replace(/\\\\/g, '\\');
+                    dataParts.push(data);
+                }
+
+                if (dataParts.length > 0) {
+                    // If it looks like JSON, take the first one
+                    if (dataParts[0].trim().startsWith('{') || dataParts[0].trim().startsWith('[')) {
+                        body = dataParts[0];
+                    } else {
+                        // Otherwise combine as form data
+                        body = dataParts.join('&');
+                    }
                 }
             }
 
             // 5. Parse Form Data (--form or -F) - multipart form data
             if (!body) {
-                const formParts = [];
-                const formPatterns = [
-                    /--form\s+'([^=]+)="([^"]*)"'/g,      // --form 'key="value"'
-                    /--form\s+"([^=]+)='([^']*)'/g,       // --form "key='value'"
-                    /-F\s+'([^=]+)="([^"]*)"'/g,          // -F 'key="value"'
-                    /-F\s+"([^=]+)='([^']*)'/g,           // -F "key='value'"
-                    /--form\s+'([^=]+)=([^']+)'/g,        // --form 'key=value'
-                    /--form\s+"([^=]+)=([^"]+)"/g,        // --form "key=value"
-                    /-F\s+'([^=]+)=([^']+)'/g,            // -F 'key=value'
-                    /-F\s+"([^=]+)=([^"]+)"/g,            // -F "key=value"
-                ];
+                const formMap = new Map(); // Use Map to prevent duplicate keys
 
-                for (const pattern of formPatterns) {
-                    let match;
-                    pattern.lastIndex = 0;
-                    while ((match = pattern.exec(curl)) !== null) {
-                        const key = match[1].trim();
-                        let value = match[2].trim();
-                        // Remove surrounding quotes if present
-                        value = value.replace(/^["']|["']$/g, '');
-                        formParts.push(`${key}=${value}`);
-                    }
+                // Single comprehensive pattern for --form and -F
+                const formPattern = /(?:--form|-F)\s+['"]?([^=\s'"]+)=["']?([^'"}\s]*)["']?['"]?/g;
+                let match;
+                while ((match = formPattern.exec(curl)) !== null) {
+                    const key = match[1].trim();
+                    let value = match[2].trim();
+                    // Remove surrounding quotes if present
+                    value = value.replace(/^["']|["']$/g, '');
+                    formMap.set(key, value); // Map prevents duplicates automatically
                 }
 
-                if (formParts.length > 0) {
-                    body = formParts.join('&');
+                if (formMap.size > 0) {
+                    body = Array.from(formMap.entries()).map(([k, v]) => `${k}=${v}`).join('&');
                 }
             }
 
@@ -5175,6 +5177,7 @@
                     populateBodyTable(body);
                     bodyTable.style.display = 'block';
                     bodyTextarea.style.display = 'none';
+                    bodyTextarea.value = '';  // Clear textarea to prevent duplicate
                     addBodyRowBtn.style.display = 'inline-block';
                     bodyVarBtn.style.display = 'none';
                 } else {
@@ -5182,6 +5185,15 @@
                     bodyTextarea.value = body;
                     bodyTextarea.style.display = 'block';
                     bodyTable.style.display = 'none';
+                    // Clear body table to prevent duplicate
+                    bodyTable.innerHTML = `
+                        <div class="body-row">
+                            <input type="text" placeholder="Key" class="body-key" oninput="updateRequestVariableIndicator()">
+                            <input type="text" placeholder="Value" class="body-value" oninput="updateRequestVariableIndicator()">
+                            <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this, 'body')" title="Insert Variable">{{</button>
+                            <button type="button" class="remove-row-btn" onclick="removeBodyRow(this)">&times;</button>
+                        </div>
+                    `;
                     addBodyRowBtn.style.display = 'none';
                     bodyVarBtn.style.display = 'inline-block';
                 }
@@ -5190,6 +5202,15 @@
                 bodyTextarea.value = '';
                 bodyTextarea.style.display = 'none';
                 bodyTable.style.display = 'none';
+                // Reset body table
+                bodyTable.innerHTML = `
+                    <div class="body-row">
+                        <input type="text" placeholder="Key" class="body-key" oninput="updateRequestVariableIndicator()">
+                        <input type="text" placeholder="Value" class="body-value" oninput="updateRequestVariableIndicator()">
+                        <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this, 'body')" title="Insert Variable">{{</button>
+                        <button type="button" class="remove-row-btn" onclick="removeBodyRow(this)">&times;</button>
+                    </div>
+                `;
                 addBodyRowBtn.style.display = 'none';
                 bodyVarBtn.style.display = 'none';
                 bodySection.style.display = 'none';
@@ -5237,6 +5258,19 @@
 
         function buildCurlCommand(method, url, headers, body, bodyType) {
             let curl = `curl -X ${method} '${url}'`;
+
+            // Check if Content-Type header exists (case-insensitive)
+            const hasContentType = Object.keys(headers).some(k => k.toLowerCase() === 'content-type');
+
+            // Add Content-Type header if body exists and no Content-Type is set
+            if (body && bodyType !== 'none' && !hasContentType) {
+                if (bodyType === 'form') {
+                    curl += ` -H 'Content-Type: application/x-www-form-urlencoded'`;
+                } else if (bodyType === 'json') {
+                    curl += ` -H 'Content-Type: application/json'`;
+                }
+            }
+
             for (const [key, value] of Object.entries(headers)) {
                 curl += ` -H '${key}: ${value}'`;
             }
@@ -5289,6 +5323,7 @@
             // Validate variables in all fields
             const allText = url + Object.values(headers).join(' ') + body;
             const validation = validateVariablesInText(allText);
+
             if (!validation.valid) {
                 showToast(`Missing variables: ${validation.missing.map(v => '{{' + v + '}}').join(', ')}`, 'error');
                 return;
@@ -5804,7 +5839,6 @@
                 const varName = match[1];
                 if (runtimeVariables[varName]) {
                     const value = runtimeVariables[varName].value;
-                    const valueStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
                     result.replaced.push(varName);
                 } else {
                     result.errors.push(varName);
