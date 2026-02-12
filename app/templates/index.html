@@ -2813,6 +2813,39 @@
             outline: none;
         }
 
+        /* Body Table (Form Data key-value pairs) */
+        .body-table {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .body-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .body-key,
+        .body-value {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+        }
+
+        .body-key {
+            max-width: 200px;
+        }
+
+        .body-key:focus,
+        .body-value:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
         .remove-row-btn {
             background: #fee;
             color: #e74c3c;
@@ -3197,8 +3230,19 @@
                                     <option value="form">Form Data</option>
                                     <option value="raw">Raw</option>
                                 </select>
-                                <button type="button" class="insert-var-btn" onclick="openVarPicker('request-body')" title="Insert Variable">{{</button>
+                                <button type="button" class="btn btn-sm" id="add-body-row-btn" onclick="addBodyRow()" style="display: none;">+ Add Field</button>
+                                <button type="button" class="insert-var-btn" id="body-var-btn" onclick="openVarPicker('request-body')" title="Insert Variable" style="display: none;">{{</button>
                             </div>
+                            <!-- Form Data Key-Value Table -->
+                            <div class="body-table" id="body-table" style="display: none;">
+                                <div class="body-row">
+                                    <input type="text" placeholder="Key" class="body-key" oninput="updateRequestVariableIndicator()">
+                                    <input type="text" placeholder="Value" class="body-value" oninput="updateRequestVariableIndicator()">
+                                    <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this, 'body')" title="Insert Variable">{{</button>
+                                    <button type="button" class="remove-row-btn" onclick="removeBodyRow(this)">&times;</button>
+                                </div>
+                            </div>
+                            <!-- JSON/Raw Textarea -->
                             <textarea id="request-body" class="body-editor" placeholder='{"key": "value"}' oninput="updateRequestVariableIndicator()" style="display: none;"></textarea>
                         </div>
 
@@ -3290,18 +3334,6 @@
                         </div>
                     </div>
 
-                    <!-- Variables Panel -->
-                    <div class="variables-section" id="variables-section">
-                        <div class="variables-header">
-                            <h5>Runtime Variables <span class="var-count-badge" id="var-count-badge">0</span></h5>
-                            <div class="variables-header-actions">
-                                <button class="var-header-btn" onclick="clearAllVariables()" title="Clear all variables">Clear All</button>
-                            </div>
-                        </div>
-                        <div class="variables-list" id="variables-list">
-                            <div class="no-variables">No variables saved yet. Click on response values to save them.</div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -3688,12 +3720,21 @@
             const bodyTextarea = document.getElementById('request-body');
             const headersTable = document.getElementById('headers-table');
             const bodySection = document.getElementById('body-section');
+            const bodyTable = document.getElementById('body-table');
+            const addBodyRowBtn = document.getElementById('add-body-row-btn');
+            const bodyVarBtn = document.getElementById('body-var-btn');
 
             if (methodSelect) methodSelect.value = 'GET';
             if (urlInput) urlInput.value = '';
             if (bodyType) bodyType.value = 'none';
-            if (bodyTextarea) bodyTextarea.value = '';
+            if (bodyTextarea) {
+                bodyTextarea.value = '';
+                bodyTextarea.style.display = 'none';
+            }
             if (bodySection) bodySection.style.display = 'none';
+            if (bodyTable) bodyTable.style.display = 'none';
+            if (addBodyRowBtn) addBodyRowBtn.style.display = 'none';
+            if (bodyVarBtn) bodyVarBtn.style.display = 'none';
 
             // Reset headers table to single empty row
             if (headersTable) {
@@ -3701,8 +3742,20 @@
                     <div class="header-row">
                         <input type="text" placeholder="Key" class="header-key" oninput="updateRequestVariableIndicator()">
                         <input type="text" placeholder="Value" class="header-value" oninput="updateRequestVariableIndicator()">
-                        <button type="button" class="insert-var-btn" onclick="openVarPickerForRow(this, 'value')" title="Insert Variable">{{</button>
+                        <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this)" title="Insert Variable">{{</button>
                         <button type="button" class="remove-row-btn" onclick="removeHeaderRow(this)">&times;</button>
+                    </div>
+                `;
+            }
+
+            // Reset body table to single empty row
+            if (bodyTable) {
+                bodyTable.innerHTML = `
+                    <div class="body-row">
+                        <input type="text" placeholder="Key" class="body-key" oninput="updateRequestVariableIndicator()">
+                        <input type="text" placeholder="Value" class="body-value" oninput="updateRequestVariableIndicator()">
+                        <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this, 'body')" title="Insert Variable">{{</button>
+                        <button type="button" class="remove-row-btn" onclick="removeBodyRow(this)">&times;</button>
                     </div>
                 `;
             }
@@ -4891,6 +4944,74 @@
             return headers;
         }
 
+        // Body Row Functions (for Form Data key-value pairs)
+        function addBodyRow() {
+            const table = document.getElementById('body-table');
+            const row = document.createElement('div');
+            row.className = 'body-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Key" class="body-key" oninput="updateRequestVariableIndicator()">
+                <input type="text" placeholder="Value" class="body-value" oninput="updateRequestVariableIndicator()">
+                <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this, 'body')" title="Insert Variable">{{</button>
+                <button type="button" class="remove-row-btn" onclick="removeBodyRow(this)">&times;</button>
+            `;
+            table.appendChild(row);
+        }
+
+        function removeBodyRow(btn) {
+            const row = btn.closest('.body-row');
+            const table = document.getElementById('body-table');
+            if (table.querySelectorAll('.body-row').length > 1) {
+                row.remove();
+            } else {
+                row.querySelector('.body-key').value = '';
+                row.querySelector('.body-value').value = '';
+            }
+            updateRequestVariableIndicator();
+        }
+
+        function getBodyFromTable() {
+            const rows = document.querySelectorAll('#body-table .body-row');
+            const parts = [];
+            rows.forEach(row => {
+                const key = row.querySelector('.body-key').value.trim();
+                const value = row.querySelector('.body-value').value.trim();
+                if (key) parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+            });
+            return parts.join('&');
+        }
+
+        function populateBodyTable(body) {
+            const table = document.getElementById('body-table');
+            const pairs = body.split('&').map(pair => {
+                const [key, ...valueParts] = pair.split('=');
+                return {
+                    key: decodeURIComponent(key || '').trim(),
+                    value: decodeURIComponent(valueParts.join('=') || '').trim()
+                };
+            }).filter(p => p.key);
+
+            if (pairs.length > 0) {
+                table.innerHTML = pairs.map(({key, value}) => `
+                    <div class="body-row">
+                        <input type="text" placeholder="Key" class="body-key" value="${escapeHtml(key)}" oninput="updateRequestVariableIndicator()">
+                        <input type="text" placeholder="Value" class="body-value" value="${escapeHtml(value)}" oninput="updateRequestVariableIndicator()">
+                        <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this, 'body')" title="Insert Variable">{{</button>
+                        <button type="button" class="remove-row-btn" onclick="removeBodyRow(this)">&times;</button>
+                    </div>
+                `).join('');
+            } else {
+                table.innerHTML = `
+                    <div class="body-row">
+                        <input type="text" placeholder="Key" class="body-key" oninput="updateRequestVariableIndicator()">
+                        <input type="text" placeholder="Value" class="body-value" oninput="updateRequestVariableIndicator()">
+                        <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this, 'body')" title="Insert Variable">{{</button>
+                        <button type="button" class="remove-row-btn" onclick="removeBodyRow(this)">&times;</button>
+                    </div>
+                `;
+            }
+        }
+
         // Import cURL Modal Functions
         function openImportCurlModal() {
             document.getElementById('import-curl-modal').classList.add('active');
@@ -5077,6 +5198,9 @@
             const bodySection = document.getElementById('body-section');
             const bodyTypeSelect = document.getElementById('body-type');
             const bodyTextarea = document.getElementById('request-body');
+            const bodyTable = document.getElementById('body-table');
+            const addBodyRowBtn = document.getElementById('add-body-row-btn');
+            const bodyVarBtn = document.getElementById('body-var-btn');
 
             if (body) {
                 // Detect body type
@@ -5091,13 +5215,30 @@
                 }
 
                 bodyTypeSelect.value = bodyType;
-                bodyTextarea.value = body;
-                bodyTextarea.style.display = 'block';
                 bodySection.style.display = 'block';
+
+                if (bodyType === 'form') {
+                    // Populate body table with key-value pairs
+                    populateBodyTable(body);
+                    bodyTable.style.display = 'block';
+                    bodyTextarea.style.display = 'none';
+                    addBodyRowBtn.style.display = 'inline-block';
+                    bodyVarBtn.style.display = 'none';
+                } else {
+                    // JSON or Raw - use textarea
+                    bodyTextarea.value = body;
+                    bodyTextarea.style.display = 'block';
+                    bodyTable.style.display = 'none';
+                    addBodyRowBtn.style.display = 'none';
+                    bodyVarBtn.style.display = 'inline-block';
+                }
             } else {
                 bodyTypeSelect.value = 'none';
                 bodyTextarea.value = '';
                 bodyTextarea.style.display = 'none';
+                bodyTable.style.display = 'none';
+                addBodyRowBtn.style.display = 'none';
+                bodyVarBtn.style.display = 'none';
                 bodySection.style.display = 'none';
             }
 
@@ -5107,16 +5248,33 @@
         function onBodyTypeChange() {
             const bodyType = document.getElementById('body-type').value;
             const bodyTextarea = document.getElementById('request-body');
+            const bodyTable = document.getElementById('body-table');
+            const addBodyRowBtn = document.getElementById('add-body-row-btn');
+            const bodyVarBtn = document.getElementById('body-var-btn');
+            const bodySection = document.getElementById('body-section');
 
             if (bodyType === 'none') {
                 bodyTextarea.style.display = 'none';
-                bodyTextarea.value = '';
+                bodyTable.style.display = 'none';
+                addBodyRowBtn.style.display = 'none';
+                bodyVarBtn.style.display = 'none';
+                bodySection.style.display = 'none';
+            } else if (bodyType === 'form') {
+                // Show key-value table for Form Data
+                bodyTextarea.style.display = 'none';
+                bodyTable.style.display = 'block';
+                addBodyRowBtn.style.display = 'inline-block';
+                bodyVarBtn.style.display = 'none';
+                bodySection.style.display = 'block';
             } else {
+                // Show textarea for JSON/Raw
                 bodyTextarea.style.display = 'block';
+                bodyTable.style.display = 'none';
+                addBodyRowBtn.style.display = 'none';
+                bodyVarBtn.style.display = 'inline-block';
+                bodySection.style.display = 'block';
                 if (bodyType === 'json') {
                     bodyTextarea.placeholder = '{"key": "value"}';
-                } else if (bodyType === 'form') {
-                    bodyTextarea.placeholder = 'key1=value1&key2=value2';
                 } else {
                     bodyTextarea.placeholder = 'Raw body content';
                 }
@@ -5143,7 +5301,14 @@
             const url = document.getElementById('request-url')?.value?.trim() || '';
             const headers = getHeadersFromTable();
             const bodyType = document.getElementById('body-type')?.value || 'none';
-            const body = document.getElementById('request-body')?.value || '';
+
+            // Get body from table if form type, otherwise from textarea
+            let body = '';
+            if (bodyType === 'form') {
+                body = getBodyFromTable();
+            } else {
+                body = document.getElementById('request-body')?.value || '';
+            }
 
             if (!url) return '';
             return buildCurlCommand(method, url, headers, body, bodyType);
@@ -5154,7 +5319,14 @@
             const url = document.getElementById('request-url').value.trim();
             const headers = getHeadersFromTable();
             const bodyType = document.getElementById('body-type').value;
-            const body = document.getElementById('request-body').value;
+
+            // Get body from table if form type, otherwise from textarea
+            let body = '';
+            if (bodyType === 'form') {
+                body = getBodyFromTable();
+            } else {
+                body = document.getElementById('request-body').value;
+            }
 
             if (!url) {
                 showToast('URL is required', 'error');
@@ -5290,9 +5462,15 @@
             showVarPicker(event.target);
         }
 
-        function openVarPickerForRow(btn) {
-            const row = btn.closest('.header-row');
-            varPickerTargetInput = row.querySelector('.header-value');
+        function openVarPickerForRow(btn, type) {
+            let row;
+            if (type === 'body') {
+                row = btn.closest('.body-row');
+                varPickerTargetInput = row.querySelector('.body-value');
+            } else {
+                row = btn.closest('.header-row');
+                varPickerTargetInput = row.querySelector('.header-value');
+            }
             showVarPicker(btn);
         }
 
@@ -5755,6 +5933,9 @@
             const bodyTextarea = document.getElementById('request-body');
             const bodySection = document.getElementById('body-section');
             const headersTable = document.getElementById('headers-table');
+            const bodyTable = document.getElementById('body-table');
+            const addBodyRowBtn = document.getElementById('add-body-row-btn');
+            const bodyVarBtn = document.getElementById('body-var-btn');
 
             if (methodSelect) methodSelect.value = 'GET';
             if (urlInput) urlInput.value = '';
@@ -5764,6 +5945,9 @@
                 bodyTextarea.style.display = 'none';
             }
             if (bodySection) bodySection.style.display = 'none';
+            if (bodyTable) bodyTable.style.display = 'none';
+            if (addBodyRowBtn) addBodyRowBtn.style.display = 'none';
+            if (bodyVarBtn) bodyVarBtn.style.display = 'none';
 
             // Reset headers table to single empty row
             if (headersTable) {
@@ -5773,6 +5957,18 @@
                         <input type="text" placeholder="Value" class="header-value" oninput="updateRequestVariableIndicator()">
                         <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this)" title="Insert Variable">{{</button>
                         <button type="button" class="remove-row-btn" onclick="removeHeaderRow(this)">&times;</button>
+                    </div>
+                `;
+            }
+
+            // Reset body table to single empty row
+            if (bodyTable) {
+                bodyTable.innerHTML = `
+                    <div class="body-row">
+                        <input type="text" placeholder="Key" class="body-key" oninput="updateRequestVariableIndicator()">
+                        <input type="text" placeholder="Value" class="body-value" oninput="updateRequestVariableIndicator()">
+                        <button type="button" class="insert-var-btn small" onclick="openVarPickerForRow(this, 'body')" title="Insert Variable">{{</button>
+                        <button type="button" class="remove-row-btn" onclick="removeBodyRow(this)">&times;</button>
                     </div>
                 `;
             }
