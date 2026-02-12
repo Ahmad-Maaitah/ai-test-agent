@@ -3188,18 +3188,18 @@
                         </div>
 
                         <!-- Body Section -->
-                        <div class="request-section" id="body-section">
+                        <div class="request-section" id="body-section" style="display: none;">
                             <div class="section-header">
                                 <h5>Body</h5>
                                 <select id="body-type" onchange="onBodyTypeChange()">
-                                    <option value="none">None</option>
-                                    <option value="json" selected>JSON</option>
+                                    <option value="none" selected>None</option>
+                                    <option value="json">JSON</option>
                                     <option value="form">Form Data</option>
                                     <option value="raw">Raw</option>
                                 </select>
                                 <button type="button" class="insert-var-btn" onclick="openVarPicker('request-body')" title="Insert Variable">{{</button>
                             </div>
-                            <textarea id="request-body" class="body-editor" placeholder='{"key": "value"}' oninput="updateRequestVariableIndicator()"></textarea>
+                            <textarea id="request-body" class="body-editor" placeholder='{"key": "value"}' oninput="updateRequestVariableIndicator()" style="display: none;"></textarea>
                         </div>
 
                         <!-- Variable Indicator -->
@@ -5043,6 +5043,7 @@
             }
 
             // Body
+            const bodySection = document.getElementById('body-section');
             const bodyTypeSelect = document.getElementById('body-type');
             const bodyTextarea = document.getElementById('request-body');
 
@@ -5061,10 +5062,12 @@
                 bodyTypeSelect.value = bodyType;
                 bodyTextarea.value = body;
                 bodyTextarea.style.display = 'block';
+                bodySection.style.display = 'block';
             } else {
                 bodyTypeSelect.value = 'none';
                 bodyTextarea.value = '';
                 bodyTextarea.style.display = 'none';
+                bodySection.style.display = 'none';
             }
 
             updateRequestVariableIndicator();
@@ -5719,6 +5722,7 @@
             const urlInput = document.getElementById('request-url');
             const bodyType = document.getElementById('body-type');
             const bodyTextarea = document.getElementById('request-body');
+            const bodySection = document.getElementById('body-section');
             const headersTable = document.getElementById('headers-table');
 
             if (methodSelect) methodSelect.value = 'GET';
@@ -5728,6 +5732,7 @@
                 bodyTextarea.value = '';
                 bodyTextarea.style.display = 'none';
             }
+            if (bodySection) bodySection.style.display = 'none';
 
             // Reset headers table to single empty row
             if (headersTable) {
