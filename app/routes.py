@@ -3,6 +3,7 @@
 import os
 import json
 import uuid
+import re
 from datetime import datetime
 from flask import Blueprint, render_template, request, jsonify, send_from_directory
 
@@ -334,14 +335,26 @@ def run_apis():
     run_date = datetime.now().isoformat()
     results = []
 
+    # Get saved variables for replacement
+    saved_variables = {v['name']: v['value'] for v in data.get('variables', [])}
+
     for item in apis_to_run:
         api = item['api']
         section_name = item['section']
 
+        # Replace variables in cURL command
+        curl_command = api['curl']
+        def replace_var(match):
+            var_name = match.group(1)
+            if var_name in saved_variables:
+                return str(saved_variables[var_name])
+            return match.group(0)  # Keep original if not found
+        curl_command = re.sub(r'\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}', replace_var, curl_command)
+
         start_time = datetime.now()
         # Pass custom rules to runner if available
         custom_rules = api.get('customRules', [])
-        test_result = run_test_pipeline(api['curl'], api_name=api['name'], custom_rules=custom_rules)
+        test_result = run_test_pipeline(curl_command, api_name=api['name'], custom_rules=custom_rules)
         end_time = datetime.now()
         execution_time = int((end_time - start_time).total_seconds() * 1000)
 

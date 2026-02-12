@@ -4927,7 +4927,9 @@
             rows.forEach(row => {
                 const key = row.querySelector('.body-key').value.trim();
                 const value = row.querySelector('.body-value').value.trim();
-                if (key) parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+                // Don't encode here - variables like {{draftId}} need to be replaced first
+                // The cURL command builder will handle proper escaping
+                if (key) parts.push(`${key}=${value}`);
             });
             return parts.join('&');
         }
@@ -5464,8 +5466,9 @@
 
             list.innerHTML = filtered.map(v => {
                 const preview = truncateValue(v.value, 30);
+                const fullValue = typeof v.value === 'object' ? JSON.stringify(v.value) : String(v.value);
                 return `
-                    <div class="var-picker-item" onclick="insertVariableFromPicker('${escapeHtml(v.name)}')">
+                    <div class="var-picker-item" onclick="insertVariableFromPicker('${escapeHtml(v.name)}')" title="Value: ${escapeHtml(fullValue)}">
                         <span class="var-picker-item-name">{{${escapeHtml(v.name)}}}</span>
                         <span class="var-picker-item-preview">${escapeHtml(preview)}</span>
                     </div>
