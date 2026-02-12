@@ -4645,18 +4645,6 @@
             );
         }
 
-        // Check for duplicate cURL command
-        function checkDuplicateCurl(curl) {
-            for (const section of sections) {
-                for (const api of section.apis) {
-                    if (api.curl === curl && api.id !== pageEditingApiId) {
-                        return { exists: true, apiName: api.name, sectionName: section.name };
-                    }
-                }
-            }
-            return { exists: false };
-        }
-
         async function saveApiFromPage() {
             const sectionId = document.getElementById('page-api-section').value;
             const name = document.getElementById('page-api-name').value.trim();
@@ -4687,13 +4675,6 @@
             // Check for duplicate API name in section
             if (checkDuplicateName(name, sectionId)) {
                 showToast(`API name "${name}" already exists in this module`, 'error');
-                return;
-            }
-
-            // Check for duplicate cURL
-            const curlCheck = checkDuplicateCurl(curl);
-            if (curlCheck.exists) {
-                showToast(`This cURL is already used by "${curlCheck.apiName}" in ${curlCheck.sectionName}`, 'error');
                 return;
             }
 

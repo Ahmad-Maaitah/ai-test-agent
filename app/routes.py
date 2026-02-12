@@ -637,9 +637,12 @@ def execute_curl():
         })
 
     except requests.exceptions.Timeout:
-        return jsonify({'success': False, 'error': 'Request timed out'}), 408
+        return jsonify({'success': False, 'error': 'Request timed out (30s limit)'}), 408
     except requests.exceptions.ConnectionError as e:
-        return jsonify({'success': False, 'error': f'Connection failed: {str(e)}'}), 502
+        error_msg = str(e)
+        if 'label empty or too long' in error_msg:
+            return jsonify({'success': False, 'error': 'Invalid URL: The hostname in your cURL is malformed. Please check the URL.'}), 400
+        return jsonify({'success': False, 'error': 'Connection failed: Unable to reach the server. Check the URL and try again.'}), 502
     except ValueError as e:
         return jsonify({'success': False, 'error': f'Invalid cURL: {str(e)}'}), 400
     except Exception as e:
