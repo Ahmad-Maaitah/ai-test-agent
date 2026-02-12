@@ -4923,9 +4923,15 @@
             showToast('cURL imported! You can now edit fields and insert variables.');
         }
 
-        // Parse a cURL command and populate the Structured Request Editor
+        // Parse a cURL command and populate the Structured Request Editor (Postman-like)
         function parseCurlToEditor(curlCommand) {
             if (!curlCommand) return;
+
+            // Normalize the cURL command (handle line continuations)
+            let curl = curlCommand
+                .replace(/\\\r?\n/g, ' ')   // Handle backslash line continuations
+                .replace(/\s+/g, ' ')        // Normalize whitespace
+                .trim();
 
             // Default values
             let method = 'GET';
@@ -4933,46 +4939,89 @@
             const headers = {};
             let body = '';
 
-            // Parse method
-            const methodMatch = curlCommand.match(/-X\s+(\w+)/i);
+            // 1. Parse Method (-X or --request)
+            const methodMatch = curl.match(/-X\s+['"]?(\w+)['"]?/i) ||
+                                curl.match(/--request\s+['"]?(\w+)['"]?/i);
             if (methodMatch) {
                 method = methodMatch[1].toUpperCase();
-            } else if (curlCommand.includes('-d ') || curlCommand.includes('--data')) {
+            }
+
+            // 2. Parse URL (various formats)
+            const urlPatterns = [
+                /curl\s+['"]?(https?:\/\/[^'"<>\s]+)['"]?/i,      // curl 'url' or curl url
+                /['"]?(https?:\/\/[^'"<>\s]+)['"]?/i,             // url anywhere
+                /--url\s+['"]?(https?:\/\/[^'"<>\s]+)['"]?/i,     // --url 'url'
+            ];
+
+            for (const pattern of urlPatterns) {
+                const match = curl.match(pattern);
+                if (match) {
+                    url = match[1];
+                    break;
+                }
+            }
+
+            // 3. Parse Headers (-H or --header) - improved regex
+            const headerPatterns = [
+                /-H\s+'([^:]+):\s*([^']+)'/g,           // -H 'Key: Value'
+                /-H\s+"([^:]+):\s*([^"]+)"/g,           // -H "Key: Value"
+                /--header\s+'([^:]+):\s*([^']+)'/g,     // --header 'Key: Value'
+                /--header\s+"([^:]+):\s*([^"]+)"/g,     // --header "Key: Value"
+            ];
+
+            for (const pattern of headerPatterns) {
+                let match;
+                // Reset lastIndex for global regex
+                pattern.lastIndex = 0;
+                while ((match = pattern.exec(curl)) !== null) {
+                    const key = match[1].trim();
+                    const value = match[2].trim();
+                    if (key && !headers[key]) {
+                        headers[key] = value;
+                    }
+                }
+            }
+
+            // 4. Parse Body Data (-d, --data, --data-raw, --data-binary)
+            const dataPatterns = [
+                /-d\s+'((?:[^'\\]|\\.)*)'/,              // -d 'data'
+                /-d\s+"((?:[^"\\]|\\.)*)"/,              // -d "data"
+                /--data\s+'((?:[^'\\]|\\.)*)'/,          // --data 'data'
+                /--data\s+"((?:[^"\\]|\\.)*)"/,          // --data "data"
+                /--data-raw\s+'((?:[^'\\]|\\.)*)'/,      // --data-raw 'data'
+                /--data-raw\s+"((?:[^"\\]|\\.)*)"/,      // --data-raw "data"
+                /--data-binary\s+'((?:[^'\\]|\\.)*)'/,   // --data-binary 'data'
+                /--data-binary\s+"((?:[^"\\]|\\.)*)"/,   // --data-binary "data"
+            ];
+
+            for (const pattern of dataPatterns) {
+                const match = curl.match(pattern);
+                if (match) {
+                    body = match[1]
+                        .replace(/\\'/g, "'")     // Unescape single quotes
+                        .replace(/\\"/g, '"')     // Unescape double quotes
+                        .replace(/\\\\/g, '\\');  // Unescape backslashes
+                    break;
+                }
+            }
+
+            // If body exists and no explicit method, default to POST
+            if (body && method === 'GET') {
                 method = 'POST';
             }
 
-            // Parse URL - handle both quoted and unquoted
-            const urlMatch = curlCommand.match(/curl\s+(?:-[^\s]+\s+)*['"]?([^'"\s]+)['"]?/i) ||
-                            curlCommand.match(/'(https?:\/\/[^']+)'/) ||
-                            curlCommand.match(/"(https?:\/\/[^"]+)"/) ||
-                            curlCommand.match(/(https?:\/\/[^\s]+)/);
-            if (urlMatch) {
-                url = urlMatch[1];
-            }
+            // --- Populate the Editor ---
 
-            // Parse headers
-            const headerRegex = /-H\s+['"]([^:]+):\s*([^'"]+)['"]/gi;
-            let headerMatch;
-            while ((headerMatch = headerRegex.exec(curlCommand)) !== null) {
-                headers[headerMatch[1].trim()] = headerMatch[2].trim();
-            }
-
-            // Parse body data
-            const dataMatch = curlCommand.match(/-d\s+'([^']*)'/) ||
-                             curlCommand.match(/-d\s+"([^"]*)"/) ||
-                             curlCommand.match(/--data\s+'([^']*)'/) ||
-                             curlCommand.match(/--data\s+"([^"]*)"/);
-            if (dataMatch) {
-                body = dataMatch[1];
-            }
-
-            // Populate the editor
+            // Method
             document.getElementById('request-method').value = method;
+
+            // URL
             document.getElementById('request-url').value = url;
 
-            // Populate headers table
+            // Headers Table
             const headersTable = document.getElementById('headers-table');
             const headerEntries = Object.entries(headers);
+
             if (headerEntries.length > 0) {
                 headersTable.innerHTML = headerEntries.map(([key, value]) => `
                     <div class="header-row">
@@ -4993,22 +5042,23 @@
                 `;
             }
 
-            // Set body type and content
+            // Body
             const bodyTypeSelect = document.getElementById('body-type');
             const bodyTextarea = document.getElementById('request-body');
 
             if (body) {
-                // Try to detect body type
+                // Detect body type
+                let bodyType = 'raw';
                 try {
                     JSON.parse(body);
-                    bodyTypeSelect.value = 'json';
+                    bodyType = 'json';
                 } catch {
-                    if (body.includes('=') && !body.includes('{')) {
-                        bodyTypeSelect.value = 'form';
-                    } else {
-                        bodyTypeSelect.value = 'raw';
+                    if (body.includes('=') && !body.includes('{') && !body.includes('[')) {
+                        bodyType = 'form';
                     }
                 }
+
+                bodyTypeSelect.value = bodyType;
                 bodyTextarea.value = body;
                 bodyTextarea.style.display = 'block';
             } else {
