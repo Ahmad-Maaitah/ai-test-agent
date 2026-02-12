@@ -644,6 +644,9 @@ def execute_curl():
             return jsonify({'success': False, 'error': 'Invalid URL: The hostname in your cURL is malformed. Please check the URL.'}), 400
         return jsonify({'success': False, 'error': 'Connection failed: Unable to reach the server. Check the URL and try again.'}), 502
     except ValueError as e:
+        error_msg = str(e)
+        if 'label empty or too long' in error_msg or 'Failed to parse' in error_msg:
+            return jsonify({'success': False, 'error': 'Invalid URL: The hostname in your cURL is malformed. Please check the URL.'}), 400
         return jsonify({'success': False, 'error': f'Invalid cURL: {str(e)}'}), 400
     except Exception as e:
         return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
@@ -746,6 +749,9 @@ def test_rules():
             return jsonify({'success': False, 'error': 'Invalid URL: The hostname in your cURL is malformed. Please check the URL.'}), 400
         return jsonify({'success': False, 'error': 'Connection failed: Unable to reach the server. Check the URL and try again.'}), 502
     except ValueError as e:
+        error_msg = str(e)
+        if 'label empty or too long' in error_msg or 'Failed to parse' in error_msg:
+            return jsonify({'success': False, 'error': 'Invalid URL: The hostname in your cURL is malformed. Please check the URL.'}), 400
         return jsonify({'success': False, 'error': f'Invalid cURL: {str(e)}'}), 400
     except Exception as e:
         return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500

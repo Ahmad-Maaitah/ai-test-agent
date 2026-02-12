@@ -2136,9 +2136,418 @@
                 align-self: flex-end;
             }
         }
+
+        /* Runtime Variables System Styles */
+
+        /* Save Variable Modal */
+        .save-var-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .save-var-form label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #2c3e50;
+            font-size: 13px;
+        }
+
+        .field-path-display {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            color: #7f8c8d;
+            border: 1px solid #e0e0e0;
+        }
+
+        .value-preview-container {
+            position: relative;
+        }
+
+        .value-type-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .value-type-badge.type-string { background: #27ae60; color: white; }
+        .value-type-badge.type-number { background: #3498db; color: white; }
+        .value-type-badge.type-boolean { background: #9b59b6; color: white; }
+        .value-type-badge.type-array { background: #e67e22; color: white; }
+        .value-type-badge.type-object { background: #1abc9c; color: white; }
+        .value-type-badge.type-null { background: #95a5a6; color: white; }
+
+        .value-preview {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .var-name-input-container {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 0 12px;
+            transition: border-color 0.2s;
+        }
+
+        .var-name-input-container:focus-within {
+            border-color: #667eea;
+        }
+
+        .var-prefix, .var-suffix {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .var-name-input-container input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 10px 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-hint {
+            display: block;
+            margin-top: 6px;
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+
+        /* Interactive JSON Styles */
+        .response-json.interactive {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .json-key {
+            color: #9cdcfe;
+        }
+
+        .json-colon {
+            color: #d4d4d4;
+        }
+
+        .json-bracket {
+            color: #d4d4d4;
+        }
+
+        .json-value {
+            cursor: pointer;
+            padding: 1px 4px;
+            border-radius: 3px;
+            transition: background 0.15s;
+        }
+
+        .json-value:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .json-value.json-string { color: #ce9178; }
+        .json-value.json-number { color: #b5cea8; }
+        .json-value.json-boolean { color: #569cd6; }
+        .json-value.json-null { color: #569cd6; }
+
+        /* Variables Panel */
+        .variables-section {
+            margin-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 15px;
+        }
+
+        .variables-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .variables-header h5 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .var-count-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .variables-header-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .var-header-btn {
+            background: none;
+            border: none;
+            color: #7f8c8d;
+            cursor: pointer;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .var-header-btn:hover {
+            background: #f8f9fa;
+            color: #e74c3c;
+        }
+
+        .variables-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .no-variables {
+            color: #7f8c8d;
+            font-size: 11px;
+            font-style: italic;
+            padding: 10px 0;
+        }
+
+        .variable-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .variable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .variable-name {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .variable-type {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .variable-type.type-string { background: #e8f8f0; color: #27ae60; }
+        .variable-type.type-number { background: #e8f4fd; color: #3498db; }
+        .variable-type.type-boolean { background: #f3e8fd; color: #9b59b6; }
+        .variable-type.type-array { background: #fdf2e8; color: #e67e22; }
+        .variable-type.type-object { background: #e8fdf8; color: #1abc9c; }
+        .variable-type.type-null { background: #f0f0f0; color: #95a5a6; }
+
+        .variable-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            color: #2c3e50;
+            padding: 4px 6px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            max-height: 40px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .variable-source {
+            font-size: 10px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .variable-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .var-action-btn {
+            background: #e8f4fd;
+            border: none;
+            color: #3498db;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .var-action-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .var-action-btn.delete {
+            background: #fde8e8;
+            color: #e74c3c;
+        }
+
+        .var-action-btn.delete:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* cURL Variable Indicator */
+        .curl-variable-indicator {
+            font-size: 11px;
+            padding: 6px 10px;
+            margin-top: 8px;
+            border-radius: 4px;
+            min-height: 20px;
+        }
+
+        .curl-variable-indicator.valid {
+            background: #e8f8f0;
+            border: 1px solid #27ae60;
+        }
+
+        .curl-variable-indicator.has-errors {
+            background: #fde8e8;
+            border: 1px solid #e74c3c;
+        }
+
+        .var-indicator-found {
+            color: #27ae60;
+            margin-right: 15px;
+        }
+
+        .var-indicator-missing {
+            color: #e74c3c;
+        }
+
+        /* Insert Variable Dropdown */
+        .curl-editor-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .insert-variable-dropdown {
+            position: relative;
+        }
+
+        #insert-variable-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        #insert-variable-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .variable-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 280px;
+            max-height: 250px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            z-index: 1000;
+            margin-top: 4px;
+        }
+
+        .variable-dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-empty {
+            padding: 20px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.15s;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+
+        .dropdown-var-name {
+            display: block;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 3px;
+        }
+
+        .dropdown-var-preview {
+            display: block;
+            font-size: 11px;
+            color: #7f8c8d;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
+{% raw %}
     <!-- Header -->
     <div class="header">
         <div class="logo-container">
@@ -2316,8 +2725,19 @@
                 <!-- Center Panel -->
                 <div class="center-panel">
                     <div class="curl-editor-section">
-                        <h4>cURL Command <span style="color: #e74c3c; font-size: 12px;">*</span></h4>
-                        <textarea class="curl-editor" id="page-curl" placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'" required></textarea>
+                        <div class="curl-editor-toolbar">
+                            <h4>cURL Command <span style="color: #e74c3c; font-size: 12px;">*</span></h4>
+                            <div class="insert-variable-dropdown">
+                                <button id="insert-variable-btn" onclick="toggleInsertVariableDropdown()">
+                                    <span>{{</span> Insert Variable
+                                </button>
+                                <div class="variable-dropdown-menu" id="variable-dropdown-menu">
+                                    <div class="dropdown-empty">No variables saved yet</div>
+                                </div>
+                            </div>
+                        </div>
+                        <textarea class="curl-editor" id="page-curl" placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'" required oninput="updateCurlVariableIndicator()"></textarea>
+                        <div class="curl-variable-indicator" id="curl-variable-indicator"></div>
                         <div class="curl-editor-actions">
                             <button class="btn btn-primary" onclick="executePageCurl()" id="page-execute-btn">Execute & Parse Response</button>
                         </div>
@@ -2387,6 +2807,19 @@
                         <input type="text" id="page-field-search-right" placeholder="Search..." oninput="filterPageFieldsRight()" style="width: 100%; padding: 6px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px;">
                         <div id="page-fields-list-right">
                             <span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>
+                        </div>
+                    </div>
+
+                    <!-- Variables Panel -->
+                    <div class="variables-section" id="variables-section">
+                        <div class="variables-header">
+                            <h5>Runtime Variables <span class="var-count-badge" id="var-count-badge">0</span></h5>
+                            <div class="variables-header-actions">
+                                <button class="var-header-btn" onclick="clearAllVariables()" title="Clear all variables">Clear All</button>
+                            </div>
+                        </div>
+                        <div class="variables-list" id="variables-list">
+                            <div class="no-variables">No variables saved yet. Click on response values to save them.</div>
                         </div>
                     </div>
                 </div>
@@ -2548,6 +2981,44 @@
         </div>
     </div>
 
+    <!-- Save Variable Modal -->
+    <div class="modal-overlay" id="save-variable-modal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Save as Variable</h2>
+                <button class="modal-close" onclick="closeSaveVariableModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="save-var-form">
+                    <div class="form-group">
+                        <label>Field Path</label>
+                        <div class="field-path-display" id="save-var-field-path">data.id</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Value</label>
+                        <div class="value-preview-container">
+                            <span class="value-type-badge" id="save-var-type-badge">string</span>
+                            <pre class="value-preview" id="save-var-value-preview">"example"</pre>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="save-var-name">Variable Name <span style="color: #e74c3c;">*</span></label>
+                        <div class="var-name-input-container">
+                            <span class="var-prefix">{{</span>
+                            <input type="text" id="save-var-name" placeholder="variableName" onkeyup="if(event.key === 'Enter') saveVariable()">
+                            <span class="var-suffix">}}</span>
+                        </div>
+                        <small class="form-hint">Use letters, numbers, and underscores. Must start with a letter or underscore.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="closeSaveVariableModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveVariable()">Save Variable</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // State
         let sections = [];
@@ -2649,10 +3120,19 @@
             const inlineModule = document.getElementById('inline-add-module');
             if (inlineModule) inlineModule.style.display = 'none';
 
+            // Clear interactive JSON class
+            if (responseJson) {
+                responseJson.classList.remove('interactive');
+            }
+
             renderPageRules();
             updatePageStatus();
             populatePageSectionDropdown();
             initNewRuleBuilder();
+
+            // Update variables panel and indicator
+            renderVariablesPanel();
+            updateCurlVariableIndicator();
         }
 
         // Toast
@@ -3599,6 +4079,396 @@
         let pageLastResponse = null;
         let pageRulesValidated = false;
 
+        // Runtime Variables System
+        let runtimeVariables = {};  // { varName: { value, type, source: { apiName, fieldPath, timestamp } } }
+
+        // Variable Helper Functions
+        function getValueType(value) {
+            if (value === null) return 'null';
+            if (value === undefined) return 'undefined';
+            if (Array.isArray(value)) return 'array';
+            if (typeof value === 'object') return 'object';
+            if (typeof value === 'number') return 'number';
+            if (typeof value === 'boolean') return 'boolean';
+            return 'string';
+        }
+
+        function formatValueForDisplay(value, type) {
+            if (type === 'null') return 'null';
+            if (type === 'undefined') return 'undefined';
+            if (type === 'array' || type === 'object') {
+                return JSON.stringify(value, null, 2);
+            }
+            if (type === 'string') {
+                const str = String(value);
+                return str.length > 50 ? str.substring(0, 50) + '...' : str;
+            }
+            return String(value);
+        }
+
+        function suggestVariableName(fieldPath) {
+            // Convert field path to camelCase variable name
+            const parts = fieldPath.split('.');
+            const lastPart = parts[parts.length - 1];
+            // Remove array indices like [0]
+            const cleanName = lastPart.replace(/\[\d+\]/g, '');
+            return cleanName || 'value';
+        }
+
+        function getNestedValue(obj, path) {
+            const parts = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+            let current = obj;
+            for (const part of parts) {
+                if (current === null || current === undefined) return undefined;
+                current = current[part];
+            }
+            return current;
+        }
+
+        // Save Variable Modal Functions
+        let saveVariableFieldPath = '';
+        let saveVariableValue = null;
+
+        function openSaveVariableModal(fieldPath, value) {
+            saveVariableFieldPath = fieldPath;
+            saveVariableValue = value;
+
+            const modal = document.getElementById('save-variable-modal');
+            const pathDisplay = document.getElementById('save-var-field-path');
+            const valuePreview = document.getElementById('save-var-value-preview');
+            const typeBadge = document.getElementById('save-var-type-badge');
+            const nameInput = document.getElementById('save-var-name');
+
+            const valueType = getValueType(value);
+
+            pathDisplay.textContent = fieldPath;
+            valuePreview.textContent = formatValueForDisplay(value, valueType);
+            typeBadge.textContent = valueType;
+            typeBadge.className = 'value-type-badge type-' + valueType;
+            nameInput.value = suggestVariableName(fieldPath);
+
+            modal.classList.add('active');
+            nameInput.focus();
+            nameInput.select();
+        }
+
+        function closeSaveVariableModal() {
+            document.getElementById('save-variable-modal').classList.remove('active');
+            saveVariableFieldPath = '';
+            saveVariableValue = null;
+        }
+
+        function saveVariable() {
+            const nameInput = document.getElementById('save-var-name');
+            const varName = nameInput.value.trim();
+
+            if (!varName) {
+                showToast('Variable name is required', 'error');
+                return;
+            }
+
+            // Validate variable name (alphanumeric and underscore only)
+            if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(varName)) {
+                showToast('Variable name must start with a letter or underscore and contain only letters, numbers, and underscores', 'error');
+                return;
+            }
+
+            // Check for duplicates
+            if (runtimeVariables[varName]) {
+                if (!confirm(`Variable "${varName}" already exists. Do you want to overwrite it?`)) {
+                    return;
+                }
+            }
+
+            const apiName = document.getElementById('page-api-name').value || 'Unnamed API';
+
+            runtimeVariables[varName] = {
+                value: saveVariableValue,
+                type: getValueType(saveVariableValue),
+                source: {
+                    apiName: apiName,
+                    fieldPath: saveVariableFieldPath,
+                    timestamp: new Date().toISOString()
+                }
+            };
+
+            closeSaveVariableModal();
+            renderVariablesPanel();
+            updateCurlVariableIndicator();
+            showToast(`Variable "{{${varName}}}" saved successfully`);
+        }
+
+        function deleteVariable(name) {
+            if (confirm(`Delete variable "{{${name}}}"?`)) {
+                delete runtimeVariables[name];
+                renderVariablesPanel();
+                updateCurlVariableIndicator();
+                showToast(`Variable deleted`);
+            }
+        }
+
+        function clearAllVariables() {
+            if (Object.keys(runtimeVariables).length === 0) {
+                showToast('No variables to clear', 'error');
+                return;
+            }
+            if (confirm('Clear all runtime variables?')) {
+                runtimeVariables = {};
+                renderVariablesPanel();
+                updateCurlVariableIndicator();
+                showToast('All variables cleared');
+            }
+        }
+
+        // Interactive JSON Rendering
+        function renderInteractiveJson(data, parentPath = '', indent = 0) {
+            if (data === null) {
+                return `<span class="json-value json-null" onclick="openSaveVariableModalByPath('${parentPath}')" title="Click to save as variable">null</span>`;
+            }
+
+            if (typeof data === 'undefined') {
+                return `<span class="json-value json-undefined">undefined</span>`;
+            }
+
+            if (typeof data === 'boolean') {
+                return `<span class="json-value json-boolean" onclick="openSaveVariableModalByPath('${parentPath}')" title="Click to save as variable">${data}</span>`;
+            }
+
+            if (typeof data === 'number') {
+                return `<span class="json-value json-number" onclick="openSaveVariableModalByPath('${parentPath}')" title="Click to save as variable">${data}</span>`;
+            }
+
+            if (typeof data === 'string') {
+                const displayValue = data.length > 100 ? data.substring(0, 100) + '...' : data;
+                const escapedDisplay = displayValue.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                return `<span class="json-value json-string" onclick="openSaveVariableModalByPath('${parentPath}')" title="Click to save as variable">"${escapedDisplay}"</span>`;
+            }
+
+            const indentStr = '  '.repeat(indent);
+            const nextIndent = '  '.repeat(indent + 1);
+
+            if (Array.isArray(data)) {
+                if (data.length === 0) {
+                    return `<span class="json-bracket">[</span><span class="json-bracket">]</span>`;
+                }
+
+                let html = `<span class="json-bracket">[</span>\n`;
+                data.forEach((item, index) => {
+                    const itemPath = parentPath ? `${parentPath}[${index}]` : `[${index}]`;
+                    html += nextIndent + renderInteractiveJson(item, itemPath, indent + 1);
+                    if (index < data.length - 1) html += ',';
+                    html += '\n';
+                });
+                html += indentStr + `<span class="json-bracket">]</span>`;
+                return html;
+            }
+
+            if (typeof data === 'object') {
+                const keys = Object.keys(data);
+                if (keys.length === 0) {
+                    return `<span class="json-bracket">{</span><span class="json-bracket">}</span>`;
+                }
+
+                let html = `<span class="json-bracket">{</span>\n`;
+                keys.forEach((key, index) => {
+                    const keyPath = parentPath ? `${parentPath}.${key}` : key;
+                    html += nextIndent + `<span class="json-key">"${key}"</span><span class="json-colon">: </span>`;
+                    html += renderInteractiveJson(data[key], keyPath, indent + 1);
+                    if (index < keys.length - 1) html += ',';
+                    html += '\n';
+                });
+                html += indentStr + `<span class="json-bracket">}</span>`;
+                return html;
+            }
+
+            return String(data);
+        }
+
+        // Open save variable modal using path (retrieves value from pageLastResponse)
+        function openSaveVariableModalByPath(fieldPath) {
+            if (!pageLastResponse) {
+                showToast('No response data available', 'error');
+                return;
+            }
+            const value = getNestedValue(pageLastResponse, fieldPath);
+            openSaveVariableModal(fieldPath, value);
+        }
+
+        // Variables Panel
+        function renderVariablesPanel() {
+            const container = document.getElementById('variables-list');
+            const badge = document.getElementById('var-count-badge');
+            const section = document.getElementById('variables-section');
+
+            if (!container) return;
+
+            const varCount = Object.keys(runtimeVariables).length;
+            if (badge) badge.textContent = varCount;
+
+            if (varCount === 0) {
+                container.innerHTML = '<div class="no-variables">No variables saved yet. Click on response values to save them.</div>';
+                return;
+            }
+
+            let html = '';
+            for (const [name, data] of Object.entries(runtimeVariables)) {
+                const displayValue = formatValueForDisplay(data.value, data.type);
+                html += `
+                    <div class="variable-item">
+                        <div class="variable-header">
+                            <span class="variable-name">{{${name}}}</span>
+                            <span class="variable-type type-${data.type}">${data.type}</span>
+                        </div>
+                        <div class="variable-value">${displayValue}</div>
+                        <div class="variable-source">From: ${data.source.fieldPath}</div>
+                        <div class="variable-actions">
+                            <button class="var-action-btn" onclick="copyVariableToClipboard('${name}')" title="Copy {{${name}}}">Copy</button>
+                            <button class="var-action-btn" onclick="insertVariableAtCursor('${name}')" title="Insert at cursor">Insert</button>
+                            <button class="var-action-btn delete" onclick="deleteVariable('${name}')" title="Delete">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function copyVariableToClipboard(name) {
+            navigator.clipboard.writeText(`{{${name}}}`).then(() => {
+                showToast(`Copied {{${name}}} to clipboard`);
+            });
+        }
+
+        // Variable Injection System
+        function replaceVariables(text) {
+            const result = { text: text, errors: [], replaced: [] };
+            const pattern = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
+            let match;
+
+            while ((match = pattern.exec(text)) !== null) {
+                const varName = match[1];
+                if (runtimeVariables[varName]) {
+                    const value = runtimeVariables[varName].value;
+                    const valueStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                    result.replaced.push(varName);
+                } else {
+                    result.errors.push(varName);
+                }
+            }
+
+            if (result.errors.length === 0) {
+                result.text = text.replace(pattern, (match, varName) => {
+                    const value = runtimeVariables[varName].value;
+                    return typeof value === 'object' ? JSON.stringify(value) : String(value);
+                });
+            }
+
+            return result;
+        }
+
+        function validateVariablesInText(text) {
+            const pattern = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
+            const found = [];
+            const missing = [];
+            let match;
+
+            while ((match = pattern.exec(text)) !== null) {
+                const varName = match[1];
+                if (runtimeVariables[varName]) {
+                    if (!found.includes(varName)) found.push(varName);
+                } else {
+                    if (!missing.includes(varName)) missing.push(varName);
+                }
+            }
+
+            return { valid: missing.length === 0, found, missing };
+        }
+
+        function updateCurlVariableIndicator() {
+            const curl = document.getElementById('page-curl');
+            const indicator = document.getElementById('curl-variable-indicator');
+
+            if (!curl || !indicator) return;
+
+            const validation = validateVariablesInText(curl.value);
+
+            if (validation.found.length === 0 && validation.missing.length === 0) {
+                indicator.innerHTML = '';
+                indicator.className = 'curl-variable-indicator';
+                return;
+            }
+
+            let html = '';
+            if (validation.found.length > 0) {
+                html += `<span class="var-indicator-found">Variables: ${validation.found.map(v => `{{${v}}}`).join(', ')}</span>`;
+            }
+            if (validation.missing.length > 0) {
+                html += `<span class="var-indicator-missing">Missing: ${validation.missing.map(v => `{{${v}}}`).join(', ')}</span>`;
+            }
+
+            indicator.innerHTML = html;
+            indicator.className = 'curl-variable-indicator ' + (validation.missing.length > 0 ? 'has-errors' : 'valid');
+        }
+
+        // Insert Variable Dropdown
+        function toggleInsertVariableDropdown() {
+            const dropdown = document.getElementById('variable-dropdown-menu');
+            dropdown.classList.toggle('show');
+
+            if (dropdown.classList.contains('show')) {
+                renderVariableDropdownItems();
+            }
+        }
+
+        function renderVariableDropdownItems() {
+            const dropdown = document.getElementById('variable-dropdown-menu');
+            const varNames = Object.keys(runtimeVariables);
+
+            if (varNames.length === 0) {
+                dropdown.innerHTML = '<div class="dropdown-empty">No variables saved yet</div>';
+                return;
+            }
+
+            dropdown.innerHTML = varNames.map(name => {
+                const data = runtimeVariables[name];
+                const displayValue = formatValueForDisplay(data.value, data.type);
+                return `
+                    <div class="dropdown-item" onclick="insertVariableAtCursor('${name}')">
+                        <span class="dropdown-var-name">{{${name}}}</span>
+                        <span class="dropdown-var-preview">${displayValue}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function insertVariableAtCursor(varName) {
+            const textarea = document.getElementById('page-curl');
+            if (!textarea) return;
+
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const insertion = `{{${varName}}}`;
+
+            textarea.value = text.substring(0, start) + insertion + text.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + insertion.length;
+            textarea.focus();
+
+            // Close dropdown if open
+            const dropdown = document.getElementById('variable-dropdown-menu');
+            if (dropdown) dropdown.classList.remove('show');
+
+            updateCurlVariableIndicator();
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('variable-dropdown-menu');
+            const btn = document.getElementById('insert-variable-btn');
+            if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
         function setupPageFormListeners() {
             // Add event listeners for form validation
             document.getElementById('page-api-name').addEventListener('input', updatePageStatus);
@@ -3642,6 +4512,7 @@
             if (responseJson) {
                 responseJson.textContent = 'Execute cURL to see response';
                 responseJson.classList.add('empty');
+                responseJson.classList.remove('interactive');
             }
             if (fieldsCount) fieldsCount.textContent = '0';
             if (fieldsListRight) fieldsListRight.innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">No fields extracted yet</span>';
@@ -3658,6 +4529,10 @@
 
             // Initialize new rule builder
             initNewRuleBuilder();
+
+            // Update variables panel and indicator
+            renderVariablesPanel();
+            updateCurlVariableIndicator();
 
             // Switch to Create API tab
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -3690,9 +4565,11 @@
             document.getElementById('page-save-btn').disabled = true;
 
             // Reset response panel
+            const responseJson = document.getElementById('page-response-json');
             document.getElementById('page-response-meta').innerHTML = '<span class="meta-badge neutral">Execute to refresh</span>';
-            document.getElementById('page-response-json').textContent = 'Execute cURL to see response';
-            document.getElementById('page-response-json').classList.add('empty');
+            responseJson.textContent = 'Execute cURL to see response';
+            responseJson.classList.add('empty');
+            responseJson.classList.remove('interactive');
             document.getElementById('page-fields-count').textContent = '0';
             document.getElementById('page-fields-list-right').innerHTML = '<span style="color: #7f8c8d; font-size: 12px;">Execute cURL to refresh fields</span>';
             document.getElementById('page-field-list').innerHTML = '<div class="field-item" style="color: #7f8c8d; cursor: default;">Execute cURL to see fields</div>';
@@ -3707,6 +4584,10 @@
 
             // Initialize new rule builder
             initNewRuleBuilder();
+
+            // Update variables panel and indicator
+            renderVariablesPanel();
+            updateCurlVariableIndicator();
 
             // Switch to Create API tab
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -3793,11 +4674,22 @@
                 return;
             }
 
-            const curl = curlInput.value.trim();
-            if (!curl) {
+            const curlOriginal = curlInput.value.trim();
+            if (!curlOriginal) {
                 showToast('Please enter a cURL command', 'error');
                 return;
             }
+
+            // Check for missing variables
+            const validation = validateVariablesInText(curlOriginal);
+            if (!validation.valid) {
+                showToast(`Missing variables: ${validation.missing.map(v => '{{' + v + '}}').join(', ')}`, 'error');
+                return;
+            }
+
+            // Replace variables
+            const replaced = replaceVariables(curlOriginal);
+            const curl = replaced.text;
 
             const btn = document.getElementById('page-execute-btn');
             if (btn) {
@@ -3828,13 +4720,15 @@
                         `;
                     }
 
-                    // Update response JSON
+                    // Update response JSON with interactive rendering
                     const jsonDiv = document.getElementById('page-response-json');
                     if (jsonDiv) {
                         jsonDiv.classList.remove('empty');
                         if (data.response) {
-                            jsonDiv.textContent = JSON.stringify(data.response, null, 2);
+                            jsonDiv.classList.add('interactive');
+                            jsonDiv.innerHTML = renderInteractiveJson(data.response);
                         } else {
+                            jsonDiv.classList.remove('interactive');
                             jsonDiv.textContent = data.response_text || 'No JSON response';
                         }
                     }
@@ -3853,7 +4747,7 @@
                     }
 
                     updatePageStatus();
-                    showToast('Response parsed successfully');
+                    showToast('Response parsed successfully. Click on values to save as variables.');
                 } else {
                     showToast(data.error || 'Failed to execute cURL', 'error');
                 }
@@ -5298,5 +6192,6 @@
             return date.toLocaleString();
         }
     </script>
+    {% endraw %}
 </body>
 </html>

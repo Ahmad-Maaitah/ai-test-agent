@@ -356,7 +356,11 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
         ]
 
     except ValueError as e:
-        result['error'] = f'Invalid cURL command: {str(e)}'
+        error_msg = str(e)
+        if 'label empty or too long' in error_msg or 'Failed to parse' in error_msg:
+            result['error'] = 'Invalid URL: The hostname in your cURL is malformed. Please check the URL.'
+        else:
+            result['error'] = f'Invalid cURL command: {str(e)}'
 
     except Exception as e:
         result['error'] = f'Unexpected error: {str(e)}'
