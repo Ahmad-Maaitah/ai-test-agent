@@ -343,7 +343,11 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
         ]
 
     except requests.exceptions.ConnectionError as e:
-        result['error'] = f'Failed to connect to API: {str(e)}'
+        error_msg = str(e)
+        if 'label empty or too long' in error_msg:
+            result['error'] = 'Invalid URL: The hostname in your cURL is malformed. Please check the URL.'
+        else:
+            result['error'] = 'Connection failed: Unable to reach the server. Check the URL and try again.'
         result['rule_results'] = [
             {'rule_name': 'Status Code Rule', 'result': 'FAIL', 'reason': 'Connection failed'},
             {'rule_name': 'Response Exists Rule', 'result': 'FAIL', 'reason': 'Connection failed'},
