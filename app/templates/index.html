@@ -5005,6 +5005,37 @@
                 }
             }
 
+            // 5. Parse Form Data (--form or -F) - multipart form data
+            if (!body) {
+                const formParts = [];
+                const formPatterns = [
+                    /--form\s+'([^=]+)="([^"]*)"'/g,      // --form 'key="value"'
+                    /--form\s+"([^=]+)='([^']*)'/g,       // --form "key='value'"
+                    /-F\s+'([^=]+)="([^"]*)"'/g,          // -F 'key="value"'
+                    /-F\s+"([^=]+)='([^']*)'/g,           // -F "key='value'"
+                    /--form\s+'([^=]+)=([^']+)'/g,        // --form 'key=value'
+                    /--form\s+"([^=]+)=([^"]+)"/g,        // --form "key=value"
+                    /-F\s+'([^=]+)=([^']+)'/g,            // -F 'key=value'
+                    /-F\s+"([^=]+)=([^"]+)"/g,            // -F "key=value"
+                ];
+
+                for (const pattern of formPatterns) {
+                    let match;
+                    pattern.lastIndex = 0;
+                    while ((match = pattern.exec(curl)) !== null) {
+                        const key = match[1].trim();
+                        let value = match[2].trim();
+                        // Remove surrounding quotes if present
+                        value = value.replace(/^["']|["']$/g, '');
+                        formParts.push(`${key}=${value}`);
+                    }
+                }
+
+                if (formParts.length > 0) {
+                    body = formParts.join('&');
+                }
+            }
+
             // If body exists and no explicit method, default to POST
             if (body && method === 'GET') {
                 method = 'POST';
