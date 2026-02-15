@@ -286,6 +286,11 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
         elif rule_type == 'custom_expression':
             operator = config.get('operator', 'equals')
             expected_value = config.get('expectedValue', '')
+            # Strip surrounding quotes if user added them
+            if expected_value.startswith('"') and expected_value.endswith('"'):
+                expected_value = expected_value[1:-1]
+            elif expected_value.startswith("'") and expected_value.endswith("'"):
+                expected_value = expected_value[1:-1]
             value, found = get_nested_field(response, field)
 
             result['expected'] = f'{operator} "{expected_value}"'
