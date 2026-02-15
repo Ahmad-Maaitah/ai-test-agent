@@ -5251,6 +5251,7 @@
 
             // 4. Parse Body Data (-d, --data, --data-raw, --data-binary, --data-urlencode)
             // First, collect all --data-urlencode entries
+            let isUrlEncoded = false;
             const urlencodePattern = /--data-urlencode\s+['"]?([^'"]+)['"]?/g;
             const urlencodeParts = [];
             let urlencodeMatch;
@@ -5259,6 +5260,7 @@
             }
             if (urlencodeParts.length > 0) {
                 body = urlencodeParts.join('&');
+                isUrlEncoded = true; // Mark as form data
             }
 
             // Then check for regular -d/--data (only if no --data-urlencode found)
@@ -5354,12 +5356,21 @@
             if (body) {
                 // Detect body type
                 let bodyType = 'raw';
-                try {
-                    JSON.parse(body);
-                    bodyType = 'json';
-                } catch {
-                    if (body.includes('=') && !body.includes('{') && !body.includes('[')) {
-                        bodyType = 'form';
+
+                // If it came from --data-urlencode, it's always form data
+                if (isUrlEncoded) {
+                    bodyType = 'form';
+                } else {
+                    try {
+                        JSON.parse(body);
+                        bodyType = 'json';
+                    } catch {
+                        // Check if it looks like form data (key=value pairs)
+                        if (body.includes('=') && body.includes('&')) {
+                            bodyType = 'form';
+                        } else if (body.includes('=') && !body.trim().startsWith('{') && !body.trim().startsWith('[')) {
+                            bodyType = 'form';
+                        }
                     }
                 }
 
