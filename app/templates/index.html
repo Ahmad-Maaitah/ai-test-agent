@@ -575,6 +575,45 @@
             display: block;
         }
 
+        .execution-progress {
+            margin-bottom: 10px;
+        }
+
+        .progress-bar-container {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .log-entry.pending {
+            color: #95a5a6;
+        }
+
+        .log-entry.pending .log-icon::before {
+            content: "○";
+        }
+
         .execution-summary {
             margin-top: 16px;
             padding: 12px 16px;
@@ -3638,19 +3677,25 @@
 
     <!-- Execution Logs Modal -->
     <div class="modal-overlay" id="execution-logs-modal">
-        <div class="modal" style="max-width: 600px;">
+        <div class="modal" style="max-width: 700px;">
             <div class="modal-header">
-                <h2>Execution Logs</h2>
+                <h2>Execution Progress</h2>
                 <button class="modal-close" onclick="closeExecutionLogs()">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="execution-logs-container">
+            <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                <div class="execution-progress" id="execution-progress">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="execution-progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text" id="execution-progress-text">0 / 0 APIs</div>
+                </div>
+                <div class="execution-logs-container" style="margin-top: 15px;">
                     <div class="execution-logs" id="execution-logs"></div>
                 </div>
                 <div class="execution-summary" id="execution-summary"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="closeExecutionLogs()">Close</button>
+                <button type="button" class="btn btn-primary" onclick="closeExecutionLogs()" id="execution-close-btn">Close</button>
             </div>
         </div>
     </div>
@@ -4809,37 +4854,23 @@
         async function runSelectedApis() {
             if (selectedApis.size === 0) return;
 
-            document.getElementById('running-modal').classList.add('active');
-            document.getElementById('running-status').textContent = `Running ${selectedApis.size} API(s)...`;
-
-            try {
-                const response = await fetch('/api/run', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ apiIds: Array.from(selectedApis) })
+            // Collect selected APIs with their info
+            const selectedApisList = [];
+            sections.forEach(section => {
+                section.apis?.forEach(api => {
+                    if (selectedApis.has(api.id)) {
+                        selectedApisList.push({ id: api.id, name: api.name, section: section.name });
+                    }
                 });
+            });
 
-                const data = await response.json();
+            if (selectedApisList.length === 0) return;
 
-                document.getElementById('running-modal').classList.remove('active');
+            await runApisWithProgress(selectedApisList, 'Run Selected');
 
-                if (data.success) {
-                    const passed = data.report.passed;
-                    const failed = data.report.failed;
-                    showToast(`Tests complete: ${passed} passed, ${failed} failed`);
-
-                    selectedApis.clear();
-                    loadSections();
-
-                    // Switch to reports tab
-                    document.querySelector('.tab[data-tab="reports"]').click();
-                } else {
-                    showToast(data.error, 'error');
-                }
-            } catch (error) {
-                document.getElementById('running-modal').classList.remove('active');
-                showToast('Failed to run tests: ' + error.message, 'error');
-            }
+            // Clear selection after run
+            selectedApis.clear();
+            renderApis();
         }
 
         // =============================================================================
@@ -5658,10 +5689,10 @@
                     }
                     renderPageFieldsList();
 
-                    pageRulesValidated = false;
-                    const saveBtn = document.getElementById('page-save-btn');
-                    if (saveBtn) {
-                        saveBtn.disabled = true;
+                    // For new APIs, require re-validation after request changes
+                    // For editing, rules already passed at creation
+                    if (pageEditingApiId === null) {
+                        pageRulesValidated = false;
                     }
 
                     updatePageStatus();
@@ -7336,11 +7367,14 @@
                 showToast('Request URL is required', 'error');
                 return;
             }
-            if (pageCustomRules.length === 0) {
+            // For new APIs, require rules. For editing, rules are optional (already validated at creation)
+            const isEditing = pageEditingApiId !== null;
+
+            if (!isEditing && pageCustomRules.length === 0) {
                 showToast('Add at least one test rule', 'error');
                 return;
             }
-            if (!pageRulesValidated) {
+            if (!isEditing && !pageRulesValidated) {
                 showToast('All rules must pass before saving', 'error');
                 return;
             }
@@ -7628,7 +7662,7 @@
         // Dashboard Functions
         // =============================================================================
         async function loadDashboard() {
-            updateDashboardStats();
+            await updateDashboardStats();
             await loadLastExecution();
         }
 
@@ -7636,22 +7670,27 @@
             // Calculate totals from sections data
             const totalModules = sections.length;
             let totalApis = 0;
+
             let totalTestCases = 0;
 
             sections.forEach(section => {
                 if (section.apis) {
                     totalApis += section.apis.length;
-                    // Count all test rules from all APIs
+                    // Count all custom rules from all APIs
                     section.apis.forEach(api => {
                         totalTestCases += (api.customRules || []).length;
                     });
                 }
             });
 
-            // Update DOM
-            document.getElementById('dash-total-modules').textContent = totalModules;
-            document.getElementById('dash-total-apis').textContent = totalApis;
-            document.getElementById('dash-total-rules').textContent = totalTestCases;
+            // Update all counts
+            const modulesEl = document.getElementById('dash-total-modules');
+            const apisEl = document.getElementById('dash-total-apis');
+            const rulesEl = document.getElementById('dash-total-rules');
+
+            if (modulesEl) modulesEl.textContent = totalModules;
+            if (apisEl) apisEl.textContent = totalApis;
+            if (rulesEl) rulesEl.textContent = totalTestCases;
         }
 
         let latestReportId = null;
@@ -7869,79 +7908,135 @@
         }
 
         async function runAllApis() {
-            // Collect all API IDs
-            const allApiIds = [];
+            // Collect all APIs with their info
+            const allApis = [];
             sections.forEach(section => {
                 section.apis?.forEach(api => {
-                    allApiIds.push(api.id);
+                    allApis.push({ id: api.id, name: api.name, section: section.name });
                 });
             });
 
-            if (allApiIds.length === 0) {
+            if (allApis.length === 0) {
                 showToast('No APIs to run', 'error');
                 return;
             }
 
+            await runApisWithProgress(allApis, 'Run All');
+        }
+
+        async function runApisWithProgress(apis, title) {
             // Get the button and show loading state
             const btn = document.querySelector('.dashboard-actions .btn-secondary');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></span>Running...';
+            const originalText = btn ? btn.textContent : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></span>Running...';
+            }
 
             // Show execution logs modal
             const logsModal = document.getElementById('execution-logs-modal');
             const logsContainer = document.getElementById('execution-logs');
             const summaryContainer = document.getElementById('execution-summary');
-            logsContainer.innerHTML = `
-                <div class="log-entry running">
+            const progressBar = document.getElementById('execution-progress-bar');
+            const progressText = document.getElementById('execution-progress-text');
+            const closeBtn = document.getElementById('execution-close-btn');
+
+            // Initialize progress - show running state
+            progressBar.style.width = '50%';
+            progressBar.style.animation = 'pulse 1s infinite';
+            progressText.textContent = `Running ${apis.length} APIs...`;
+            closeBtn.disabled = true;
+
+            // Build initial log entries (all running)
+            let logsHtml = apis.map((api, index) => `
+                <div class="log-entry running" id="log-entry-${index}" data-api-id="${api.id}">
                     <span class="log-icon"></span>
-                    <span class="log-text">Running ${allApiIds.length} APIs...</span>
+                    <span class="log-text">${api.name}</span>
+                    <span class="log-time"></span>
                 </div>
-            `;
+            `).join('');
+            logsContainer.innerHTML = logsHtml;
             summaryContainer.innerHTML = '';
             logsModal.classList.add('active');
 
             try {
-                // Run all APIs in a single batch request
+                // Run ALL APIs in a single request (creates one combined report)
+                const apiIds = apis.map(api => api.id);
                 const response = await fetch('/api/run', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ apiIds: allApiIds })
+                    body: JSON.stringify({ apiIds })
                 });
 
                 const data = await response.json();
 
-                if (data.success) {
-                    // Show completion
-                    logsContainer.innerHTML = `
-                        <div class="log-entry pass">
-                            <span class="log-icon"></span>
-                            <span class="log-text">Completed running ${allApiIds.length} APIs</span>
+                // Stop progress animation
+                progressBar.style.animation = 'none';
+                progressBar.style.width = '100%';
+                progressText.textContent = `${apis.length} / ${apis.length} APIs`;
+
+                if (data.success && data.report && data.report.results) {
+                    let passed = 0;
+                    let failed = 0;
+
+                    // Update each log entry with results
+                    data.report.results.forEach((result, index) => {
+                        const logEntry = document.querySelector(`[data-api-id="${result.apiId}"]`);
+                        if (logEntry) {
+                            const isPassed = result.result === 'PASS';
+                            if (isPassed) {
+                                passed++;
+                                logEntry.className = 'log-entry pass';
+                            } else {
+                                failed++;
+                                logEntry.className = 'log-entry fail';
+                                if (result.errorMessage) {
+                                    logEntry.innerHTML += `<span class="log-reason">${result.errorMessage}</span>`;
+                                }
+                            }
+                            const timeSpan = logEntry.querySelector('.log-time');
+                            if (timeSpan) timeSpan.textContent = result.executionTime || '';
+                        }
+                    });
+
+                    // Show summary
+                    summaryContainer.innerHTML = `
+                        <div style="display: flex; gap: 20px; justify-content: center;">
+                            <span style="color: #27ae60; font-weight: 600;">✓ Passed: ${passed}</span>
+                            <span style="color: #e74c3c; font-weight: 600;">✗ Failed: ${failed}</span>
+                            <span style="color: #555; font-weight: 600;">Total: ${apis.length}</span>
                         </div>
                     `;
-
-                    // Reload dashboard data
-                    await loadDashboard();
-                    await loadSections();
-
-                    // Close modal after short delay
-                    setTimeout(() => {
-                        closeExecutionLogs();
-                    }, 1500);
                 } else {
-                    showToast('Failed to run APIs: ' + (data.error || 'Unknown error'), 'error');
-                    closeExecutionLogs();
+                    logsContainer.innerHTML = `
+                        <div class="log-entry fail">
+                            <span class="log-icon"></span>
+                            <span class="log-text">Failed to run APIs: ${data.error || 'Unknown error'}</span>
+                        </div>
+                    `;
                 }
-
             } catch (error) {
-                console.error('Error running all APIs:', error);
-                showToast('Error running APIs', 'error');
-                closeExecutionLogs();
-            } finally {
-                // Restore button
+                progressBar.style.animation = 'none';
+                progressBar.style.width = '100%';
+                progressBar.style.background = '#e74c3c';
+                logsContainer.innerHTML = `
+                    <div class="log-entry fail">
+                        <span class="log-icon"></span>
+                        <span class="log-text">Error: ${error.message}</span>
+                    </div>
+                `;
+            }
+
+            // Restore button and enable close
+            if (btn) {
                 btn.disabled = false;
                 btn.textContent = originalText;
             }
+            closeBtn.disabled = false;
+
+            // Reload dashboard data
+            await loadDashboard();
+            await loadSections();
         }
 
         function closeExecutionLogs() {
