@@ -6216,6 +6216,12 @@
             document.getElementById('request-url')?.addEventListener('input', updatePageStatus);
             document.getElementById('body-type')?.addEventListener('change', updatePageStatus);
             document.getElementById('request-body')?.addEventListener('input', updatePageStatus);
+
+            // Event delegation for dynamically added headers
+            document.getElementById('headers-table')?.addEventListener('input', updatePageStatus);
+
+            // Event delegation for dynamically added body rows (form data)
+            document.getElementById('body-rows')?.addEventListener('input', updatePageStatus);
         }
 
         // Initialize form listeners once
@@ -6905,7 +6911,11 @@
             // Rules are valid if all have been auto-validated and passed
             const allRulesPassed = hasRules && pageRulesValidated;
 
-            const canSave = hasName && hasUrl && hasSection && hasRules && allRulesPassed;
+            // When editing existing API, allow save without re-validating rules
+            const isEditing = pageEditingApiId !== null;
+            const canSave = isEditing
+                ? (hasName && hasUrl && hasSection)  // Editing: just need basic info
+                : (hasName && hasUrl && hasSection && hasRules && allRulesPassed);  // New: need validated rules
             saveBtn.disabled = !canSave;
 
             // Update status display
@@ -6921,18 +6931,18 @@
                 validatedStatus.className = 'status-item fail';
                 validatedStatus.innerHTML = '<span>Missing info</span>';
                 message.textContent = 'Enter request URL';
-            } else if (!hasRules) {
+            } else if (!hasRules && !isEditing) {
                 validatedStatus.className = 'status-item';
                 validatedStatus.innerHTML = '<span>No rules</span>';
                 message.textContent = 'Add at least one test rule';
-            } else if (!allRulesPassed) {
+            } else if (!allRulesPassed && !isEditing) {
                 validatedStatus.className = 'status-item fail';
                 validatedStatus.innerHTML = '<span>Rules failing</span>';
                 message.textContent = 'Fix failing rules to save';
             } else {
                 validatedStatus.className = 'status-item pass';
                 validatedStatus.innerHTML = '<span>✓ Ready</span>';
-                message.textContent = 'All checks passed - ready to save';
+                message.textContent = isEditing ? 'Ready to save changes' : 'All checks passed - ready to save';
             }
         }
 
@@ -7626,35 +7636,22 @@
             // Calculate totals from sections data
             const totalModules = sections.length;
             let totalApis = 0;
+            let totalTestCases = 0;
 
             sections.forEach(section => {
-                totalApis += section.apis ? section.apis.length : 0;
+                if (section.apis) {
+                    totalApis += section.apis.length;
+                    // Count all test rules from all APIs
+                    section.apis.forEach(api => {
+                        totalTestCases += (api.customRules || []).length;
+                    });
+                }
             });
 
             // Update DOM
             document.getElementById('dash-total-modules').textContent = totalModules;
             document.getElementById('dash-total-apis').textContent = totalApis;
-
-            // Get test cases count from last report (actual executed test cases)
-            try {
-                const response = await fetch('/api/reports?limit=1');
-                const data = await response.json();
-                if (data.success && data.reports && data.reports.length > 0) {
-                    const lastReport = data.reports[0];
-                    let totalTestCases = 0;
-                    if (lastReport.results) {
-                        lastReport.results.forEach(api => {
-                            totalTestCases += (api.ruleResults || []).length;
-                        });
-                    }
-                    document.getElementById('dash-total-rules').textContent = totalTestCases;
-                } else {
-                    document.getElementById('dash-total-rules').textContent = '0';
-                }
-            } catch (error) {
-                console.error('Failed to get test cases count:', error);
-                document.getElementById('dash-total-rules').textContent = '0';
-            }
+            document.getElementById('dash-total-rules').textContent = totalTestCases;
         }
 
         let latestReportId = null;
