@@ -7222,14 +7222,6 @@
             resultSpan.textContent = '';
 
             try {
-                // Debug: log what we're sending
-                console.log('Testing rule with stored response:', {
-                    responseJson: pageLastResponse,
-                    statusCode: pageLastStatusCode,
-                    responseTimeMs: pageLastResponseTime,
-                    rule: rule
-                });
-
                 // Send the stored response data instead of re-executing cURL
                 const response = await fetch('/api/test-rules', {
                     method: 'POST',
@@ -7243,7 +7235,6 @@
                 });
 
                 const data = await response.json();
-                console.log('Test rule response:', data);
 
                 if (data.success && data.results.length > 0) {
                     const result = data.results[0];
