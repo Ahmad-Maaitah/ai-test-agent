@@ -6552,7 +6552,7 @@
     {
       "id": "var-bb9f7141",
       "name": "Draft_id",
-      "value": "63fd0c06-019f-4bd1-a258-43689d897f16",
+      "value": "1b6aeef7-4934-4f05-9722-2f10b983c141",
       "type": "string",
       "description": "",
       "source": {
@@ -6564,7 +6564,7 @@
     {
       "id": "var-56118812",
       "name": "workflow_id",
-      "value": 386988,
+      "value": 1166,
       "type": "number",
       "description": "",
       "source": {
@@ -6600,7 +6600,7 @@
     {
       "id": "var-14fde832",
       "name": "Secound_workflow",
-      "value": 386988,
+      "value": 1166,
       "type": "number",
       "description": "",
       "source": {
@@ -6612,7 +6612,7 @@
     {
       "id": "var-9d799dc1",
       "name": "post_id",
-      "value": "277087907",
+      "value": "",
       "type": "string",
       "description": "",
       "source": {
