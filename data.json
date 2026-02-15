@@ -101,7 +101,7 @@
           "id": "api-9b7ad6d4",
           "name": "testing",
           "curl": "curl -X GET 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/1?source=opensooq&medium=app_open&campaign=direct_app_open&expand=remaining_edit_counter%2Cmedia' -H 'latency_ms: 1535' -H 'abBucket: 3' -H 'Accept-Language: en' -H 'ConnectionType: WiFi' -H 'Device-Language: ar' -H 'appVersion;' --header 'source: ios' -H 'always-200: 1' -H 'release-version: 11.2.00.15' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'currency: JOD' -H 'device_language: ar' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'display-mode: normal' -H 'country: jo' -H 'device_timezone: UTC+03:00' -H 'version: 4' -H 'X-JWT-Try-Counter: 1' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'device-model: iPhone11,8' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'rm: 0' -H 'screen_resolution: 414x896' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'source: ios'",
-          "order": 2,
+          "order": 1,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [
@@ -146,7 +146,7 @@
           "id": "api-2b54aef7",
           "name": "tttttttttt",
           "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/init_CategoryStep/{{workflow_id}}' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: en' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion;' --header 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -H 'screen_resolution: 414x896' -d 'draftId={{Draft_id}}&categoriesMain={{Category_id}}'",
-          "order": 3,
+          "order": 2,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [
@@ -191,7 +191,7 @@
           "id": "api-06146f17",
           "name": "ttttttttt",
           "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/init_SubCategoryStep/{{workflow_id}}' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion;' --header 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&categoriesSub={{subcategory_id}}'",
-          "order": 4,
+          "order": 3,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [
@@ -219,7 +219,7 @@
           "id": "api-6515afaf",
           "name": "nasndnasnd",
           "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_videoStep/{{workflow_id}}' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion;' --header 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}'",
-          "order": 5,
+          "order": 4,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [
@@ -247,7 +247,7 @@
           "id": "api-de12f0a8",
           "name": "nasjdsdjhdh",
           "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_DeliveryService/{{Secound_workflow}}' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion;' --header 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&cpDeliveryService=0'",
-          "order": 6,
+          "order": 5,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [
@@ -275,7 +275,7 @@
           "id": "api-632b4d9e",
           "name": "27347234747",
           "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_titleDescriptionStep/{{Secound_workflow}}' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion: 11.2.00.15' -H 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&title_field=ah asmdmasd kajsdjhajsd ajksdjdajsdjajskd alksdkasd&description_field=asjdn djdjd djdjdjjaksdnasd asdkjajksdjk'",
-          "order": 7,
+          "order": 6,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [
@@ -305,7 +305,7 @@
           "id": "api-878c4421",
           "name": "gasjajsdjk",
           "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_oneCurrencyStep/{{Secound_workflow}}?expand=remaining_edit_counter%2Cmedia&source=opensooq&medium=app_open&campaign=direct_app_open' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion: 11.2.00.15' -H 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'price_field[min]=100&draftId={{Draft_id}}'",
-          "order": 8,
+          "order": 7,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [
@@ -333,7 +333,7 @@
           "id": "api-961354ad",
           "name": "uquweyqwyey",
           "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_cityStep/{{Secound_workflow}}?expand=remaining_edit_counter%2Cmedia&source=opensooq&medium=app_open&campaign=direct_app_open' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion: 11.2.00.15' -H 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&cityField=59'",
-          "order": 9,
+          "order": 8,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [
@@ -361,7 +361,7 @@
           "id": "api-502932f6",
           "name": "asdasdasd",
           "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_neighborhoodStep/{{Secound_workflow}}?expand=remaining_edit_counter%2Cmedia&source=opensooq&medium=app_open&campaign=direct_app_open' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion: 11.2.00.15' -H 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&neighborhood=6743'",
-          "order": 10,
+          "order": 9,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [
@@ -389,7 +389,7 @@
           "id": "api-87b0e357",
           "name": "uqwuuiqweuqweiu",
           "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/finalize/{{Secound_workflow}}?expand=remaining_edit_counter%2Cmedia&source=opensooq&medium=app_open&campaign=direct_app_open' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion: 11.2.00.15' -H 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&neighborhood=6743&time_spent_ms=1&post_phone[phone]=0785569342'",
-          "order": 11,
+          "order": 10,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [

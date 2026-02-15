@@ -3619,7 +3619,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeApiModal()">Cancel</button>
-                <button class="btn btn-success" onclick="saveApi()" id="save-api-btn" disabled>Save API</button>
+                <button class="btn btn-success" onclick="saveApi()" id="save-api-btn">Save API</button>
             </div>
         </div>
     </div>
@@ -4369,13 +4369,21 @@
                         renderRules();
                     }
 
-                    // Save button remains disabled until rules are validated
-                    document.getElementById('save-api-btn').disabled = true;
-                    rulesValidated = false;
-                    document.getElementById('validation-status').textContent = 'Click "Validate Rules" to enable save';
-                    document.getElementById('validation-status').style.color = '#7f8c8d';
-
-                    showToast('Response parsed successfully - validate rules to save');
+                    // For new APIs, require validation. For editing, keep save enabled.
+                    if (editingApiId) {
+                        // Editing existing API - save is always available
+                        document.getElementById('save-api-btn').disabled = false;
+                        document.getElementById('validation-status').textContent = 'Validation optional when editing';
+                        document.getElementById('validation-status').style.color = '#27ae60';
+                        showToast('Response parsed - you can save or validate rules');
+                    } else {
+                        // New API - require validation
+                        document.getElementById('save-api-btn').disabled = true;
+                        rulesValidated = false;
+                        document.getElementById('validation-status').textContent = 'Click "Validate Rules" to enable save';
+                        document.getElementById('validation-status').style.color = '#7f8c8d';
+                        showToast('Response parsed successfully - validate rules to save');
+                    }
                 } else {
                     showToast(data.error || 'Failed to execute cURL', 'error');
                 }
@@ -4611,10 +4619,14 @@
                         `${data.results.filter(r => r.result === 'PASS').length}/${data.results.length} rules passed`;
                     document.getElementById('validation-status').style.color = allPassed ? '#27ae60' : '#e74c3c';
 
-                    // Only enable save button if all rules pass
-                    document.getElementById('save-api-btn').disabled = !allPassed;
-
-                    showToast(allPassed ? 'All rules validated successfully!' : 'Some rules failed - fix them to save');
+                    // For editing, always allow save. For new APIs, require all rules pass.
+                    if (editingApiId) {
+                        document.getElementById('save-api-btn').disabled = false;
+                        showToast(allPassed ? 'All rules validated!' : 'Some rules failed - you can still save');
+                    } else {
+                        document.getElementById('save-api-btn').disabled = !allPassed;
+                        showToast(allPassed ? 'All rules validated successfully!' : 'Some rules failed - fix them to save');
+                    }
                 } else {
                     showToast(data.error || 'Validation failed', 'error');
                 }
