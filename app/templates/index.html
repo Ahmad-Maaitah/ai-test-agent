@@ -3267,6 +3267,13 @@
                             <button class="btn btn-primary" onclick="executeRequest()" id="execute-request-btn">
                                 Execute & Parse Response
                             </button>
+                            <button class="btn btn-secondary" onclick="copyBuiltCurlWithVariables()" title="Copy cURL with variables replaced">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                Copy cURL
+                            </button>
                         </div>
                     </div>
 
@@ -5473,6 +5480,43 @@
 
             if (!url) return '';
             return buildCurlCommand(method, url, headers, body, bodyType);
+        }
+
+        function copyBuiltCurlWithVariables() {
+            const method = document.getElementById('request-method').value;
+            const url = document.getElementById('request-url').value.trim();
+            const headers = getHeadersFromTable();
+            const bodyType = document.getElementById('body-type').value;
+
+            // Get body from table if form type, otherwise from textarea
+            let body = '';
+            if (bodyType === 'form') {
+                body = getBodyFromTable();
+            } else {
+                body = document.getElementById('request-body').value;
+            }
+
+            if (!url) {
+                showToast('URL is required', 'error');
+                return;
+            }
+
+            // Replace variables
+            const processedUrl = replaceVariables(url).text;
+            const processedHeaders = {};
+            for (const [key, value] of Object.entries(headers)) {
+                processedHeaders[replaceVariables(key).text] = replaceVariables(value).text;
+            }
+            const processedBody = replaceVariables(body).text;
+
+            // Build cURL command
+            const curl = buildCurlCommand(method, processedUrl, processedHeaders, processedBody, bodyType);
+
+            navigator.clipboard.writeText(curl).then(() => {
+                showToast('cURL copied to clipboard');
+            }).catch(err => {
+                showToast('Failed to copy: ' + err.message, 'error');
+            });
         }
 
         async function executeRequest() {
