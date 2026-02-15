@@ -4206,14 +4206,15 @@
             document.getElementById('rules-section').classList.add('hidden');
             document.getElementById('validation-status').textContent = '';
 
-            // If there are existing rules, show a hint
+            // If there are existing rules, show them but keep save enabled
             if (customRules.length > 0) {
                 document.getElementById('rules-section').classList.remove('hidden');
-                document.getElementById('response-meta').innerHTML = '<span>Click "Execute & Parse Response" to refresh fields and validate rules</span>';
+                document.getElementById('response-meta').innerHTML = '<span>Click "Execute & Parse Response" to test rules (optional)</span>';
                 document.getElementById('response-preview').textContent = 'Execute cURL to see response';
-                document.getElementById('validation-status').textContent = 'Re-validate rules to enable save';
-                document.getElementById('validation-status').style.color = '#7f8c8d';
-                document.getElementById('save-api-btn').disabled = true;
+                document.getElementById('validation-status').textContent = `${customRules.length} rule(s) configured`;
+                document.getElementById('validation-status').style.color = '#27ae60';
+                // Keep save button enabled for editing
+                document.getElementById('save-api-btn').disabled = false;
                 renderRules();
             }
 
