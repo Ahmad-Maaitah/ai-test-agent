@@ -5000,6 +5000,31 @@
         function parseCurlToEditor(curlCommand) {
             if (!curlCommand) return;
 
+            // Clear previous response data when importing new cURL
+            pageAvailableFields = [];
+            pageLastResponse = null;
+            pageRulesValidated = false;
+
+            // Reset response display
+            const responseMeta = document.getElementById('page-response-meta');
+            const responseJson = document.getElementById('page-response-json');
+            const fieldsCount = document.getElementById('page-fields-count');
+
+            if (responseMeta) {
+                responseMeta.innerHTML = '';
+            }
+            if (responseJson) {
+                responseJson.classList.add('empty');
+                responseJson.classList.remove('interactive');
+                responseJson.innerHTML = '<span class="empty-hint">Execute request to see response</span>';
+            }
+            if (fieldsCount) {
+                fieldsCount.textContent = '0';
+            }
+
+            // Refresh field lists to show empty state
+            renderPageFieldsList();
+
             // Normalize the cURL command (handle line continuations)
             let curl = curlCommand
                 .replace(/\\\r?\n/g, ' ')   // Handle backslash line continuations
