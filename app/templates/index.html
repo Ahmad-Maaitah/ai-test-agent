@@ -3570,7 +3570,16 @@
                     <label for="api-curl">cURL Command</label>
                     <textarea id="api-curl" placeholder="curl https://api.example.com/endpoint -H 'Content-Type: application/json'"></textarea>
                 </div>
-                <button class="btn btn-primary" onclick="executeAndParseCurl()" id="execute-curl-btn">Execute & Parse Response</button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn btn-primary" onclick="executeAndParseCurl()" id="execute-curl-btn">Execute & Parse Response</button>
+                    <button class="btn btn-secondary" onclick="copyCurlWithVariables()" title="Copy cURL with variables replaced">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy cURL
+                    </button>
+                </div>
 
                 <!-- Rules Builder Section -->
                 <div class="rules-section hidden" id="rules-section">
@@ -4264,6 +4273,41 @@
         // =============================================================================
         // Rules Builder Functions
         // =============================================================================
+
+        function copyCurlWithVariables() {
+            const curl = document.getElementById('api-curl').value.trim();
+
+            if (!curl) {
+                showToast('No cURL command to copy', 'error');
+                return;
+            }
+
+            // Replace variables with their values
+            let processedCurl = curl;
+            const varPattern = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
+            let match;
+            let missingVars = [];
+
+            while ((match = varPattern.exec(curl)) !== null) {
+                const varName = match[1];
+                if (runtimeVariables[varName]) {
+                    const value = runtimeVariables[varName].value;
+                    processedCurl = processedCurl.replace(new RegExp(`\\{\\{${varName}\\}\\}`, 'g'), value);
+                } else {
+                    missingVars.push(varName);
+                }
+            }
+
+            if (missingVars.length > 0) {
+                showToast(`Warning: Missing variables: ${missingVars.join(', ')}`, 'error');
+            }
+
+            navigator.clipboard.writeText(processedCurl).then(() => {
+                showToast('cURL copied to clipboard' + (missingVars.length > 0 ? ' (with some variables unresolved)' : ''));
+            }).catch(err => {
+                showToast('Failed to copy: ' + err.message, 'error');
+            });
+        }
 
         async function executeAndParseCurl() {
             const curl = document.getElementById('api-curl').value.trim();
