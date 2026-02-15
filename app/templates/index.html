@@ -3766,6 +3766,8 @@
             pageExtractionRules = [];
             pageAvailableFields = [];
             pageLastResponse = null;
+            pageLastStatusCode = null;
+            pageLastResponseTime = null;
             pageRulesValidated = false;
 
             const title = document.getElementById('create-api-title');
@@ -4852,6 +4854,8 @@
         let pageExtractionRules = [];  // For flow context variable extraction
         let pageAvailableFields = [];
         let pageLastResponse = null;
+        let pageLastStatusCode = null;
+        let pageLastResponseTime = null;
         let pageRulesValidated = false;
 
         // Runtime Variables System
@@ -5172,6 +5176,8 @@
             // Clear previous response data when importing new cURL
             pageAvailableFields = [];
             pageLastResponse = null;
+            pageLastStatusCode = null;
+            pageLastResponseTime = null;
             pageRulesValidated = false;
 
             // Reset response display
@@ -5599,6 +5605,8 @@
 
                 if (data.success) {
                     pageLastResponse = data.response;
+                    pageLastStatusCode = data.status_code;
+                    pageLastResponseTime = data.response_time_ms;
                     pageAvailableFields = data.fields || [];
 
                     // Update response meta
@@ -6205,6 +6213,8 @@
             pageExtractionRules = [];
             pageAvailableFields = [];
             pageLastResponse = null;
+            pageLastStatusCode = null;
+            pageLastResponseTime = null;
             pageRulesValidated = false;
 
             // Safe element updates
@@ -6322,6 +6332,8 @@
             pageExtractionRules = api.extractRules ? JSON.parse(JSON.stringify(api.extractRules)) : [];
             pageAvailableFields = [];
             pageLastResponse = null;
+            pageLastStatusCode = null;
+            pageLastResponseTime = null;
             pageRulesValidated = false;
 
             document.getElementById('create-api-title').textContent = `Edit: ${api.name}`;
@@ -7158,9 +7170,9 @@
         }
 
         async function testNewRule() {
-            const curl = getCurrentCurlCommand();
-            if (!curl) {
-                showToast('Execute request first', 'error');
+            // Check if we have a response to test against
+            if (!pageLastResponse) {
+                showToast('Execute request first to get response data', 'error');
                 return;
             }
 
@@ -7192,10 +7204,16 @@
             resultSpan.textContent = '';
 
             try {
+                // Send the stored response data instead of re-executing cURL
                 const response = await fetch('/api/test-rules', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ curl, rules: [rule] })
+                    body: JSON.stringify({
+                        responseJson: pageLastResponse,
+                        statusCode: pageLastStatusCode || 200,
+                        responseTimeMs: pageLastResponseTime || 0,
+                        rules: [rule]
+                    })
                 });
 
                 const data = await response.json();

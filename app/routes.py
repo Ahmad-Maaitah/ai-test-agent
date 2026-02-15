@@ -408,7 +408,6 @@ def run_apis():
             for r in test_result.get('rule_results', []):
                 if r['rule_name'] == 'Status Code Rule':
                     if r['reason']:
-                        import re
                         match = re.search(r'got (\d+)', r['reason'])
                         if match:
                             status_code = int(match.group(1))
@@ -924,49 +923,28 @@ def validate_rules():
 
 @main_bp.route('/api/test-rules', methods=['POST'])
 def test_rules():
-    """Execute cURL and test rules without saving."""
-    import time
-    import requests
-    from backend.utils import parse_curl
+    """Test rules against provided response (without re-executing cURL)."""
     from backend.dynamic_rules import apply_dynamic_rules
 
     req_data = request.get_json()
-    curl = req_data.get('curl', '').strip()
     rules = req_data.get('rules', [])
-
-    if not curl:
-        return jsonify({'success': False, 'error': 'cURL command is required'}), 400
+    response_json = req_data.get('responseJson')
+    status_code = req_data.get('statusCode', 200)
+    response_time_ms = req_data.get('responseTimeMs', 0)
 
     if not rules:
         return jsonify({'success': False, 'error': 'At least one rule is required'}), 400
 
+    if response_json is None:
+        return jsonify({'success': False, 'error': 'Response data is required. Execute the cURL first.'}), 400
+
     try:
-        # Parse and execute cURL
-        parsed_curl = parse_curl(curl)
-
-        start_time = time.time()
-        response = requests.request(
-            method=parsed_curl['method'],
-            url=parsed_curl['url'],
-            headers=parsed_curl.get('headers', {}),
-            data=parsed_curl.get('data'),
-            verify=parsed_curl.get('verify_ssl', False),
-            timeout=30
-        )
-        response_time_ms = (time.time() - start_time) * 1000
-
-        # Parse response
-        try:
-            response_json = response.json()
-        except Exception:
-            response_json = None
-
-        # Apply rules
-        results = apply_dynamic_rules(rules, response_json, response_time_ms, response.status_code)
+        # Apply rules against the provided response
+        results = apply_dynamic_rules(rules, response_json, response_time_ms, status_code)
 
         return jsonify({
             'success': True,
-            'status_code': response.status_code,
+            'status_code': status_code,
             'response_time_ms': int(response_time_ms),
             'results': results
         })

@@ -113,7 +113,9 @@ def get_nested_field(data: Any, field_path: str) -> Tuple[Any, bool]:
     if not field_path or data is None:
         return None, False
 
-    parts = field_path.split('.')
+    # Trim whitespace from field path
+    field_path = field_path.strip()
+    parts = [p.strip() for p in field_path.split('.')]
     current = data
 
     for part in parts:
