@@ -3706,6 +3706,8 @@
         let customRules = [];
         let availableFields = [];
         let lastResponse = null;
+        let lastStatusCode = null;
+        let lastResponseTime = null;
         let rulesValidated = false;
 
         // Initialize
@@ -4168,6 +4170,8 @@
             customRules = [];
             availableFields = [];
             lastResponse = null;
+            lastStatusCode = null;
+            lastResponseTime = null;
             rulesValidated = false;
             document.getElementById('rules-section').classList.add('hidden');
             document.getElementById('rules-list').innerHTML = '<div class="empty-rules">No rules added yet. Click "+ Add Rule" to create test cases.</div>';
@@ -4202,6 +4206,8 @@
             customRules = api.customRules ? JSON.parse(JSON.stringify(api.customRules)) : [];
             availableFields = [];
             lastResponse = null;
+            lastStatusCode = null;
+            lastResponseTime = null;
             rulesValidated = false;
 
             // Hide rules section initially - user needs to execute curl to see it
@@ -4229,6 +4235,8 @@
             customRules = [];
             availableFields = [];
             lastResponse = null;
+            lastStatusCode = null;
+            lastResponseTime = null;
             rulesValidated = false;
         }
 
@@ -4342,6 +4350,8 @@
 
                 if (data.success) {
                     lastResponse = data.response;
+                    lastStatusCode = data.status_code;
+                    lastResponseTime = data.response_time_ms;
                     availableFields = data.fields || [];
 
                     // Show response metadata
@@ -4574,16 +4584,24 @@
                 return;
             }
 
+            if (!lastResponse) {
+                showToast('Execute the cURL first to get response data', 'error');
+                return;
+            }
+
             const btn = document.getElementById('validate-rules-btn');
             btn.disabled = true;
             btn.textContent = 'Validating...';
 
             try {
+                // Use stored response instead of re-executing cURL
                 const response = await fetch('/api/test-rules', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        curl: document.getElementById('api-curl').value.trim(),
+                        responseJson: lastResponse,
+                        statusCode: lastStatusCode || 200,
+                        responseTimeMs: lastResponseTime || 0,
                         rules: customRules
                     })
                 });
@@ -7204,6 +7222,14 @@
             resultSpan.textContent = '';
 
             try {
+                // Debug: log what we're sending
+                console.log('Testing rule with stored response:', {
+                    responseJson: pageLastResponse,
+                    statusCode: pageLastStatusCode,
+                    responseTimeMs: pageLastResponseTime,
+                    rule: rule
+                });
+
                 // Send the stored response data instead of re-executing cURL
                 const response = await fetch('/api/test-rules', {
                     method: 'POST',
@@ -7217,6 +7243,7 @@
                 });
 
                 const data = await response.json();
+                console.log('Test rule response:', data);
 
                 if (data.success && data.results.length > 0) {
                     const result = data.results[0];

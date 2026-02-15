@@ -942,11 +942,18 @@ def test_rules():
         # Apply rules against the provided response
         results = apply_dynamic_rules(rules, response_json, response_time_ms, status_code)
 
+        # Debug info
+        debug_info = {
+            'response_keys': list(response_json.keys()) if isinstance(response_json, dict) else type(response_json).__name__,
+            'rules_received': [{'type': r.get('type'), 'field': r.get('field')} for r in rules]
+        }
+
         return jsonify({
             'success': True,
             'status_code': status_code,
             'response_time_ms': int(response_time_ms),
-            'results': results
+            'results': results,
+            'debug': debug_info
         })
 
     except requests.exceptions.Timeout:
