@@ -358,6 +358,33 @@ def run_apis():
         end_time = datetime.now()
         execution_time = int((end_time - start_time).total_seconds() * 1000)
 
+        # Auto-update saved variables if response contains matching fields
+        response_json = test_result.get('response_json')
+        if response_json is not None:
+            from backend.flow_context import get_nested_value
+            variables_updated = False
+
+            for var in data.get('variables', []):
+                source = var.get('source', {})
+                field_path = source.get('fieldPath', '')
+                if field_path:
+                    new_value = get_nested_value(response_json, field_path)
+                    if new_value is not None and new_value != var.get('value'):
+                        var['value'] = new_value
+                        # Update type based on new value
+                        if isinstance(new_value, bool):
+                            var['type'] = 'boolean'
+                        elif isinstance(new_value, (int, float)):
+                            var['type'] = 'number'
+                        elif isinstance(new_value, str):
+                            var['type'] = 'string'
+                        elif isinstance(new_value, (list, dict)):
+                            var['type'] = 'object'
+                        variables_updated = True
+
+            if variables_updated:
+                save_data(data)
+
         # Determine overall result based on rule_type
         structural_pass = all(
             r['result'] == 'PASS'
@@ -793,13 +820,50 @@ def execute_curl():
             response_json = None
             fields = []
 
+        # Auto-update saved variables if response contains matching fields
+        updated_variables = []
+        if response_json is not None:
+            from backend.flow_context import get_nested_value
+            data = load_data()
+            variables_updated = False
+
+            for var in data.get('variables', []):
+                source = var.get('source', {})
+                field_path = source.get('fieldPath', '')
+                if field_path:
+                    # Get value from response using the saved field path
+                    new_value = get_nested_value(response_json, field_path)
+                    if new_value is not None and new_value != var.get('value'):
+                        var['value'] = new_value
+                        # Update type based on new value
+                        if isinstance(new_value, bool):
+                            var['type'] = 'boolean'
+                        elif isinstance(new_value, int):
+                            var['type'] = 'number'
+                        elif isinstance(new_value, float):
+                            var['type'] = 'number'
+                        elif isinstance(new_value, str):
+                            var['type'] = 'string'
+                        elif isinstance(new_value, (list, dict)):
+                            var['type'] = 'object'
+                        updated_variables.append({
+                            'name': var['name'],
+                            'oldValue': var.get('value'),
+                            'newValue': new_value
+                        })
+                        variables_updated = True
+
+            if variables_updated:
+                save_data(data)
+
         return jsonify({
             'success': True,
             'status_code': response.status_code,
             'response_time_ms': int(response_time_ms),
             'response': response_json,
             'response_text': response.text[:5000] if response_json is None else None,
-            'fields': fields
+            'fields': fields,
+            'updatedVariables': updated_variables
         })
 
     except requests.exceptions.Timeout:

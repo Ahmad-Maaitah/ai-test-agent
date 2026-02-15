@@ -28,35 +28,6 @@
           "order": 3,
           "lastStatus": 200,
           "lastResult": "PASS"
-        },
-        {
-          "id": "api-74ff8296",
-          "name": "test flow",
-          "curl": "curl --location 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/1?source=opensooq&medium=app_open&campaign=direct_app_open&expand=remaining_edit_counter%2Cmedia' \\\n--header 'latency_ms: 1535' \\\n--header 'abBucket: 3' \\\n--header 'Accept-Language: en' \\\n--header 'ConnectionType: WiFi' \\\n--header 'Device-Language: ar' \\\n--header 'appVersion;' \\\n--header 'source: ios' \\\n--header 'always-200: 1' \\\n--header 'release-version: 11.2.00.15' \\\n--header 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' \\\n--header 'currency: JOD' \\\n--header 'device_language: ar' \\\n--header 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' \\\n--header 'display-mode: normal' \\\n--header 'country: jo' \\\n--header 'device_timezone: UTC+03:00' \\\n--header 'version: 4' \\\n--header 'X-JWT-Try-Counter: 1' \\\n--header 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' \\\n--header 'device-model: iPhone11,8' \\\n--header 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' \\\n--header 'rm: 0' \\\n--header 'screen_resolution: 414x896' \\\n--header 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw=='",
-          "order": 4,
-          "lastStatus": null,
-          "lastResult": null,
-          "customRules": [
-            {
-              "id": "rule-k40g1pkn4",
-              "type": "status_code",
-              "field": "",
-              "config": {
-                "expectedStatus": 200
-              },
-              "enabled": true,
-              "testResult": {
-                "actual": "200",
-                "expected": "200",
-                "field": "",
-                "reason": null,
-                "result": "PASS",
-                "rule_id": "rule-8iay2gmwd",
-                "rule_name": "Status Code (e.g., 200, 404, 500)",
-                "rule_type": "functional"
-              }
-            }
-          ]
         }
       ]
     },
@@ -122,20 +93,20 @@
       ]
     },
     {
-      "id": "section-2bf6fa7c",
-      "name": "Add post",
+      "id": "section-faacfb33",
+      "name": "add psot",
       "order": 5,
       "apis": [
         {
-          "id": "api-fdc8b18d",
-          "name": "init work flow",
+          "id": "api-9b7ad6d4",
+          "name": "testing",
           "curl": "curl -X GET 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/1?source=opensooq&medium=app_open&campaign=direct_app_open&expand=remaining_edit_counter%2Cmedia' -H 'latency_ms: 1535' -H 'abBucket: 3' -H 'Accept-Language: en' -H 'ConnectionType: WiFi' -H 'Device-Language: ar' -H 'appVersion;' --header 'source: ios' -H 'always-200: 1' -H 'release-version: 11.2.00.15' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'currency: JOD' -H 'device_language: ar' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'display-mode: normal' -H 'country: jo' -H 'device_timezone: UTC+03:00' -H 'version: 4' -H 'X-JWT-Try-Counter: 1' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'device-model: iPhone11,8' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'rm: 0' -H 'screen_resolution: 414x896' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw=='",
-          "order": 1,
+          "order": 2,
           "lastStatus": null,
           "lastResult": null,
           "customRules": [
             {
-              "id": "rule-b8j5q77h8",
+              "id": "rule-9k5z3huyb",
               "type": "field_exists",
               "field": "success",
               "config": {},
@@ -146,7 +117,261 @@
                 "field": "success",
                 "reason": null,
                 "result": "PASS",
-                "rule_id": "rule-sf39s949b",
+                "rule_id": "rule-tf4es67cq",
+                "rule_name": "Field Exists (e.g., data.id exists)",
+                "rule_type": "structural"
+              }
+            }
+          ],
+          "extractRules": []
+        },
+        {
+          "id": "api-2b54aef7",
+          "name": "tttttttttt",
+          "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/init_CategoryStep/{{workflow_id}}' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: en' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion;' --header 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&categoriesMain={{Category_id}}'",
+          "order": 3,
+          "lastStatus": null,
+          "lastResult": null,
+          "customRules": [
+            {
+              "id": "rule-mb2s6bie0",
+              "type": "field_exists",
+              "field": "result.status",
+              "config": {},
+              "enabled": true,
+              "testResult": {
+                "actual": "Found: 500",
+                "expected": "'result.status' exists",
+                "field": "result.status",
+                "reason": null,
+                "result": "PASS",
+                "rule_id": "rule-8y8a5j1sp",
+                "rule_name": "Field Exists (e.g., data.id exists)",
+                "rule_type": "structural"
+              }
+            }
+          ],
+          "extractRules": []
+        },
+        {
+          "id": "api-06146f17",
+          "name": "ttttttttt",
+          "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/init_SubCategoryStep/{{workflow_id}}' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion;' --header 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&categoriesSub={{subcategory_id}}'",
+          "order": 4,
+          "lastStatus": null,
+          "lastResult": null,
+          "customRules": [
+            {
+              "id": "rule-9xb8rtmub",
+              "type": "field_exists",
+              "field": "result",
+              "config": {},
+              "enabled": true,
+              "testResult": {
+                "actual": "Found: object (3 items)",
+                "expected": "'result' exists",
+                "field": "result",
+                "reason": null,
+                "result": "PASS",
+                "rule_id": "rule-qm9zyp86n",
+                "rule_name": "Field Exists (e.g., data.id exists)",
+                "rule_type": "structural"
+              }
+            }
+          ],
+          "extractRules": []
+        },
+        {
+          "id": "api-6515afaf",
+          "name": "nasndnasnd",
+          "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_videoStep/{{workflow_id}}' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion;' --header 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}'",
+          "order": 5,
+          "lastStatus": null,
+          "lastResult": null,
+          "customRules": [
+            {
+              "id": "rule-ijlsm8h3c",
+              "type": "field_exists",
+              "field": "success",
+              "config": {},
+              "enabled": true,
+              "testResult": {
+                "actual": "Found: False",
+                "expected": "'success' exists",
+                "field": "success",
+                "reason": null,
+                "result": "PASS",
+                "rule_id": "rule-1ds3cre9z",
+                "rule_name": "Field Exists (e.g., data.id exists)",
+                "rule_type": "structural"
+              }
+            }
+          ],
+          "extractRules": []
+        },
+        {
+          "id": "api-de12f0a8",
+          "name": "nasjdsdjhdh",
+          "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_DeliveryService/{{Secound_workflow}}' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion;' --header 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&cpDeliveryService=0'",
+          "order": 6,
+          "lastStatus": null,
+          "lastResult": null,
+          "customRules": [
+            {
+              "id": "rule-zs84zkf2n",
+              "type": "field_exists",
+              "field": "success",
+              "config": {},
+              "enabled": true,
+              "testResult": {
+                "actual": "Found: False",
+                "expected": "'success' exists",
+                "field": "success",
+                "reason": null,
+                "result": "PASS",
+                "rule_id": "rule-qg57f34r8",
+                "rule_name": "Field Exists (e.g., data.id exists)",
+                "rule_type": "structural"
+              }
+            }
+          ],
+          "extractRules": []
+        },
+        {
+          "id": "api-632b4d9e",
+          "name": "27347234747",
+          "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_titleDescriptionStep/{{Secound_workflow}}' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion: 11.2.00.15' -H 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&title_field=ah asmdmasd kajsdjhajsd ajksdjdajsdjajskd alksdkasd&description_field=asjdn djdjd djdjdjjaksdnasd asdkjajksdjk'",
+          "order": 7,
+          "lastStatus": null,
+          "lastResult": null,
+          "customRules": [
+            {
+              "id": "rule-nj2vjs0df",
+              "type": "response_time",
+              "field": "",
+              "config": {
+                "maxMs": 2000
+              },
+              "enabled": true,
+              "testResult": {
+                "actual": "525ms",
+                "expected": "<= 2000ms",
+                "field": "",
+                "reason": null,
+                "result": "PASS",
+                "rule_id": "rule-rgyjgl19m",
+                "rule_name": "Response Time (e.g., < 2000ms)",
+                "rule_type": "performance"
+              }
+            }
+          ],
+          "extractRules": []
+        },
+        {
+          "id": "api-878c4421",
+          "name": "gasjajsdjk",
+          "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_oneCurrencyStep/{{Secound_workflow}}?expand=remaining_edit_counter%2Cmedia&source=opensooq&medium=app_open&campaign=direct_app_open' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion: 11.2.00.15' -H 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'price_field[min]=100&draftId={{Draft_id}}'",
+          "order": 8,
+          "lastStatus": null,
+          "lastResult": null,
+          "customRules": [
+            {
+              "id": "rule-q98vv3vjg",
+              "type": "field_exists",
+              "field": "result",
+              "config": {},
+              "enabled": true,
+              "testResult": {
+                "actual": "Found: object (3 items)",
+                "expected": "'result' exists",
+                "field": "result",
+                "reason": null,
+                "result": "PASS",
+                "rule_id": "rule-rmqsdcwro",
+                "rule_name": "Field Exists (e.g., data.id exists)",
+                "rule_type": "structural"
+              }
+            }
+          ],
+          "extractRules": []
+        },
+        {
+          "id": "api-961354ad",
+          "name": "uquweyqwyey",
+          "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_cityStep/{{Secound_workflow}}?expand=remaining_edit_counter%2Cmedia&source=opensooq&medium=app_open&campaign=direct_app_open' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion: 11.2.00.15' -H 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&cityField=59'",
+          "order": 9,
+          "lastStatus": null,
+          "lastResult": null,
+          "customRules": [
+            {
+              "id": "rule-cjse021uf",
+              "type": "field_exists",
+              "field": "result",
+              "config": {},
+              "enabled": true,
+              "testResult": {
+                "actual": "Found: object (3 items)",
+                "expected": "'result' exists",
+                "field": "result",
+                "reason": null,
+                "result": "PASS",
+                "rule_id": "rule-ttvxbg4hw",
+                "rule_name": "Field Exists (e.g., data.id exists)",
+                "rule_type": "structural"
+              }
+            }
+          ],
+          "extractRules": []
+        },
+        {
+          "id": "api-502932f6",
+          "name": "asdasdasd",
+          "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/post_neighborhoodStep/{{Secound_workflow}}?expand=remaining_edit_counter%2Cmedia&source=opensooq&medium=app_open&campaign=direct_app_open' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion: 11.2.00.15' -H 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&neighborhood=6743'",
+          "order": 10,
+          "lastStatus": null,
+          "lastResult": null,
+          "customRules": [
+            {
+              "id": "rule-udhrm160a",
+              "type": "field_exists",
+              "field": "result",
+              "config": {},
+              "enabled": true,
+              "testResult": {
+                "actual": "Found: object (3 items)",
+                "expected": "'result' exists",
+                "field": "result",
+                "reason": null,
+                "result": "PASS",
+                "rule_id": "rule-l1zssufdi",
+                "rule_name": "Field Exists (e.g., data.id exists)",
+                "rule_type": "structural"
+              }
+            }
+          ],
+          "extractRules": []
+        },
+        {
+          "id": "api-87b0e357",
+          "name": "uqwuuiqweuqweiu",
+          "curl": "curl -X POST 'https://api.opensooq.com/vertical/forms/v1/add-post/normal/finalize/{{Secound_workflow}}?expand=remaining_edit_counter%2Cmedia&source=opensooq&medium=app_open&campaign=direct_app_open' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Device-Language: en' -H 'device_timezone: UTC+03:00' -H 'source: ios' -H 'display-mode: normal' -H 'Accept-Language: ar' -H 'always-200: 1' -H 'Accept-Encoding: br;q=1.0, gzip;q=0.9, deflate;q=0.8' -H 'device_language: en' -H 'rm: 0' -H 'abBucket: 3' -H 'Authorization: Basic MDc4NTU2OTM0MjphaG1hZDEyMw==' -H 'country: jo' -H 'release-version: 11.2.00.15' -H 'version: 4' -H 'ConnectionType: WiFi' -H 'device-model: iPhone11,8' -H 'X-Tracking-UUID: _46F5383F-B17E-45B3-8E22-9937D0D5565C' -H 'currency: JOD' -H 'User-Agent: OpenSooq/11.2.00.15_qa_stag/v2.1/3 (com.opensooq.App; build:20241231215200; iOS 14.4.0) Alamofire/5.4.1' -H 'appVersion: 11.2.00.15' -H 'screen_resolution: 414x896' -H 'session-id: EE971F6F-584D-44FA-8EC9-EBFD512E6DF6' -H 'latency_ms: 1442' -H 'X-JWT-Try-Counter: 1' -d 'draftId={{Draft_id}}&neighborhood=6743&time_spent_ms=1&post_phone[phone]=0785569342'",
+          "order": 11,
+          "lastStatus": null,
+          "lastResult": null,
+          "customRules": [
+            {
+              "id": "rule-zhzhewbli",
+              "type": "field_exists",
+              "field": "result",
+              "config": {},
+              "enabled": true,
+              "testResult": {
+                "actual": "Found: object (3 items)",
+                "expected": "'result' exists",
+                "field": "result",
+                "reason": null,
+                "result": "PASS",
+                "rule_id": "rule-kfn62qgy6",
                 "rule_name": "Field Exists (e.g., data.id exists)",
                 "rule_type": "structural"
               }
@@ -6327,7 +6552,7 @@
     {
       "id": "var-bb9f7141",
       "name": "Draft_id",
-      "value": "96b9745c-b7fc-4788-8dd5-71027bfd94b1",
+      "value": "63fd0c06-019f-4bd1-a258-43689d897f16",
       "type": "string",
       "description": "",
       "source": {
@@ -6339,7 +6564,7 @@
     {
       "id": "var-56118812",
       "name": "workflow_id",
-      "value": 1166,
+      "value": 386988,
       "type": "number",
       "description": "",
       "source": {
@@ -6359,6 +6584,42 @@
         "fieldPath": "result.data.step.childs[0].childs[0].values[8].id"
       },
       "createdAt": "2026-02-12T15:07:55.297798"
+    },
+    {
+      "id": "var-48981351",
+      "name": "subcategory_id",
+      "value": "7111",
+      "type": "string",
+      "description": "",
+      "source": {
+        "apiName": "Unnamed API",
+        "fieldPath": "result.data.step.childs[0].childs[0].values[2].id"
+      },
+      "createdAt": "2026-02-12T17:07:17.051120"
+    },
+    {
+      "id": "var-14fde832",
+      "name": "Secound_workflow",
+      "value": 386988,
+      "type": "number",
+      "description": "",
+      "source": {
+        "apiName": "ttttttttt",
+        "fieldPath": "result.data.workflow_id"
+      },
+      "createdAt": "2026-02-12T17:16:47.583578"
+    },
+    {
+      "id": "var-9d799dc1",
+      "name": "post_id",
+      "value": "277087907",
+      "type": "string",
+      "description": "",
+      "source": {
+        "apiName": "Unnamed API",
+        "fieldPath": "result.data.logging.entityId"
+      },
+      "createdAt": "2026-02-12T17:51:54.694350"
     }
   ]
 }
