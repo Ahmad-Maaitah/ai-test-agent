@@ -3051,6 +3051,157 @@
             padding: 5px 10px;
             font-size: 12px;
         }
+
+        /* Stress Testing Tab Styles - Performance Lab Launcher */
+        .stress-testing-page {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stress-launcher {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 40px;
+        }
+
+        .launcher-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .launcher-header h2 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+            color: #1a1a2e;
+            font-weight: 700;
+        }
+
+        .launcher-description {
+            color: #6b7280;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .launcher-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .launcher-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .launcher-card:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .launcher-card .card-icon {
+            font-size: 32px;
+            color: #3b82f6;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+
+        .launcher-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .launcher-card p {
+            margin: 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .launcher-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .launcher-actions .btn {
+            padding: 14px 32px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+
+        .launcher-actions .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .launcher-actions .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .dashboard-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-indicator.checking {
+            background: #f59e0b;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-indicator.online {
+            background: #22c55e;
+        }
+
+        .status-indicator.offline {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .launcher-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .launcher-cards {
+                grid-template-columns: 1fr;
+            }
+            .launcher-actions {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -3074,6 +3225,7 @@
         <div class="tab" data-tab="create-api">Create API</div>
         <div class="tab" data-tab="reports">Reports</div>
         <div class="tab" data-tab="variables">Variables</div>
+        <div class="tab" data-tab="stress-testing">Stress Testing</div>
     </div>
 
     <!-- Main Content -->
@@ -3107,7 +3259,7 @@
                     </div>
                     <div class="stat-card orange">
                         <span class="stat-card-icon">📋</span>
-                        <div class="stat-card-label">Test Cases</div>
+                        <div class="stat-card-label">Test Rules (Total)</div>
                         <div class="stat-card-value" id="dash-total-rules">0</div>
                     </div>
                     <div class="stat-card" id="dash-status-card">
@@ -3506,6 +3658,51 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stress Testing Tab -->
+        <div id="stress-testing" class="tab-content">
+            <div class="stress-testing-page">
+                <div class="stress-launcher">
+                    <div class="launcher-header">
+                        <h2>Performance Lab</h2>
+                    </div>
+
+                    <div class="launcher-cards">
+                        <div class="launcher-card" onclick="openPerformanceLab('/configure')">
+                            <div class="card-icon">+</div>
+                            <h3>New Test</h3>
+                            <p>Configure and launch a new performance test</p>
+                        </div>
+                        <div class="launcher-card" onclick="openPerformanceLab('/quick-test')">
+                            <div class="card-icon">{ }</div>
+                            <h3>API Builder</h3>
+                            <p>Build and test API endpoints quickly</p>
+                        </div>
+                        <div class="launcher-card" onclick="openPerformanceLab('/test-cases')">
+                            <div class="card-icon">&#x2713;</div>
+                            <h3>Test Plan</h3>
+                            <p>Manage test cases and test suites</p>
+                        </div>
+                        <div class="launcher-card" onclick="openPerformanceLab('/runs')">
+                            <div class="card-icon">&#x27A4;</div>
+                            <h3>Runs</h3>
+                            <p>View test run history and results</p>
+                        </div>
+                    </div>
+
+                    <div class="launcher-actions">
+                        <button type="button" class="btn btn-primary btn-lg" onclick="openPerformanceLab('/configure')">
+                            Open Performance Lab
+                        </button>
+                    </div>
+
+                    <div class="dashboard-status" id="dashboard-status">
+                        <span class="status-indicator checking"></span>
+                        <span class="status-text">Checking dashboard status...</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -7833,7 +8030,7 @@
                     <div class="exec-stat-card">
                         <div class="exec-stat-icon">📋</div>
                         <div class="exec-stat-value">${totalTestCases}</div>
-                        <div class="exec-stat-label">Test Cases</div>
+                        <div class="exec-stat-label">Rules Tested</div>
                     </div>
                     <div class="exec-stat-card passed">
                         <div class="exec-stat-icon">✓</div>
@@ -8057,6 +8254,64 @@
             const date = new Date(isoString);
             return date.toLocaleString();
         }
+
+        // =============================================================================
+        // Performance Lab Launcher Functions
+        // =============================================================================
+        const DASHBOARD_URL = 'http://localhost:3000';
+
+        function openPerformanceLab(path = '/configure') {
+            window.open(DASHBOARD_URL + path, '_blank');
+        }
+
+        async function checkDashboardStatus() {
+            const statusEl = document.getElementById('dashboard-status');
+            if (!statusEl) return;
+
+            try {
+                const response = await fetch(DASHBOARD_URL + '/configure', {
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                });
+                // If no error, dashboard is likely running
+                statusEl.innerHTML = `
+                    <span class="status-indicator online"></span>
+                    <span class="status-text">Dashboard is running at ${DASHBOARD_URL}</span>
+                `;
+            } catch (error) {
+                statusEl.innerHTML = `
+                    <span class="status-indicator offline"></span>
+                    <span class="status-text">Dashboard offline - Run: cd stress-testing-locust/dashboard && npm run dev</span>
+                `;
+            }
+        }
+
+        // Check dashboard status when stress testing tab is shown
+        function initPerformanceLab() {
+            checkDashboardStatus();
+            // Re-check every 10 seconds while tab is visible
+            setInterval(() => {
+                const stressTab = document.getElementById('stress-testing');
+                if (stressTab && stressTab.classList.contains('active')) {
+                    checkDashboardStatus();
+                }
+            }, 10000);
+        }
+
+        // Legacy compatibility - these can be removed later
+        let stressTestRunning = false;
+        let stressTestInterval = null;
+        let selectedStressApis = new Set();
+
+        // Initialize Performance Lab when tab is shown
+        document.addEventListener('DOMContentLoaded', function() {
+            const stressTab = document.querySelector('[data-tab="stress-testing"]');
+            if (stressTab) {
+                stressTab.addEventListener('click', function() {
+                    initPerformanceLab();
+                });
+            }
+        });
     </script>
     {% endraw %}
 </body>

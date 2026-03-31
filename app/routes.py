@@ -564,8 +564,12 @@ def get_reports():
     section_filter = request.args.get('section')
     result_filter = request.args.get('result')
     api_filter = request.args.get('api')
+    limit = request.args.get('limit', type=int)
 
     reports = data.get('reports', [])
+
+    # Sort by date (most recent first)
+    reports = sorted(reports, key=lambda r: r.get('date', ''), reverse=True)
 
     # Apply filters to results within reports
     if section_filter or result_filter or api_filter:
@@ -586,6 +590,10 @@ def get_reports():
                 filtered_reports.append(filtered_report)
 
         reports = filtered_reports
+
+    # Apply limit if specified
+    if limit and limit > 0:
+        reports = reports[:limit]
 
     return jsonify({
         'success': True,
@@ -963,3 +971,86 @@ def test_rules():
         return jsonify({'success': False, 'error': f'Invalid cURL: {str(e)}'}), 400
     except Exception as e:
         return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
+
+
+# =============================================================================
+# Stress Testing API
+# =============================================================================
+
+from backend.stress_runner import (
+    generate_locust_config, start_stress_test, get_test_status, stop_all_tests
+)
+
+@main_bp.route('/api/stress/run', methods=['POST'])
+def run_stress_test():
+    """Start a stress test."""
+    req_data = request.get_json()
+
+    scenario = req_data.get('scenario', 'load')
+    users = req_data.get('users', 100)
+    spawn_rate = req_data.get('spawnRate', 10)
+    duration = req_data.get('duration', '5m')
+    host = req_data.get('host', '')
+    api_ids = req_data.get('apiIds', [])
+
+    if not host:
+        return jsonify({'success': False, 'error': 'Target host is required'}), 400
+
+    if not api_ids:
+        return jsonify({'success': False, 'error': 'No APIs selected'}), 400
+
+    # Generate test ID
+    test_id = f"stress-{generate_id()}"
+
+    # Get API details for the selected APIs
+    data = load_data()
+    selected_apis = []
+    for section in data.get('sections', []):
+        for api in section.get('apis', []):
+            if api['id'] in api_ids:
+                selected_apis.append({
+                    'name': api['name'],
+                    'curl': api['curl'],
+                    'section': section['name']
+                })
+
+    if not selected_apis:
+        return jsonify({'success': False, 'error': 'No valid APIs found'}), 400
+
+    # Generate Locust config file
+    config_path = os.path.join(OUTPUT_DIR, f'{test_id}_config.yml')
+    generate_locust_config(config_path, host, selected_apis)
+
+    # Start stress test
+    start_stress_test(test_id, config_path, users, spawn_rate, duration, host, scenario)
+
+    return jsonify({
+        'success': True,
+        'testId': test_id,
+        'message': 'Stress test started'
+    })
+
+
+@main_bp.route('/api/stress/status/<test_id>', methods=['GET'])
+def get_stress_status(test_id):
+    """Get status of a running stress test."""
+    test = get_test_status(test_id)
+
+    if not test:
+        return jsonify({'success': False, 'error': 'Test not found'}), 404
+
+    return jsonify({
+        'success': True,
+        'status': test['status'],
+        'progress': test['progress'],
+        'metrics': test['metrics'],
+        'results': test['results'],
+        'error': test['error']
+    })
+
+
+@main_bp.route('/api/stress/stop', methods=['POST'])
+def stop_stress_test():
+    """Stop all running stress tests."""
+    stop_all_tests()
+    return jsonify({'success': True, 'message': 'Tests stopped'})
