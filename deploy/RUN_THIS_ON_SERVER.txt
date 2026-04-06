@@ -1,0 +1,36 @@
+================================================================================
+SIMPLE UPDATE - Just Copy and Run This on Windows Server
+================================================================================
+
+1. Connect to Windows Server (172.16.1.4) via Remote Desktop
+
+2. Copy this file to the server:
+
+   FROM: Your USB or network drive
+   FILE: UPDATE_NOW.ps1
+   TO:   C:\Temp\UPDATE_NOW.ps1
+
+3. On Windows Server, open PowerShell as Administrator
+
+4. Run these 3 commands:
+
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+   cd C:\Temp
+   .\UPDATE_NOW.ps1
+
+5. When prompted, press Enter to continue
+
+6. At the end, if server doesn't auto-start, run:
+
+   cd C:\Apps\APITester
+   .\venv\Scripts\python.exe main.py
+
+================================================================================
+DONE! The UTF-8 fix is now on your server.
+================================================================================
+
+Test it: Run an API test and check that the HTML report generates correctly!
+
+Your team can access: http://172.16.1.4:5001
+
+================================================================================

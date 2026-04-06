@@ -56,6 +56,19 @@ def index():
     return render_template('index.html')
 
 
+@main_bp.route('/api/version')
+def version():
+    """Test endpoint to verify git pull is working."""
+    return jsonify({
+        'success': True,
+        'version': '1.1',
+        'message': 'Git Pull Test - Update Successful!',
+        'timestamp': datetime.now().isoformat(),
+        'utf8_fix': 'Applied ✓',
+        'server': 'Windows Server 172.16.1.4'
+    })
+
+
 @main_bp.route('/output/<path:filename>')
 def serve_report(filename):
     """Serve generated reports from the output directory."""
