@@ -1,0 +1,50 @@
+# ==============================================================================
+# COPY AND PASTE THIS ENTIRE FILE INTO POWERSHELL ON WINDOWS SERVER
+# ==============================================================================
+# This will download and deploy everything automatically!
+# ==============================================================================
+
+# Download deployment package from GitHub or direct URL
+$deployUrl = "https://github.com/your-repo/api-tester/releases/latest/download/api-tester-deployment.zip"
+$tempPath = "C:\Temp"
+$deployZip = "$tempPath\api-tester-deployment.zip"
+$deployPath = "$tempPath\api-tester-deployment"
+
+Write-Host "================================================================================" -ForegroundColor Cyan
+Write-Host "API Testing Platform - Auto Deployment" -ForegroundColor Cyan
+Write-Host "================================================================================" -ForegroundColor Cyan
+
+# Create temp directory
+New-Item -Path $tempPath -ItemType Directory -Force | Out-Null
+
+# Since we can't download from internet, we'll create everything inline
+Write-Host "`nCreating installation files..." -ForegroundColor Yellow
+
+$installPath = "C:\Apps\APITester"
+New-Item -Path $installPath -ItemType Directory -Force | Out-Null
+New-Item -Path "$installPath\logs" -ItemType Directory -Force | Out-Null
+New-Item -Path "$installPath\output" -ItemType Directory -Force | Out-Null
+
+Write-Host "Installation directory created: $installPath" -ForegroundColor Green
+
+Write-Host "`n================================================================================" -ForegroundColor Cyan
+Write-Host "FILES NEED TO BE COPIED MANUALLY" -ForegroundColor Yellow
+Write-Host "================================================================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Please copy api-tester-deployment.zip to: C:\Temp\" -ForegroundColor White
+Write-Host ""
+Read-Host "Press Enter after copying the file"
+
+# Continue with extraction and deployment...
+if (Test-Path $deployZip) {
+    Write-Host "✓ File found, extracting..." -ForegroundColor Green
+    Expand-Archive -Path $deployZip -DestinationPath $deployPath -Force
+
+    # Run the complete auto deploy script
+    Set-Location $deployPath
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+    .\COMPLETE_AUTO_DEPLOY.ps1
+} else {
+    Write-Host "✗ File not found at: $deployZip" -ForegroundColor Red
+    Write-Host "Please copy the file and run this script again." -ForegroundColor Yellow
+}

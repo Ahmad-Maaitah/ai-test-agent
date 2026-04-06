@@ -159,5 +159,32 @@ def get_metadata_path(unique_id: str) -> str:
 def write_file(path: str, content: str) -> None:
     """Write content to a file, creating directories if needed."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, 'w') as f:
+    with open(path, 'w', encoding='utf-8') as f:
         f.write(content)
+
+
+def substitute_variables(text: str, variables: list) -> str:
+    """
+    Substitute variables in text with their actual values.
+
+    Args:
+        text: Text containing variable placeholders like {{variableName}}
+        variables: List of variable objects with 'name' and 'value' keys
+
+    Returns:
+        Text with variables substituted
+    """
+    if not text or not variables:
+        return text
+
+    result = text
+    for var in variables:
+        var_name = var.get('name', '')
+        var_value = var.get('value', '')
+
+        if var_name:
+            # Replace {{variableName}} with the actual value
+            placeholder = f"{{{{{var_name}}}}}"
+            result = result.replace(placeholder, str(var_value))
+
+    return result
