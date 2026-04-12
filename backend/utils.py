@@ -32,19 +32,21 @@ def parse_curl(curl_command: str) -> dict:
     # Handle multiline data/json by preserving newlines within quotes
     # This regex finds --data 'multiline content' or --data "multiline content"
     # It captures everything between the quotes, including newlines
-    data_pattern = r"(?:--data(?:-raw|-binary)?|--json)\s+['\"](.+?)['\"]"
+    data_pattern = r"(--data(?:-raw|-binary)?|--json)\s+(['\"])(.+?)\2"
     data_match = re.search(data_pattern, curl_command, re.MULTILINE | re.DOTALL)
 
     if data_match:
-        # Extract the data content from group 1
-        data_content = data_match.group(1)
+        # Extract the data content from group 3 (the actual content between quotes)
+        data_content = data_match.group(3)
         if data_content:
             result['data'] = data_content.strip()
             # If data is provided and method is still GET, change to POST
             if result['method'] == 'GET':
                 result['method'] = 'POST'
-            # Remove the --data section from curl_command for cleaner parsing of other parts
-            curl_command = curl_command[:data_match.start()] + curl_command[data_match.end():]
+            # Replace the entire --data section with a placeholder to avoid shlex issues
+            # This preserves the command structure while removing problematic multiline content
+            placeholder = f"{data_match.group(1)} 'PLACEHOLDER_REMOVED'"
+            curl_command = curl_command[:data_match.start()] + placeholder + curl_command[data_match.end():]
 
     # Remove 'curl' prefix if present
     if curl_command.lower().startswith('curl'):
