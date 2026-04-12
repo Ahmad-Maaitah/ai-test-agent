@@ -5339,25 +5339,39 @@
 
             // Then check for regular -d/--data (only if no --data-urlencode found)
             if (!body) {
-                // Use global patterns to find ALL -d entries (some cURLs have multiple)
-                const allDataPattern = /(?:-d|--data|--data-raw)\s+['"]([^'"]+)['"]/g;
-                const dataParts = [];
-                let dataMatch;
-                while ((dataMatch = allDataPattern.exec(curl)) !== null) {
-                    let data = dataMatch[1]
+                // Handle multiline JSON by using the original curlCommand (before whitespace normalization)
+                // Pattern to match --data with single or double quotes, including multiline content
+                const multilineDataPattern = /(?:-d|--data|--data-raw|--data-binary)\s+'([^']*)'|(?:-d|--data|--data-raw|--data-binary)\s+"([^"]*)"/;
+                const multilineMatch = curlCommand.match(multilineDataPattern);
+
+                if (multilineMatch) {
+                    // Use whichever capture group matched (single quote or double quote)
+                    body = (multilineMatch[1] || multilineMatch[2] || '')
                         .replace(/\\'/g, "'")
                         .replace(/\\"/g, '"')
-                        .replace(/\\\\/g, '\\');
-                    dataParts.push(data);
-                }
+                        .replace(/\\\\/g, '\\')
+                        .trim();
+                } else {
+                    // Fallback to old pattern for single-line data
+                    const allDataPattern = /(?:-d|--data|--data-raw)\s+['"]([^'"]+)['"]/g;
+                    const dataParts = [];
+                    let dataMatch;
+                    while ((dataMatch = allDataPattern.exec(curl)) !== null) {
+                        let data = dataMatch[1]
+                            .replace(/\\'/g, "'")
+                            .replace(/\\"/g, '"')
+                            .replace(/\\\\/g, '\\');
+                        dataParts.push(data);
+                    }
 
-                if (dataParts.length > 0) {
-                    // If it looks like JSON, take the first one
-                    if (dataParts[0].trim().startsWith('{') || dataParts[0].trim().startsWith('[')) {
-                        body = dataParts[0];
-                    } else {
-                        // Otherwise combine as form data
-                        body = dataParts.join('&');
+                    if (dataParts.length > 0) {
+                        // If it looks like JSON, take the first one
+                        if (dataParts[0].trim().startsWith('{') || dataParts[0].trim().startsWith('[')) {
+                            body = dataParts[0];
+                        } else {
+                            // Otherwise combine as form data
+                            body = dataParts.join('&');
+                        }
                     }
                 }
             }
