@@ -855,6 +855,21 @@ def delete_variable_route(var_id):
 # Dynamic Rules API
 # =============================================================================
 
+@main_bp.route('/api/debug-curl', methods=['POST'])
+def debug_curl():
+    """Debug endpoint to see what curl command is being received."""
+    req_data = request.get_json()
+    curl = req_data.get('curl', '')
+
+    return jsonify({
+        'received_length': len(curl),
+        'first_500_chars': curl[:500],
+        'has_data_flag': '--data' in curl,
+        'newline_count': curl.count('\n'),
+        'curl_preview': curl
+    })
+
+
 @main_bp.route('/api/execute-curl', methods=['POST'])
 def execute_curl():
     """
@@ -863,11 +878,16 @@ def execute_curl():
     """
     import time
     import requests
+    import sys
     from backend.utils import parse_curl, substitute_variables
     from backend.dynamic_rules import extract_response_fields
 
     req_data = request.get_json()
     curl = req_data.get('curl', '').strip()
+
+    # Force flush to see debug output
+    sys.stdout.flush()
+    sys.stderr.flush()
 
     if not curl:
         return jsonify({'success': False, 'error': 'cURL command is required'}), 400
@@ -879,13 +899,23 @@ def execute_curl():
         curl = substitute_variables(curl, variables)
 
         # Parse cURL
-        print(f"\n=== Parsing cURL ===")
+        print(f"\n{'='*80}")
+        print(f"=== EXECUTE-CURL REQUEST ===")
         print(f"cURL length: {len(curl)} chars")
+        print(f"First 200 chars: {curl[:200]}")
+        print(f"{'='*80}")
+
         parsed_curl = parse_curl(curl)
-        print(f"Parsed URL: {parsed_curl.get('url')}")
+
+        print(f"\n=== PARSED RESULT ===")
+        print(f"URL: {parsed_curl.get('url')}")
         print(f"Method: {parsed_curl.get('method')}")
-        print(f"Has data: {bool(parsed_curl.get('data'))}")
-        print(f"===================\n")
+        print(f"Headers count: {len(parsed_curl.get('headers', {}))}")
+        print(f"Data present: {bool(parsed_curl.get('data'))}")
+        if parsed_curl.get('data'):
+            print(f"Data length: {len(parsed_curl.get('data'))} chars")
+            print(f"Data preview (first 100 chars): {parsed_curl.get('data')[:100]}")
+        print(f"{'='*80}\n")
 
         # Validate parsed result
         if not parsed_curl or not parsed_curl.get('url'):
@@ -913,13 +943,25 @@ def execute_curl():
             if is_json:
                 try:
                     import json
-                    request_params['json'] = json.loads(data) if isinstance(data, str) else data
-                except (json.JSONDecodeError, TypeError):
+                    json_data = json.loads(data) if isinstance(data, str) else data
+                    request_params['json'] = json_data
+                    print(f"Sending JSON body: {json.dumps(json_data)[:200]}")
+                except (json.JSONDecodeError, TypeError) as e:
+                    print(f"JSON parsing failed: {e}, sending as raw data")
                     request_params['data'] = data
             else:
                 request_params['data'] = data
+        else:
+            print("WARNING: No data to send!")
+
+        print(f"\nMaking request to: {request_params['url']}")
+        print(f"Method: {request_params['method']}")
+        print(f"Has json param: {'json' in request_params}")
+        print(f"Has data param: {'data' in request_params}")
 
         response = requests.request(**request_params)
+
+        print(f"Response status: {response.status_code}")
         response_time_ms = (time.time() - start_time) * 1000
 
         # Parse response
