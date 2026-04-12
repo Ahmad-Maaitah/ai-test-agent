@@ -29,6 +29,23 @@ def parse_curl(curl_command: str) -> dict:
     # Handle line continuations (backslash at end of line)
     curl_command = re.sub(r'\\\s*\n\s*', ' ', curl_command)
 
+    # Handle multiline data/json by preserving newlines within quotes
+    # This regex finds --data 'multiline content' or --data "multiline content"
+    # It captures everything between the quotes, including newlines
+    data_pattern = r"(?:--data(?:-raw|-binary)?|--json)\s+['\"](.+?)['\"]"
+    data_match = re.search(data_pattern, curl_command, re.MULTILINE | re.DOTALL)
+
+    if data_match:
+        # Extract the data content from group 1
+        data_content = data_match.group(1)
+        if data_content:
+            result['data'] = data_content.strip()
+            # If data is provided and method is still GET, change to POST
+            if result['method'] == 'GET':
+                result['method'] = 'POST'
+            # Remove the --data section from curl_command for cleaner parsing of other parts
+            curl_command = curl_command[:data_match.start()] + curl_command[data_match.end():]
+
     # Remove 'curl' prefix if present
     if curl_command.lower().startswith('curl'):
         curl_command = curl_command[4:].strip()
@@ -59,20 +76,23 @@ def parse_curl(curl_command: str) -> dict:
                 i += 2
                 continue
 
-        # Data/Body
+        # Data/Body - only parse if we didn't already extract it with regex
         elif token in ('-d', '--data', '--data-raw', '--data-binary'):
             if i + 1 < len(tokens):
-                result['data'] = tokens[i + 1]
+                # Only override if data wasn't already extracted
+                if not result['data']:
+                    result['data'] = tokens[i + 1]
                 # If data is provided and method is GET, change to POST
                 if result['method'] == 'GET':
                     result['method'] = 'POST'
                 i += 2
                 continue
 
-        # JSON data shorthand
+        # JSON data shorthand - only parse if we didn't already extract it
         elif token == '--json':
             if i + 1 < len(tokens):
-                result['data'] = tokens[i + 1]
+                if not result['data']:
+                    result['data'] = tokens[i + 1]
                 result['headers']['Content-Type'] = 'application/json'
                 if result['method'] == 'GET':
                     result['method'] = 'POST'

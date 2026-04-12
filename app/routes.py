@@ -879,7 +879,13 @@ def execute_curl():
         curl = substitute_variables(curl, variables)
 
         # Parse cURL
+        print(f"\n=== Parsing cURL ===")
+        print(f"cURL length: {len(curl)} chars")
         parsed_curl = parse_curl(curl)
+        print(f"Parsed URL: {parsed_curl.get('url')}")
+        print(f"Method: {parsed_curl.get('method')}")
+        print(f"Has data: {bool(parsed_curl.get('data'))}")
+        print(f"===================\n")
 
         # Validate parsed result
         if not parsed_curl or not parsed_curl.get('url'):

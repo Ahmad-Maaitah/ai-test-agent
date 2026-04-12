@@ -4401,7 +4401,16 @@
                     body: JSON.stringify({ curl })
                 });
 
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (parseError) {
+                    const text = await response.text();
+                    showToast('Server error: ' + (text || 'Unable to parse response'), 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Execute & Parse Response';
+                    return;
+                }
 
                 if (data.success) {
                     lastResponse = data.response;
