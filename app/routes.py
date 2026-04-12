@@ -56,6 +56,12 @@ def index():
     return render_template('index.html')
 
 
+@main_bp.route('/debug')
+def debug():
+    """Render the debug page for curl parsing."""
+    return render_template('debug.html')
+
+
 @main_bp.route('/api/version')
 def version():
     """Test endpoint to verify git pull is working."""
