@@ -43,14 +43,37 @@ def execute_api_request(parsed_curl: dict, timeout: int = DEFAULT_TIMEOUT) -> re
     Returns:
         requests.Response object
     """
-    response = requests.request(
-        method=parsed_curl['method'],
-        url=parsed_curl['url'],
-        headers=parsed_curl.get('headers', {}),
-        data=parsed_curl.get('data'),
-        verify=parsed_curl.get('verify_ssl', False),  # Default to False for testing flexibility
-        timeout=timeout
-    )
+    import json
+
+    headers = parsed_curl.get('headers', {})
+    data = parsed_curl.get('data')
+
+    # Determine if we should send JSON or raw data
+    content_type = headers.get('Content-Type', headers.get('content-type', ''))
+    is_json = 'application/json' in content_type.lower()
+
+    # Prepare request parameters
+    request_params = {
+        'method': parsed_curl['method'],
+        'url': parsed_curl['url'],
+        'headers': headers,
+        'verify': parsed_curl.get('verify_ssl', False),
+        'timeout': timeout
+    }
+
+    # Handle body data - use json= for JSON, data= for everything else
+    if data:
+        if is_json:
+            try:
+                # Parse JSON string to dict/list
+                request_params['json'] = json.loads(data) if isinstance(data, str) else data
+            except (json.JSONDecodeError, TypeError):
+                # If JSON parsing fails, send as raw data
+                request_params['data'] = data
+        else:
+            request_params['data'] = data
+
+    response = requests.request(**request_params)
     return response
 
 
@@ -70,12 +93,34 @@ def generate_pytest_code(
     Returns:
         Generated pytest code as a string
     """
+    import json
+
     # Escape strings for Python code
     method = parsed_curl['method']
     url = parsed_curl['url']
-    headers = repr(parsed_curl.get('headers', {}))
-    data = repr(parsed_curl.get('data'))
+    headers = parsed_curl.get('headers', {})
+    data = parsed_curl.get('data')
     verify_ssl = parsed_curl.get('verify_ssl', False)
+
+    # Check if content-type is JSON
+    content_type = headers.get('Content-Type', headers.get('content-type', ''))
+    is_json = 'application/json' in content_type.lower()
+
+    # Prepare data for pytest code
+    headers_repr = repr(headers)
+    if data and is_json:
+        try:
+            # Parse and format JSON nicely
+            json_data = json.loads(data) if isinstance(data, str) else data
+            json_data_repr = repr(json_data)
+            data_param = f"'json': {json_data_repr}"
+        except (json.JSONDecodeError, TypeError):
+            # Fallback to raw data if parsing fails
+            data_param = f"'data': {repr(data)}"
+    elif data:
+        data_param = f"'data': {repr(data)}"
+    else:
+        data_param = "'data': None"
 
     test_code = f'''"""
 Auto-generated pytest file for API testing.
@@ -92,8 +137,8 @@ import requests
 API_CONFIG = {{
     'method': '{method}',
     'url': '{url}',
-    'headers': {headers},
-    'data': {data},
+    'headers': {headers_repr},
+    {data_param},
     'verify': {verify_ssl},
     'timeout': {DEFAULT_TIMEOUT}
 }}
@@ -102,14 +147,21 @@ API_CONFIG = {{
 @pytest.fixture(scope='module')
 def api_response():
     """Execute the API request and return the response."""
-    response = requests.request(
-        method=API_CONFIG['method'],
-        url=API_CONFIG['url'],
-        headers=API_CONFIG['headers'],
-        data=API_CONFIG['data'],
-        verify=API_CONFIG['verify'],
-        timeout=API_CONFIG['timeout']
-    )
+    request_params = {{
+        'method': API_CONFIG['method'],
+        'url': API_CONFIG['url'],
+        'headers': API_CONFIG['headers'],
+        'verify': API_CONFIG['verify'],
+        'timeout': API_CONFIG['timeout']
+    }}
+
+    # Add json or data parameter if present
+    if 'json' in API_CONFIG and API_CONFIG['json']:
+        request_params['json'] = API_CONFIG['json']
+    elif 'data' in API_CONFIG and API_CONFIG['data']:
+        request_params['data'] = API_CONFIG['data']
+
+    response = requests.request(**request_params)
     return response
 
 
