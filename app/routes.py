@@ -887,14 +887,33 @@ def execute_curl():
 
         # Execute request
         start_time = time.time()
-        response = requests.request(
-            method=parsed_curl['method'],
-            url=parsed_curl['url'],
-            headers=parsed_curl.get('headers', {}),
-            data=parsed_curl.get('data'),
-            verify=parsed_curl.get('verify_ssl', False),
-            timeout=30
-        )
+
+        # Prepare request parameters with proper JSON handling
+        headers = parsed_curl.get('headers', {})
+        data = parsed_curl.get('data')
+        content_type = headers.get('Content-Type', headers.get('content-type', ''))
+        is_json = 'application/json' in content_type.lower()
+
+        request_params = {
+            'method': parsed_curl['method'],
+            'url': parsed_curl['url'],
+            'headers': headers,
+            'verify': parsed_curl.get('verify_ssl', False),
+            'timeout': 30
+        }
+
+        # Handle body data - use json= for JSON, data= for everything else
+        if data:
+            if is_json:
+                try:
+                    import json
+                    request_params['json'] = json.loads(data) if isinstance(data, str) else data
+                except (json.JSONDecodeError, TypeError):
+                    request_params['data'] = data
+            else:
+                request_params['data'] = data
+
+        response = requests.request(**request_params)
         response_time_ms = (time.time() - start_time) * 1000
 
         # Parse response
