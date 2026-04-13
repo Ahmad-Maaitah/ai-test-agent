@@ -2816,6 +2816,80 @@
             font-size: 12px;
         }
 
+        /* Variable Hover Tooltip Styles */
+        .variable-highlight {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+            color: #667eea;
+            font-weight: 600;
+            padding: 2px 4px;
+            border-radius: 3px;
+            cursor: help;
+            border: 1px solid rgba(102, 126, 234, 0.25);
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .variable-highlight:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: translateY(-1px);
+        }
+
+        #variable-tooltip {
+            position: fixed;
+            background: #2c3e50;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(5px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            word-wrap: break-word;
+        }
+
+        #variable-tooltip.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #variable-tooltip::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 6px solid #2c3e50;
+        }
+
+        .tooltip-header {
+            color: #95a5a6;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .tooltip-value {
+            color: #1abc9c;
+            font-weight: bold;
+            word-break: break-all;
+        }
+
+        .tooltip-undefined {
+            color: #e74c3c;
+            font-style: italic;
+        }
+
         .request-section {
             margin-bottom: 20px;
         }
@@ -4992,6 +5066,233 @@
             return str.length > maxLen ? str.substring(0, maxLen) + '...' : str;
         }
 
+        // =============================================================================
+        // VARIABLE HOVER TOOLTIP SYSTEM (Postman-style)
+        // =============================================================================
+
+        let variableTooltip = null;
+
+        // Create tooltip element on page load
+        function initializeVariableTooltip() {
+            if (variableTooltip) return;
+
+            variableTooltip = document.createElement('div');
+            variableTooltip.id = 'variable-tooltip';
+            document.body.appendChild(variableTooltip);
+        }
+
+        // Resolve variable value from runtimeVariables
+        function resolveVariableValue(varName) {
+            if (runtimeVariables && runtimeVariables[varName]) {
+                return runtimeVariables[varName].value;
+            }
+            return undefined;
+        }
+
+        // Show tooltip with variable value
+        function showVariableTooltip(element, varName) {
+            if (!variableTooltip) initializeVariableTooltip();
+
+            const value = resolveVariableValue(varName);
+            const rect = element.getBoundingClientRect();
+
+            if (value !== undefined) {
+                const displayValue = truncateValue(value, 100);
+                variableTooltip.innerHTML = `
+                    <div class="tooltip-header">Current Value:</div>
+                    <div class="tooltip-value">${escapeHtml(displayValue)}</div>
+                `;
+            } else {
+                variableTooltip.innerHTML = `
+                    <div class="tooltip-header">Variable:</div>
+                    <div class="tooltip-undefined">⚠️ Undefined</div>
+                `;
+            }
+
+            // Position tooltip above the variable
+            const tooltipRect = variableTooltip.getBoundingClientRect();
+            const left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+            const top = rect.top - tooltipRect.height - 10;
+
+            variableTooltip.style.left = Math.max(10, Math.min(left, window.innerWidth - tooltipRect.width - 10)) + 'px';
+            variableTooltip.style.top = top + 'px';
+
+            // Show with animation
+            setTimeout(() => variableTooltip.classList.add('show'), 10);
+        }
+
+        // Hide tooltip
+        function hideVariableTooltip() {
+            if (variableTooltip) {
+                variableTooltip.classList.remove('show');
+            }
+        }
+
+        // Parse text and wrap {{variables}} in spans
+        function highlightVariablesInText(text) {
+            if (!text) return text;
+
+            // Match {{variable_name}} pattern
+            const variablePattern = /\{\{([a-zA-Z0-9_]+)\}\}/g;
+
+            return text.replace(variablePattern, (match, varName) => {
+                return `<span class="variable-highlight" data-var-name="${varName}"
+                             onmouseenter="showVariableTooltip(this, '${varName}')"
+                             onmouseleave="hideVariableTooltip()">${match}</span>`;
+            });
+        }
+
+        // Enable variable hover for contenteditable or display elements
+        function enableVariableHoverForElement(element) {
+            if (!element) return;
+
+            const originalValue = element.textContent || element.innerText || '';
+            if (!originalValue.includes('{{')) return; // No variables, skip
+
+            // Create a display version with highlighted variables
+            const displayHTML = highlightVariablesInText(originalValue);
+
+            // For read-only display (e.g., in a preview div)
+            if (element.hasAttribute('data-variable-display')) {
+                element.innerHTML = displayHTML;
+            }
+        }
+
+        // Enable variable hover for all input fields with variables
+        function enableVariableHoverForInputs() {
+            // URL field
+            const urlInput = document.getElementById('request-url');
+            if (urlInput && urlInput.value.includes('{{')) {
+                attachInputVariableHover(urlInput);
+            }
+
+            // Header value inputs
+            document.querySelectorAll('.header-value').forEach(input => {
+                if (input.value.includes('{{')) {
+                    attachInputVariableHover(input);
+                }
+            });
+
+            // Body value inputs
+            document.querySelectorAll('.body-value').forEach(input => {
+                if (input.value.includes('{{')) {
+                    attachInputVariableHover(input);
+                }
+            });
+
+            // JSON textarea
+            const bodyTextarea = document.getElementById('request-body');
+            if (bodyTextarea && bodyTextarea.value.includes('{{')) {
+                attachTextareaVariableHover(bodyTextarea);
+            }
+        }
+
+        // Attach hover events to input fields
+        function attachInputVariableHover(input) {
+            // We can't directly highlight text inside input fields
+            // Instead, we'll detect mouse position and show tooltip
+
+            input.addEventListener('mousemove', function(e) {
+                const value = this.value;
+                const variablePattern = /\{\{([a-zA-Z0-9_]+)\}\}/g;
+                let match;
+                const variables = [];
+
+                while ((match = variablePattern.exec(value)) !== null) {
+                    variables.push({
+                        name: match[1],
+                        start: match.index,
+                        end: match.index + match[0].length,
+                        fullMatch: match[0]
+                    });
+                }
+
+                if (variables.length === 0) return;
+
+                // Get cursor position (approximate based on character width)
+                const rect = this.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const charWidth = rect.width / (value.length || 1); // Approximate
+                const cursorPos = Math.floor(mouseX / charWidth);
+
+                // Check if cursor is over a variable
+                const hoveredVar = variables.find(v => cursorPos >= v.start && cursorPos <= v.end);
+
+                if (hoveredVar) {
+                    showVariableTooltip(this, hoveredVar.name);
+                } else {
+                    hideVariableTooltip();
+                }
+            });
+
+            input.addEventListener('mouseleave', hideVariableTooltip);
+        }
+
+        // Attach hover events to textarea (for JSON body)
+        function attachTextareaVariableHover(textarea) {
+            textarea.addEventListener('mousemove', function(e) {
+                const value = this.value;
+                const variablePattern = /\{\{([a-zA-Z0-9_]+)\}\}/g;
+                let match;
+                const variables = [];
+
+                while ((match = variablePattern.exec(value)) !== null) {
+                    variables.push({
+                        name: match[1],
+                        start: match.index,
+                        end: match.index + match[0].length
+                    });
+                }
+
+                if (variables.length === 0) return;
+
+                // Get approximate cursor position
+                const rect = this.getBoundingClientRect();
+                const mouseY = e.clientY - rect.top;
+                const mouseX = e.clientX - rect.left;
+
+                // Approximate line and column
+                const lineHeight = parseInt(getComputedStyle(this).lineHeight) || 16;
+                const charWidth = 8; // Approximate for monospace
+                const line = Math.floor(mouseY / lineHeight);
+                const col = Math.floor(mouseX / charWidth);
+
+                const lines = value.split('\n');
+                let charPos = 0;
+                for (let i = 0; i < line && i < lines.length; i++) {
+                    charPos += lines[i].length + 1; // +1 for newline
+                }
+                charPos += col;
+
+                // Check if cursor is over a variable
+                const hoveredVar = variables.find(v => charPos >= v.start && charPos <= v.end);
+
+                if (hoveredVar) {
+                    showVariableTooltip(this, hoveredVar.name);
+                } else {
+                    hideVariableTooltip();
+                }
+            });
+
+            textarea.addEventListener('mouseleave', hideVariableTooltip);
+        }
+
+        // Initialize tooltip on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeVariableTooltip();
+        });
+
+        // Auto-enable hover when input values change (debounced)
+        let hoverEnableTimeout;
+        function scheduleHoverEnable() {
+            clearTimeout(hoverEnableTimeout);
+            hoverEnableTimeout = setTimeout(enableVariableHoverForInputs, 300);
+        }
+
+        // =============================================================================
+        // END VARIABLE HOVER TOOLTIP SYSTEM
+        // =============================================================================
+
         function openAddVariableModal() {
             editingVariableId = null;
             document.getElementById('add-variable-modal-title').textContent = 'Add Variable';
@@ -5554,6 +5855,9 @@
             }
 
             updateRequestVariableIndicator();
+
+            // Enable variable hover tooltips for all fields with variables
+            setTimeout(() => enableVariableHoverForInputs(), 100);
         }
 
         function onBodyTypeChange() {
@@ -5816,6 +6120,9 @@
 
             indicator.innerHTML = html;
             indicator.className = 'request-variable-indicator ' + (validation.missing.length > 0 ? 'has-errors' : 'valid');
+
+            // Schedule hover tooltips for any variables in inputs
+            scheduleHoverEnable();
         }
 
         // =============================================================================
@@ -5905,6 +6212,7 @@
             }
             closeVarPicker();
             updateRequestVariableIndicator();
+            scheduleHoverEnable(); // Enable hover tooltips for newly inserted variable
         }
 
         // Close var picker when clicking outside
