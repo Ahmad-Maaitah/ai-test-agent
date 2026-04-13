@@ -3867,6 +3867,9 @@
         function setupTabs() {
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
+                    // Hide variable tooltip when switching tabs
+                    hideVariableTooltip();
+
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
@@ -5189,6 +5192,10 @@
 
         // Attach hover events to input fields
         function attachInputVariableHover(input) {
+            // Prevent duplicate event listeners
+            if (input.dataset.hasVariableHover === 'true') return;
+            input.dataset.hasVariableHover = 'true';
+
             // We can't directly highlight text inside input fields
             // Instead, we'll detect mouse position and show tooltip
 
@@ -5230,6 +5237,10 @@
 
         // Attach hover events to textarea (for JSON body)
         function attachTextareaVariableHover(textarea) {
+            // Prevent duplicate event listeners
+            if (textarea.dataset.hasVariableHover === 'true') return;
+            textarea.dataset.hasVariableHover = 'true';
+
             textarea.addEventListener('mousemove', function(e) {
                 const value = this.value;
                 const variablePattern = /\{\{([a-zA-Z0-9_]+)\}\}/g;
@@ -5280,6 +5291,23 @@
         // Initialize tooltip on page load
         document.addEventListener('DOMContentLoaded', () => {
             initializeVariableTooltip();
+
+            // Hide tooltip when clicking anywhere on the page
+            document.addEventListener('click', (e) => {
+                if (variableTooltip && !e.target.classList.contains('variable-highlight')) {
+                    hideVariableTooltip();
+                }
+            });
+
+            // Hide tooltip when scrolling
+            document.addEventListener('scroll', hideVariableTooltip, true);
+
+            // Hide tooltip when pressing Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    hideVariableTooltip();
+                }
+            });
         });
 
         // Auto-enable hover when input values change (debounced)
