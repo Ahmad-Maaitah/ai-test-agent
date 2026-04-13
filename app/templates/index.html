@@ -5289,11 +5289,11 @@
                 method = methodMatch[1].toUpperCase();
             }
 
-            // 2. Parse URL (various formats)
+            // 2. Parse URL (various formats) - Updated to support variables like {{base_url}}
             const urlPatterns = [
-                /curl\s+['"]?(https?:\/\/[^'"<>\s]+)['"]?/i,      // curl 'url' or curl url
-                /['"]?(https?:\/\/[^'"<>\s]+)['"]?/i,             // url anywhere
-                /--url\s+['"]?(https?:\/\/[^'"<>\s]+)['"]?/i,     // --url 'url'
+                /curl\s+['"]?((?:https?:\/\/|{{)[^'"<>\s]+)['"]?/i,      // curl 'url' or curl url (with variables)
+                /--url\s+['"]?((?:https?:\/\/|{{)[^'"<>\s]+)['"]?/i,     // --url 'url' (with variables)
+                /['"]?(https?:\/\/[^'"<>\s]+)['"]?/i,                     // url anywhere (standard)
             ];
 
             for (const pattern of urlPatterns) {
@@ -5301,6 +5301,15 @@
                 if (match) {
                     url = match[1];
                     break;
+                }
+            }
+
+            // If no URL found yet, try to find anything that looks like a URL or starts with {{
+            if (!url) {
+                const anyUrlPattern = /\b((?:https?:\/\/|{{)[^\s'"]+)/;
+                const anyMatch = curl.match(anyUrlPattern);
+                if (anyMatch) {
+                    url = anyMatch[1];
                 }
             }
 
