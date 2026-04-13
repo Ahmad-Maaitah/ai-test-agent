@@ -5243,6 +5243,8 @@
         function parseCurlToEditor(curlCommand) {
             if (!curlCommand) return;
 
+            console.log('🔍 Parsing cURL:', curlCommand.substring(0, 200));
+
             // Clear previous response data when importing new cURL
             pageAvailableFields = [];
             pageLastResponse = null;
@@ -5293,24 +5295,39 @@
             const urlPatterns = [
                 /curl\s+['"]?((?:https?:\/\/|{{)[^'"<>\s]+)['"]?/i,      // curl 'url' or curl url (with variables)
                 /--url\s+['"]?((?:https?:\/\/|{{)[^'"<>\s]+)['"]?/i,     // --url 'url' (with variables)
-                /['"]?(https?:\/\/[^'"<>\s]+)['"]?/i,                     // url anywhere (standard)
             ];
 
             for (const pattern of urlPatterns) {
                 const match = curl.match(pattern);
                 if (match) {
                     url = match[1];
+                    console.log('✓ URL matched with pattern:', pattern, '→', url);
                     break;
                 }
             }
 
-            // If no URL found yet, try to find anything that looks like a URL or starts with {{
+            // If no URL found yet, try more flexible patterns
             if (!url) {
-                const anyUrlPattern = /\b((?:https?:\/\/|{{)[^\s'"]+)/;
-                const anyMatch = curl.match(anyUrlPattern);
-                if (anyMatch) {
-                    url = anyMatch[1];
+                // Try to find URL after 'curl' keyword - even with quotes
+                const curlUrlMatch = curlCommand.match(/curl\s+(?:--location\s+)?['"]?([^'"<>\s]+)['"]?/i);
+                if (curlUrlMatch && curlUrlMatch[1]) {
+                    url = curlUrlMatch[1];
+                    console.log('✓ URL found after curl:', url);
                 }
+            }
+
+            // Last resort: find anything that looks like a URL or variable
+            if (!url) {
+                const anyUrlPattern = /(['"])((?:https?:\/\/|{{)[^'"]+)\1/;
+                const anyMatch = curlCommand.match(anyUrlPattern);
+                if (anyMatch) {
+                    url = anyMatch[2];
+                    console.log('✓ URL found in quotes:', url);
+                }
+            }
+
+            if (!url) {
+                console.warn('⚠️  No URL found in cURL command');
             }
 
             // 3. Parse Headers (-H or --header) - improved regex
@@ -5414,11 +5431,20 @@
 
             // --- Populate the Editor ---
 
+            console.log('📝 Populating editor:');
+            console.log('  Method:', method);
+            console.log('  URL:', url);
+            console.log('  Headers:', Object.keys(headers).length);
+            console.log('  Body length:', body ? body.length : 0);
+
             // Method
             document.getElementById('request-method').value = method;
 
             // URL
-            document.getElementById('request-url').value = url;
+            document.getElementById('request-url').value = url || '';
+            if (!url) {
+                console.error('❌ URL is empty! Check parsing logic.');
+            }
 
             // Headers Table
             const headersTable = document.getElementById('headers-table');
