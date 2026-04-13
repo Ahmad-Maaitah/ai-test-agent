@@ -5306,23 +5306,30 @@
                 }
             }
 
-            // If no URL found yet, try more flexible patterns
+            // If no URL found yet, try to find URL in single quotes (common for variables)
             if (!url) {
-                // Try to find URL after 'curl' keyword - even with quotes
-                const curlUrlMatch = curlCommand.match(/curl\s+(?:--location\s+)?['"]?([^'"<>\s]+)['"]?/i);
-                if (curlUrlMatch && curlUrlMatch[1]) {
-                    url = curlUrlMatch[1];
-                    console.log('✓ URL found after curl:', url);
+                const singleQuoteUrlMatch = curlCommand.match(/'((?:https?:\/\/|{{)[^']+)'/);
+                if (singleQuoteUrlMatch && singleQuoteUrlMatch[1]) {
+                    url = singleQuoteUrlMatch[1];
+                    console.log('✓ URL found in single quotes:', url);
                 }
             }
 
-            // Last resort: find anything that looks like a URL or variable
+            // Try to find URL in double quotes
             if (!url) {
-                const anyUrlPattern = /(['"])((?:https?:\/\/|{{)[^'"]+)\1/;
-                const anyMatch = curlCommand.match(anyUrlPattern);
-                if (anyMatch) {
-                    url = anyMatch[2];
-                    console.log('✓ URL found in quotes:', url);
+                const doubleQuoteUrlMatch = curlCommand.match(/"((?:https?:\/\/|{{)[^"]+)"/);
+                if (doubleQuoteUrlMatch && doubleQuoteUrlMatch[1]) {
+                    url = doubleQuoteUrlMatch[1];
+                    console.log('✓ URL found in double quotes:', url);
+                }
+            }
+
+            // Last resort: find any URL pattern without quotes
+            if (!url) {
+                const bareUrlMatch = curlCommand.match(/\b((?:https?:\/\/|{{)[^\s'"]+)/);
+                if (bareUrlMatch && bareUrlMatch[1]) {
+                    url = bareUrlMatch[1];
+                    console.log('✓ URL found (bare):', url);
                 }
             }
 
