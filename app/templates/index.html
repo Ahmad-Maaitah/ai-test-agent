@@ -3292,7 +3292,9 @@
                                     <option value="raw">Raw</option>
                                 </select>
                                 <button type="button" class="btn btn-sm" id="add-body-row-btn" onclick="addBodyRow()" style="display: none;">+ Add Field</button>
-                                <button type="button" class="insert-var-btn" id="body-var-btn" onclick="openVarPicker('request-body')" title="Insert Variable" style="display: none;">{{</button>
+                                <button type="button" class="btn btn-sm" id="body-var-btn" onclick="openVarPicker('request-body')" title="Insert Variable at cursor position" style="display: none; background: #27ae60; color: white;">
+                                    <span style="font-weight: bold;">{{</span> Insert Variable
+                                </button>
                             </div>
                             <!-- Form Data Key-Value Table -->
                             <div class="body-table" id="body-table" style="display: none;">
