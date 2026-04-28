@@ -107,12 +107,21 @@ def parse_curl(curl_command: str) -> dict:
             i += 1
             continue
 
+        # Cookies (-b or --cookie)
+        elif token in ('-b', '--cookie'):
+            if i + 1 < len(tokens):
+                cookie_value = tokens[i + 1]
+                if 'Cookie' not in result['headers']:
+                    result['headers']['Cookie'] = cookie_value
+                i += 2
+                continue
+
         # Skip common flags we don't need
         elif token in ('-v', '--verbose', '-s', '--silent', '-S', '--show-error',
                        '-L', '--location', '-i', '--include', '-o', '--output',
-                       '-w', '--write-out', '-c', '--cookie-jar', '-b', '--cookie'):
+                       '-w', '--write-out', '-c', '--cookie-jar'):
             # Some of these take arguments, some don't
-            if token in ('-o', '--output', '-w', '--write-out', '-c', '--cookie-jar', '-b', '--cookie'):
+            if token in ('-o', '--output', '-w', '--write-out', '-c', '--cookie-jar'):
                 i += 2  # Skip the argument too
             else:
                 i += 1

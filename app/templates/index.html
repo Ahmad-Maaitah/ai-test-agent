@@ -5687,6 +5687,28 @@
                 }
             }
 
+            // 3b. Parse Cookies (-b or --cookie) and add as Cookie header
+            const cookiePatterns = [
+                /-b\s+'([^']+)'/g,           // -b 'cookies'
+                /-b\s+"([^"]+)"/g,           // -b "cookies"
+                /--cookie\s+'([^']+)'/g,     // --cookie 'cookies'
+                /--cookie\s+"([^"]+)"/g,     // --cookie "cookies"
+            ];
+
+            for (const pattern of cookiePatterns) {
+                let match;
+                pattern.lastIndex = 0;
+                while ((match = pattern.exec(curl)) !== null) {
+                    const cookieValue = match[1].trim();
+                    if (cookieValue && !headers['Cookie']) {
+                        headers['Cookie'] = cookieValue;
+                        console.log('✓ Cookies found:', cookieValue.substring(0, 100) + '...');
+                        break; // Only take the first cookie header
+                    }
+                }
+                if (headers['Cookie']) break;
+            }
+
             // 4. Parse Body Data (-d, --data, --data-raw, --data-binary, --data-urlencode)
             // First, collect all --data-urlencode entries
             let isUrlEncoded = false;
