@@ -5666,23 +5666,31 @@
                 console.warn('⚠️  No URL found in cURL command');
             }
 
-            // 3. Parse Headers (-H or --header) - improved regex
-            const headerPatterns = [
-                /-H\s+'([^:]+):\s*([^']+)'/g,           // -H 'Key: Value'
-                /-H\s+"([^:]+):\s*([^"]+)"/g,           // -H "Key: Value"
-                /--header\s+'([^:]+):\s*([^']+)'/g,     // --header 'Key: Value'
-                /--header\s+"([^:]+):\s*([^"]+)"/g,     // --header "Key: Value"
+            // 3. Parse Headers (-H or --header) - improved regex with proper boundaries
+            // First extract the full header strings, then parse them
+            const headerBlockPatterns = [
+                /-H\s+'([^']+?)'/g,           // -H 'content'
+                /-H\s+"([^"]+?)"/g,           // -H "content"
+                /--header\s+'([^']+?)'/g,     // --header 'content'
+                /--header\s+"([^"]+?)"/g,     // --header "content"
             ];
 
-            for (const pattern of headerPatterns) {
+            for (const pattern of headerBlockPatterns) {
                 let match;
-                // Reset lastIndex for global regex
                 pattern.lastIndex = 0;
                 while ((match = pattern.exec(curl)) !== null) {
-                    const key = match[1].trim();
-                    const value = match[2].trim();
-                    if (key && !headers[key]) {
-                        headers[key] = value;
+                    const headerContent = match[1];
+                    // Now split on the FIRST colon to get key and value
+                    const colonIndex = headerContent.indexOf(':');
+                    if (colonIndex > 0) {
+                        const key = headerContent.substring(0, colonIndex).trim();
+                        const value = headerContent.substring(colonIndex + 1).trim();
+                        if (key && !headers[key]) {
+                            headers[key] = value;
+                        }
+                    } else {
+                        // Header without colon (malformed, skip it)
+                        console.warn('⚠️  Skipping malformed header (no colon):', headerContent);
                     }
                 }
             }
@@ -5962,13 +5970,21 @@
                 }
             }
 
+            console.log('\n🔍 === ADDING HEADERS TO CURL ===');
             for (const [key, value] of Object.entries(headers)) {
+                console.log(`  Header: "${key}" = "${value}"`);
+                if (value.includes('--data') || value.includes('-d ')) {
+                    console.error(`  ⚠️  WARNING: Header value contains curl flags!`);
+                }
                 curl += ` -H '${key}: ${value}'`;
             }
             if (body && bodyType !== 'none') {
                 // Escape single quotes in body
                 const escapedBody = body.replace(/'/g, "'\\''");
                 curl += ` -d '${escapedBody}'`;
+                console.log('📦 Building curl with body:', body);
+                console.log('📦 Escaped body:', escapedBody);
+                console.log('📦 Full curl preview:', curl.substring(0, 300));
             }
             return curl;
         }
@@ -6043,6 +6059,14 @@
                 body = document.getElementById('request-body').value;
             }
 
+            console.log('\n🔍 === EXECUTE REQUEST DEBUG ===');
+            console.log('Method:', method);
+            console.log('URL:', url);
+            console.log('Body Type:', bodyType);
+            console.log('Headers from table:', headers);
+            console.log('Body from textarea/table:', body);
+            console.log('Body length:', body ? body.length : 0);
+
             if (!url) {
                 showToast('URL is required', 'error');
                 return;
@@ -6065,8 +6089,18 @@
             }
             const processedBody = replaceVariables(body).text;
 
+            console.log('\n🔍 === AFTER VARIABLE REPLACEMENT ===');
+            console.log('Processed URL:', processedUrl);
+            console.log('Processed Headers:', processedHeaders);
+            console.log('Processed Body:', processedBody);
+            console.log('Processed Body length:', processedBody ? processedBody.length : 0);
+
             // Build cURL command
             const curl = buildCurlCommand(method, processedUrl, processedHeaders, processedBody, bodyType);
+
+            console.log('\n🔍 === BUILT CURL COMMAND ===');
+            console.log('Length:', curl.length);
+            console.log('Full command:', curl);
 
             const btn = document.getElementById('execute-request-btn');
             if (btn) {

@@ -891,6 +891,22 @@ def execute_curl():
     req_data = request.get_json()
     curl = req_data.get('curl', '').strip()
 
+    # DEBUG: Show what was received from frontend
+    print(f"\n🔴 RAW CURL RECEIVED FROM FRONTEND:")
+    print(f"   Length: {len(curl)} chars")
+    print(f"   FULL CURL COMMAND:")
+    print(f"   {curl}")
+    print(f"   ")
+    if '-d ' in curl or '--data' in curl:
+        # Find ALL data flags
+        import re
+        data_matches = list(re.finditer(r'(--data(?:-raw|-binary)?|-d)\s+', curl))
+        print(f"   Found {len(data_matches)} data flag(s):")
+        for i, match in enumerate(data_matches):
+            start = match.start()
+            snippet = curl[max(0, start-10):min(len(curl), start+80)]
+            print(f"      {i+1}. Position {start}: ...{snippet}...")
+
     # Force flush to see debug output
     sys.stdout.flush()
     sys.stderr.flush()
@@ -902,7 +918,34 @@ def execute_curl():
         # Load variables and substitute them in the cURL command
         data = load_data()
         variables = data.get('variables', [])
+
+        print(f"\n🟡 BEFORE substitute_variables:")
+        print(f"   Variables count: {len(variables)}")
+        for var in variables[:5]:  # Show first 5 variables
+            print(f"   - {var.get('name')}: {var.get('value')}")
+        if '-d ' in curl:
+            d_index = curl.find('-d ')
+            print(f"   Section around -d: {curl[max(0, d_index-10):min(len(curl), d_index+60)]}")
+
         curl = substitute_variables(curl, variables)
+
+        print(f"\n🟢 AFTER substitute_variables:")
+        if '-d ' in curl:
+            d_index = curl.find('-d ')
+            print(f"   Section around -d: {curl[max(0, d_index-10):min(len(curl), d_index+60)]}")
+            # Find ALL -d occurrences
+            all_d = []
+            idx = 0
+            while True:
+                idx = curl.find('-d ', idx)
+                if idx == -1:
+                    break
+                all_d.append(curl[idx:min(len(curl), idx+30)])
+                idx += 1
+            if len(all_d) > 1:
+                print(f"   ⚠️  WARNING: Found {len(all_d)} -d flags!")
+                for i, d in enumerate(all_d):
+                    print(f"      {i+1}. {d}")
 
         # Parse cURL
         print(f"\n{'='*80}")
