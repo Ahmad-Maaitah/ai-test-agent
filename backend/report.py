@@ -316,7 +316,7 @@ def generate_run_html_report(
                 <div class="test-item {result_class}">
                     <div class="test-header">
                         <span class="test-icon">{icon}</span>
-                        <span class="test-name">{rule.get('rule_name', '')}{field_display}</span>
+                        <span class="test-name">{rule.get('name') or rule.get('rule_name', '')}{field_display}</span>
                         <span class="test-type">{rule.get('rule_type', '')}</span>
                     </div>
                     <div class="test-details">

@@ -178,7 +178,8 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
 
     result = {
         'rule_id': rule.get('id'),
-        'rule_name': RULE_TYPES.get(rule_type, {}).get('name', rule_type),
+        'rule_name': rule.get('name') or RULE_TYPES.get(rule_type, {}).get('name', rule_type),
+        'name': rule.get('name'),  # Include custom name separately for reports
         'rule_type': RULE_TYPES.get(rule_type, {}).get('ruleType', 'functional'),
         'field': field,
         'result': 'FAIL',
@@ -369,21 +370,22 @@ def apply_dynamic_rules(rules: List[Dict], response: Any, response_time_ms: floa
     return results
 
 
-def extract_response_fields(data: Any, prefix: str = "", max_depth: int = 5) -> List[str]:
+def extract_response_fields(data: Any, prefix: str = "", max_depth: int = 10, current_depth: int = 0) -> List[str]:
     """
     Recursively extract all field paths from JSON response.
 
     Args:
         data: JSON data to extract fields from
         prefix: Current field path prefix
-        max_depth: Maximum nesting depth to prevent infinite recursion
+        max_depth: Maximum nesting depth to prevent infinite recursion (default: 10)
+        current_depth: Current recursion depth (internal use)
 
     Returns:
-        List of field paths (e.g., ["id", "data.name", "items.0.id"])
+        List of field paths (e.g., ["id", "data.name", "items.0.id", "items.*.id"])
     """
     fields = []
 
-    if max_depth <= 0:
+    if current_depth >= max_depth:
         return fields
 
     if isinstance(data, dict):
@@ -393,17 +395,30 @@ def extract_response_fields(data: Any, prefix: str = "", max_depth: int = 5) -> 
 
             # Recurse into nested structures
             if isinstance(value, (dict, list)):
-                fields.extend(extract_response_fields(value, field_path, max_depth - 1))
+                fields.extend(extract_response_fields(value, field_path, max_depth, current_depth + 1))
 
     elif isinstance(data, list) and len(data) > 0:
-        # Only show first item as example for arrays
-        first_item = data[0]
-        field_path = f"{prefix}.0" if prefix else "0"
+        # Add wildcard path for arrays
+        wildcard_path = f"{prefix}.*" if prefix else "*"
+        fields.append(wildcard_path)
 
-        if isinstance(first_item, (dict, list)):
-            fields.extend(extract_response_fields(first_item, field_path, max_depth - 1))
+        # Show first 3 items individually for easier access
+        for i, item in enumerate(data[:3]):
+            field_path = f"{prefix}.{i}" if prefix else str(i)
+
+            if isinstance(item, (dict, list)):
+                fields.extend(extract_response_fields(item, field_path, max_depth, current_depth + 1))
+            else:
+                fields.append(field_path)
+
+    # Add debug logging at the top level only
+    if current_depth == 0:
+        print(f"📋 Extracted {len(fields)} fields from response (max_depth={max_depth})")
+        if len(fields) > 50:
+            print(f"   First 10 fields: {fields[:10]}")
+            print(f"   Last 10 fields: {fields[-10:]}")
         else:
-            fields.append(field_path)
+            print(f"   All fields: {fields}")
 
     return fields
 

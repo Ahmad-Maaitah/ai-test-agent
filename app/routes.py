@@ -391,7 +391,10 @@ def run_apis():
                 field_path = source.get('fieldPath', '') if source else ''
                 if field_path:
                     new_value = get_nested_value(response_json, field_path)
-                    if new_value is not None and new_value != var.get('value'):
+                    old_value = var.get('value')  # Capture old value BEFORE update
+
+                    if new_value is not None and new_value != old_value:
+                        print(f"🔄 Variable '{var['name']}': {old_value} → {new_value}")
                         var['value'] = new_value
                         # Update type based on new value
                         if isinstance(new_value, bool):
@@ -1034,7 +1037,9 @@ def execute_curl():
                 if field_path:
                     # Get value from response using the saved field path
                     new_value = get_nested_value(response_json, field_path)
-                    if new_value is not None and new_value != var.get('value'):
+                    old_value = var.get('value')  # Capture old value BEFORE update
+
+                    if new_value is not None and new_value != old_value:
                         var['value'] = new_value
                         # Update type based on new value
                         if isinstance(new_value, bool):
@@ -1049,7 +1054,7 @@ def execute_curl():
                             var['type'] = 'object'
                         updated_variables.append({
                             'name': var['name'],
-                            'oldValue': var.get('value'),
+                            'oldValue': old_value,  # Use captured old value
                             'newValue': new_value
                         })
                         variables_updated = True

@@ -4558,6 +4558,7 @@
             const rule = {
                 id: generateRuleId(),
                 type: defaultType,
+                name: '',  // Custom name for the rule
                 field: availableFields[0] || '',
                 config: {},
                 enabled: true
@@ -4579,9 +4580,17 @@
         }
 
         function removeRule(ruleId) {
+            const rule = customRules.find(r => r.id === ruleId);
+            const ruleName = rule?.name || rule?.type || 'this rule';
+
+            if (!confirm(`Are you sure you want to delete "${ruleName}"?`)) {
+                return;  // User cancelled
+            }
+
             customRules = customRules.filter(r => r.id !== ruleId);
             rulesValidated = false;
             renderRules();
+            showToast('Rule deleted', 'success');
         }
 
         function updateRule(ruleId, field, value) {
@@ -4635,6 +4644,16 @@
                         <div class="rule-card-header">
                             <span class="rule-number">Rule ${index + 1}</span>
                             <button class="btn-icon" onclick="removeRule('${rule.id}')" title="Remove">🗑️</button>
+                        </div>
+                        <div class="rule-card-row" style="grid-template-columns: 1fr;">
+                            <div>
+                                <label>Rule Name (Optional)</label>
+                                <input type="text"
+                                       placeholder="e.g., Check User Status Code"
+                                       value="${escapeHtml(rule.name || '')}"
+                                       onchange="updateRule('${rule.id}', 'name', this.value)"
+                                       style="width: 100%;">
+                            </div>
                         </div>
                         <div class="rule-card-row">
                             <div>
@@ -8025,7 +8044,7 @@
                                                         <div class="test-case-item ${rule.result.toLowerCase()}">
                                                             <div class="test-case-header">
                                                                 <span class="test-case-icon">${rule.result === 'PASS' ? '✓' : '✗'}</span>
-                                                                <span class="test-case-name">${escapeHtml(rule.rule_name)}</span>
+                                                                <span class="test-case-name">${escapeHtml(rule.name || rule.rule_name)}</span>
                                                                 <span class="test-case-type">${rule.rule_type || ''}</span>
                                                             </div>
                                                             <div class="test-case-details">
