@@ -382,6 +382,10 @@ def run_apis():
 
         # Auto-update saved variables if response contains matching fields
         response_json = test_result.get('response_json')
+        print(f"\n🔍 Variable Update Check:")
+        print(f"   Response JSON present: {response_json is not None}")
+        print(f"   Total variables: {len(data.get('variables', []))}")
+
         if response_json is not None:
             from backend.flow_context import get_nested_value
             variables_updated = False
@@ -389,12 +393,18 @@ def run_apis():
             for var in data.get('variables', []):
                 source = var.get('source') if var.get('source') else {}
                 field_path = source.get('fieldPath', '') if source else ''
+                print(f"   Variable '{var['name']}': has fieldPath={bool(field_path)} ('{field_path}')")
+
                 if field_path:
                     new_value = get_nested_value(response_json, field_path)
                     old_value = var.get('value')  # Capture old value BEFORE update
 
+                    print(f"      Old value: {old_value}")
+                    print(f"      New value: {new_value}")
+                    print(f"      Values equal: {new_value == old_value}")
+
                     if new_value is not None and new_value != old_value:
-                        print(f"🔄 Variable '{var['name']}': {old_value} → {new_value}")
+                        print(f"   🔄 Variable '{var['name']}': {old_value} → {new_value}")
                         var['value'] = new_value
                         # Update type based on new value
                         if isinstance(new_value, bool):
@@ -1026,20 +1036,31 @@ def execute_curl():
 
         # Auto-update saved variables if response contains matching fields
         updated_variables = []
+        print(f"\n🔍 Variable Update Check (execute-curl):")
+        print(f"   Response JSON present: {response_json is not None}")
+
         if response_json is not None:
             from backend.flow_context import get_nested_value
             data = load_data()
             variables_updated = False
+            print(f"   Total variables: {len(data.get('variables', []))}")
 
             for var in data.get('variables', []):
                 source = var.get('source') if var.get('source') else {}
                 field_path = source.get('fieldPath', '') if source else ''
+                print(f"   Variable '{var['name']}': has fieldPath={bool(field_path)} ('{field_path}')")
+
                 if field_path:
                     # Get value from response using the saved field path
                     new_value = get_nested_value(response_json, field_path)
                     old_value = var.get('value')  # Capture old value BEFORE update
 
+                    print(f"      Old value: {old_value}")
+                    print(f"      New value: {new_value}")
+                    print(f"      Values equal: {new_value == old_value}")
+
                     if new_value is not None and new_value != old_value:
+                        print(f"   🔄 Updating variable '{var['name']}': {old_value} → {new_value}")
                         var['value'] = new_value
                         # Update type based on new value
                         if isinstance(new_value, bool):
