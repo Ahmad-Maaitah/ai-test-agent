@@ -399,11 +399,15 @@ def run_apis():
                     new_value = get_nested_value(response_json, field_path)
                     old_value = var.get('value')  # Capture old value BEFORE update
 
-                    print(f"      Old value: {old_value}")
-                    print(f"      New value: {new_value}")
-                    print(f"      Values equal: {new_value == old_value}")
+                    print(f"      Old value: {old_value} (type: {type(old_value).__name__})")
+                    print(f"      New value: {new_value} (type: {type(new_value).__name__})")
 
-                    if new_value is not None and new_value != old_value:
+                    # Convert both to strings for comparison to avoid type mismatch
+                    old_str = str(old_value) if old_value is not None else ""
+                    new_str = str(new_value) if new_value is not None else ""
+                    print(f"      Values equal: {new_str == old_str}")
+
+                    if new_value is not None and new_str != old_str:
                         print(f"   🔄 Variable '{var['name']}': {old_value} → {new_value}")
                         var['value'] = new_value
                         # Update type based on new value
@@ -1055,11 +1059,15 @@ def execute_curl():
                     new_value = get_nested_value(response_json, field_path)
                     old_value = var.get('value')  # Capture old value BEFORE update
 
-                    print(f"      Old value: {old_value}")
-                    print(f"      New value: {new_value}")
-                    print(f"      Values equal: {new_value == old_value}")
+                    print(f"      Old value: {old_value} (type: {type(old_value).__name__})")
+                    print(f"      New value: {new_value} (type: {type(new_value).__name__})")
 
-                    if new_value is not None and new_value != old_value:
+                    # Convert both to strings for comparison to avoid type mismatch
+                    old_str = str(old_value) if old_value is not None else ""
+                    new_str = str(new_value) if new_value is not None else ""
+                    print(f"      Values equal: {new_str == old_str}")
+
+                    if new_value is not None and new_str != old_str:
                         print(f"   🔄 Updating variable '{var['name']}': {old_value} → {new_value}")
                         var['value'] = new_value
                         # Update type based on new value
