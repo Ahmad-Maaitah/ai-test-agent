@@ -422,7 +422,9 @@ def run_apis():
                         variables_updated = True
 
             if variables_updated:
+                print(f"💾 SAVING updated variables to database...")
                 save_data(data)
+                print(f"✅ Variables saved successfully!")
 
         # Determine overall result based on rule_type
         structural_pass = all(
@@ -1089,7 +1091,9 @@ def execute_curl():
                         variables_updated = True
 
             if variables_updated:
+                print(f"💾 SAVING updated variables to database...")
                 save_data(data)
+                print(f"✅ Variables saved successfully!")
 
         return jsonify({
             'success': True,
