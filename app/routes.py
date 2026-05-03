@@ -33,12 +33,21 @@ def load_data():
 def save_data(data):
     """
     Save data to SQLite database.
-    This function is kept for compatibility but most operations
-    now use specific database helper functions.
+    Updates variables in the database.
     """
-    # Most save operations now happen through specific db_helpers functions
-    # This is kept for backward compatibility
-    pass
+    from backend.db_helpers import update_variable
+
+    # Save variables to database
+    if 'variables' in data:
+        for var in data['variables']:
+            if 'id' in var:
+                update_variable(var['id'], {
+                    'name': var.get('name'),
+                    'value': var.get('value'),
+                    'type': var.get('type'),
+                    'source': var.get('source')
+                })
+                print(f"   💾 Saved variable '{var.get('name')}' = {var.get('value')} to database")
 
 
 def generate_id():
