@@ -3826,7 +3826,7 @@
 
     <script>
         // ✅ VERSION CHECK - Look for this in console to verify latest code
-        console.log('%c✅ CODE VERSION: 2026-05-03-11:20 - All Rules improvements loaded', 'background: #4CAF50; color: white; padding: 5px; font-weight: bold;');
+        console.log('%c✅ CODE VERSION: 2026-05-03-15:05 - All Rules improvements loaded (NAME SAVE FIXED)', 'background: #4CAF50; color: white; padding: 5px; font-weight: bold;');
         console.log('If you see this message with timestamp 11:20, you have the latest code!');
         console.log('Features: ✓ Editable rule names ✓ Delete confirmation ✓ Variable updates ✓ More fields');
 
@@ -4622,6 +4622,8 @@
                 }
             } else if (field === 'field') {
                 rule.field = value;
+            } else if (field === 'name') {
+                rule.name = value;
             } else {
                 // Config field
                 rule.config[field] = value;
@@ -7141,10 +7143,18 @@
         }
 
         function removePageRule(ruleId) {
+            const rule = pageCustomRules.find(r => r.id === ruleId);
+            const ruleName = rule?.name || rule?.type || 'this rule';
+
+            if (!confirm(`Are you sure you want to delete "${ruleName}"?`)) {
+                return;  // User cancelled
+            }
+
             pageCustomRules = pageCustomRules.filter(r => r.id !== ruleId);
             pageRulesValidated = false;
             renderPageRules();
             updatePageStatus();
+            showToast('Rule deleted', 'success');
         }
 
         function updatePageRule(ruleId, field, value) {
@@ -7169,6 +7179,8 @@
                 }
             } else if (field === 'field') {
                 rule.field = value;
+            } else if (field === 'name') {
+                rule.name = value;
             } else {
                 rule.config[field] = value;
             }
@@ -7260,7 +7272,14 @@
                     <div class="rule-card-full" id="page-rule-${rule.id}">
                         <div class="rule-header">
                             <div class="rule-title">
-                                <span>Rule ${index + 1}</span>
+                                <input type="text"
+                                       class="rule-name-input"
+                                       placeholder="Enter rule name..."
+                                       value="${escapeHtml(rule.name || `Rule ${index + 1}`)}"
+                                       onchange="updatePageRule('${rule.id}', 'name', this.value)"
+                                       onfocus="if(this.value === 'Rule ${index + 1}') this.value = ''"
+                                       onblur="if(this.value.trim() === '') this.value = 'Rule ${index + 1}'"
+                                       style="border: none; background: transparent; font-weight: 600; font-size: 14px; color: #667eea; padding: 0; outline: none; max-width: 200px;">
                                 <span style="font-size: 11px; background: #e0e0e0; padding: 2px 8px; border-radius: 10px; color: #666;">${typeConfig.ruleType || 'functional'}</span>
                             </div>
                             <button class="btn-icon" onclick="removePageRule('${rule.id}')" title="Remove">🗑️</button>
