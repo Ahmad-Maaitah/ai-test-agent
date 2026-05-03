@@ -4644,9 +4644,11 @@
                         <div class="rule-card-header">
                             <input type="text"
                                    class="rule-name-input"
-                                   placeholder="Rule ${index + 1} - Enter name..."
-                                   value="${escapeHtml(rule.name || '')}"
+                                   placeholder="Enter rule name..."
+                                   value="${escapeHtml(rule.name || `Rule ${index + 1}`)}"
                                    onchange="updateRule('${rule.id}', 'name', this.value)"
+                                   onfocus="if(this.value === 'Rule ${index + 1}') this.value = ''"
+                                   onblur="if(this.value.trim() === '') this.value = 'Rule ${index + 1}'"
                                    style="border: none; background: transparent; font-weight: 600; font-size: 14px; color: #667eea; flex: 1; padding: 0; outline: none;">
                             <button class="btn-icon" onclick="removeRule('${rule.id}')" title="Remove">🗑️</button>
                         </div>
@@ -8562,3 +8564,4 @@
     {% endraw %}
 </body>
 </html>
+// Cache bust: 1777792434
