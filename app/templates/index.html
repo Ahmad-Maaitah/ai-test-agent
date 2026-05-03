@@ -4642,18 +4642,13 @@
                 return `
                     <div class="rule-card" id="rule-card-${rule.id}">
                         <div class="rule-card-header">
-                            <span class="rule-number">Rule ${index + 1}</span>
+                            <input type="text"
+                                   class="rule-name-input"
+                                   placeholder="Rule ${index + 1} - Enter name..."
+                                   value="${escapeHtml(rule.name || '')}"
+                                   onchange="updateRule('${rule.id}', 'name', this.value)"
+                                   style="border: none; background: transparent; font-weight: 600; font-size: 14px; color: #667eea; flex: 1; padding: 0; outline: none;">
                             <button class="btn-icon" onclick="removeRule('${rule.id}')" title="Remove">🗑️</button>
-                        </div>
-                        <div class="rule-card-row" style="grid-template-columns: 1fr;">
-                            <div>
-                                <label>Rule Name (Optional)</label>
-                                <input type="text"
-                                       placeholder="e.g., Check User Status Code"
-                                       value="${escapeHtml(rule.name || '')}"
-                                       onchange="updateRule('${rule.id}', 'name', this.value)"
-                                       style="width: 100%;">
-                            </div>
                         </div>
                         <div class="rule-card-row">
                             <div>
