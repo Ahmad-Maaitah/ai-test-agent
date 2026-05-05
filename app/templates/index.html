@@ -1213,10 +1213,11 @@
         /* Create API Full Page Layout */
         .create-api-layout {
             display: grid;
-            grid-template-columns: 250px 1fr 350px;
+            grid-template-columns: 250px 1fr var(--right-panel-width, 350px);
             gap: 0;
             height: calc(100vh - 180px);
             background: #f5f5f5;
+            position: relative;
         }
 
         .create-api-header {
@@ -1480,6 +1481,43 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
+        }
+
+        /* Resize Handle */
+        .resize-handle {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            cursor: ew-resize;
+            background: transparent;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+
+        .resize-handle:hover,
+        .resize-handle.dragging {
+            background: #667eea;
+        }
+
+        .resize-handle::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 3px;
+            height: 40px;
+            background: #ddd;
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .resize-handle:hover::before {
+            opacity: 1;
         }
 
         .right-panel-header {
@@ -2242,6 +2280,48 @@
             background: #f0f0f0;
             border-color: #bbb;
             color: #333;
+        }
+
+        /* Response Search Input */
+        .response-search-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 8px 0;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .response-search-input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .response-search-input:focus {
+            border-color: #667eea;
+        }
+
+        .search-results-info {
+            font-size: 11px;
+            color: #7f8c8d;
+            white-space: nowrap;
+        }
+
+        /* Search Highlighting */
+        .json-search-highlight {
+            background-color: #fff59d !important;
+            padding: 2px 0;
+            border-radius: 2px;
+        }
+
+        .json-search-highlight.current {
+            background-color: #ff9800 !important;
+            color: white;
         }
 
         /* JSON Tree View Styles - Light Theme like JSON Editor Online */
@@ -3477,6 +3557,9 @@
 
                 <!-- Right Panel -->
                 <div class="right-panel">
+                    <!-- Resize Handle -->
+                    <div class="resize-handle" id="resize-handle"></div>
+
                     <div class="right-panel-header">
                         <h4>Response Preview</h4>
                         <div class="response-actions">
@@ -3505,6 +3588,16 @@
                         </div>
                         <div class="response-meta-full" id="page-response-meta">
                             <span class="meta-badge neutral">No response yet</span>
+                        </div>
+
+                        <!-- Search Input -->
+                        <div class="response-search-container">
+                            <input type="text"
+                                   class="response-search-input"
+                                   id="response-search-input"
+                                   placeholder="Search in response..."
+                                   oninput="searchInResponse(this.value)">
+                            <span class="search-results-info" id="search-results-info"></span>
                         </div>
                     </div>
                     <div class="response-json empty" id="page-response-json">
@@ -3826,7 +3919,7 @@
 
     <script>
         // ✅ VERSION CHECK - Look for this in console to verify latest code
-        console.log('%c✅ CODE VERSION: 2026-05-03-15:05 - All Rules improvements loaded (NAME SAVE FIXED)', 'background: #4CAF50; color: white; padding: 5px; font-weight: bold;');
+        console.log('%c✅ CODE VERSION: 2026-05-03-16:10 - Copy cURL with variables AS-IS', 'background: #4CAF50; color: white; padding: 5px; font-weight: bold;');
         console.log('If you see this message with timestamp 11:20, you have the latest code!');
         console.log('Features: ✓ Editable rule names ✓ Delete confirmation ✓ Variable updates ✓ More fields');
 
@@ -4439,28 +4532,9 @@
                 return;
             }
 
-            // Replace variables with their values
-            let processedCurl = curl;
-            const varPattern = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
-            let match;
-            let missingVars = [];
-
-            while ((match = varPattern.exec(curl)) !== null) {
-                const varName = match[1];
-                if (runtimeVariables[varName]) {
-                    const value = runtimeVariables[varName].value;
-                    processedCurl = processedCurl.replace(new RegExp(`\\{\\{${varName}\\}\\}`, 'g'), value);
-                } else {
-                    missingVars.push(varName);
-                }
-            }
-
-            if (missingVars.length > 0) {
-                showToast(`Warning: Missing variables: ${missingVars.join(', ')}`, 'error');
-            }
-
-            navigator.clipboard.writeText(processedCurl).then(() => {
-                showToast('cURL copied to clipboard' + (missingVars.length > 0 ? ' (with some variables unresolved)' : ''));
+            // Copy cURL AS-IS with {{variable}} placeholders intact
+            navigator.clipboard.writeText(curl).then(() => {
+                showToast('cURL copied to clipboard');
             }).catch(err => {
                 showToast('Failed to copy: ' + err.message, 'error');
             });
@@ -6050,16 +6124,8 @@
                 return;
             }
 
-            // Replace variables
-            const processedUrl = replaceVariables(url).text;
-            const processedHeaders = {};
-            for (const [key, value] of Object.entries(headers)) {
-                processedHeaders[replaceVariables(key).text] = replaceVariables(value).text;
-            }
-            const processedBody = replaceVariables(body).text;
-
-            // Build cURL command
-            const curl = buildCurlCommand(method, processedUrl, processedHeaders, processedBody, bodyType);
+            // Build cURL command WITHOUT replacing variables - keep {{variable}} as-is
+            const curl = buildCurlCommand(method, url, headers, body, bodyType);
 
             navigator.clipboard.writeText(curl).then(() => {
                 showToast('cURL copied to clipboard');
@@ -6168,6 +6234,18 @@
                             jsonDiv.classList.remove('interactive');
                             jsonDiv.textContent = data.response_text || 'No JSON response';
                         }
+
+                        // Clear search when new response is loaded
+                        const searchInput = document.getElementById('response-search-input');
+                        if (searchInput) {
+                            searchInput.value = '';
+                        }
+                        const resultsInfo = document.getElementById('search-results-info');
+                        if (resultsInfo) {
+                            resultsInfo.textContent = '';
+                        }
+                        searchMatches = [];
+                        currentMatchIndex = -1;
                     }
 
                     // Update fields count and list
@@ -6630,6 +6708,174 @@
             }).catch(err => {
                 showToast('Failed to copy: ' + err.message, 'error');
             });
+        }
+
+        // Resizable Panel Functionality
+        let isResizing = false;
+        let currentRightPanelWidth = 350;
+
+        function initResizablePanel() {
+            const resizeHandle = document.getElementById('resize-handle');
+            const layout = document.querySelector('.create-api-layout');
+
+            if (!resizeHandle || !layout) return;
+
+            resizeHandle.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                resizeHandle.classList.add('dragging');
+                document.body.style.cursor = 'ew-resize';
+                document.body.style.userSelect = 'none';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+
+                const layoutRect = layout.getBoundingClientRect();
+                const newWidth = layoutRect.right - e.clientX;
+
+                // Constrain width between 250px and 600px
+                if (newWidth >= 250 && newWidth <= 600) {
+                    currentRightPanelWidth = newWidth;
+                    layout.style.setProperty('--right-panel-width', `${newWidth}px`);
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizeHandle.classList.remove('dragging');
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                }
+            });
+        }
+
+        // Initialize resize on page load
+        document.addEventListener('DOMContentLoaded', initResizablePanel);
+
+        // Response Search Functionality
+        let searchMatches = [];
+        let currentMatchIndex = -1;
+
+        function searchInResponse(searchTerm) {
+            const responseContainer = document.getElementById('page-response-json');
+            const resultsInfo = document.getElementById('search-results-info');
+
+            // Clear previous highlights
+            clearSearchHighlights();
+            searchMatches = [];
+            currentMatchIndex = -1;
+
+            if (!searchTerm || !pageLastResponse) {
+                resultsInfo.textContent = '';
+                return;
+            }
+
+            // Get all text nodes in the response container
+            const walker = document.createTreeWalker(
+                responseContainer,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            const nodesToHighlight = [];
+            let node;
+
+            while (node = walker.nextNode()) {
+                const text = node.textContent;
+                const lowerText = text.toLowerCase();
+                const lowerSearch = searchTerm.toLowerCase();
+
+                if (lowerText.includes(lowerSearch)) {
+                    nodesToHighlight.push(node);
+                }
+            }
+
+            // Highlight matches
+            nodesToHighlight.forEach(node => {
+                const text = node.textContent;
+                const lowerText = text.toLowerCase();
+                const lowerSearch = searchTerm.toLowerCase();
+                let lastIndex = 0;
+                const fragment = document.createDocumentFragment();
+
+                while (true) {
+                    const index = lowerText.indexOf(lowerSearch, lastIndex);
+                    if (index === -1) break;
+
+                    // Add text before match
+                    if (index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(text.substring(lastIndex, index)));
+                    }
+
+                    // Add highlighted match
+                    const span = document.createElement('span');
+                    span.className = 'json-search-highlight';
+                    span.textContent = text.substring(index, index + searchTerm.length);
+                    fragment.appendChild(span);
+                    searchMatches.push(span);
+
+                    lastIndex = index + searchTerm.length;
+                }
+
+                // Add remaining text
+                if (lastIndex < text.length) {
+                    fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+                }
+
+                node.parentNode.replaceChild(fragment, node);
+            });
+
+            // Update results info
+            if (searchMatches.length > 0) {
+                currentMatchIndex = 0;
+                searchMatches[0].classList.add('current');
+                searchMatches[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                resultsInfo.textContent = `${currentMatchIndex + 1} of ${searchMatches.length}`;
+            } else {
+                resultsInfo.textContent = 'No matches';
+            }
+        }
+
+        function clearSearchHighlights() {
+            const highlights = document.querySelectorAll('.json-search-highlight');
+            highlights.forEach(span => {
+                const text = document.createTextNode(span.textContent);
+                span.parentNode.replaceChild(text, span);
+            });
+
+            // Normalize text nodes
+            const responseContainer = document.getElementById('page-response-json');
+            if (responseContainer) {
+                responseContainer.normalize();
+            }
+        }
+
+        // Navigate search results with arrow keys
+        document.addEventListener('keydown', (e) => {
+            const searchInput = document.getElementById('response-search-input');
+            if (document.activeElement !== searchInput || searchMatches.length === 0) return;
+
+            if (e.key === 'Enter' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                navigateSearchResults(1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                navigateSearchResults(-1);
+            }
+        });
+
+        function navigateSearchResults(direction) {
+            if (searchMatches.length === 0) return;
+
+            searchMatches[currentMatchIndex].classList.remove('current');
+            currentMatchIndex = (currentMatchIndex + direction + searchMatches.length) % searchMatches.length;
+            searchMatches[currentMatchIndex].classList.add('current');
+            searchMatches[currentMatchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            const resultsInfo = document.getElementById('search-results-info');
+            resultsInfo.textContent = `${currentMatchIndex + 1} of ${searchMatches.length}`;
         }
 
         // Open save variable modal using path (retrieves value from pageLastResponse)
