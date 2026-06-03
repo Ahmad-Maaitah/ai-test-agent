@@ -149,8 +149,8 @@ def generate_html_report(
     <title>Test Report - {api_name}</title>
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-        html {{ overflow-y: auto; height: auto; }}
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; min-height: 100vh; overflow-y: auto; }}
+        html {{ overflow-y: scroll; overflow-x: hidden; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; min-height: 100vh; overflow: visible; }}
         .container {{ max-width: 900px; margin: 0 auto; }}
         .header {{ background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 25px; border-radius: 10px 10px 0 0; }}
         .header h1 {{ font-size: 1.5rem; margin-bottom: 5px; }}
@@ -383,13 +383,13 @@ def generate_run_html_report(
     <title>Test Report - {run_id}</title>
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-        html {{ overflow-y: auto; height: auto; }}
+        html {{ overflow-y: scroll; overflow-x: hidden; }}
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
             min-height: 100vh;
             padding: 30px;
-            overflow-y: auto;
+            overflow: visible;
         }}
         .container {{ max-width: 1100px; margin: 0 auto; }}
 
