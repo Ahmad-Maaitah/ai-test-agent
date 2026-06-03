@@ -1003,6 +1003,12 @@ def execute_curl():
 
         # Prepare request parameters with proper JSON handling
         headers = parsed_curl.get('headers', {})
+
+        # Add default User-Agent if missing (prevents 403 on many APIs)
+        if not any(key.lower() == 'user-agent' for key in headers.keys()):
+            headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            print("ℹ️  Added default User-Agent header (was missing)")
+
         data = parsed_curl.get('data')
         content_type = headers.get('Content-Type', headers.get('content-type', ''))
         is_json = 'application/json' in content_type.lower()
