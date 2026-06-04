@@ -3341,7 +3341,7 @@
                 <h2 id="create-api-title">Create New API</h2>
                 <div class="header-actions">
                     <button class="btn btn-secondary" onclick="cancelCreateApi()">Cancel</button>
-                    <button class="btn btn-success" id="page-save-btn" onclick="saveApiFromPage()" disabled>Save API</button>
+                    <button class="btn btn-success" id="page-save-btn" onclick="saveApiFromPage()">Save API</button>
                 </div>
             </div>
 
@@ -3919,7 +3919,7 @@
 
     <script>
         // ✅ VERSION CHECK - Look for this in console to verify latest code
-        console.log('%c✅ CODE VERSION: 2026-05-03-16:10 - Copy cURL with variables AS-IS', 'background: #4CAF50; color: white; padding: 5px; font-weight: bold;');
+        console.log('%c✅ CODE VERSION: 2026-05-03-17:00 - Save button always enabled, rules optional', 'background: #4CAF50; color: white; padding: 5px; font-weight: bold;');
         console.log('If you see this message with timestamp 11:20, you have the latest code!');
         console.log('Features: ✓ Editable rule names ✓ Delete confirmation ✓ Variable updates ✓ More fields');
 
@@ -4017,7 +4017,7 @@
 
             if (title) title.textContent = 'Create New API';
             if (nameInput) nameInput.value = '';
-            if (saveBtn) saveBtn.disabled = true;
+            // Save button is always enabled
 
             // Reset Structured Request Editor
             const methodSelect = document.getElementById('request-method');
@@ -7024,7 +7024,7 @@
 
             if (title) title.textContent = 'Create New API';
             if (nameInput) nameInput.value = '';
-            if (saveBtn) saveBtn.disabled = true;
+            // Save button is always enabled
 
             // Reset Structured Request Editor
             const methodSelect = document.getElementById('request-method');
@@ -7131,7 +7131,7 @@
 
             document.getElementById('create-api-title').textContent = `Edit: ${api.name}`;
             document.getElementById('page-api-name').value = api.name;
-            document.getElementById('page-save-btn').disabled = true;
+            // Save button is always enabled
 
             // Parse saved cURL and populate the Structured Request Editor
             parseCurlToEditor(api.curl);
@@ -7652,10 +7652,10 @@
                     const allPassed = data.results.every(r => r.result === 'PASS');
                     pageRulesValidated = allPassed;
 
-                    document.getElementById('page-save-btn').disabled = !allPassed;
+                    // Save button is always enabled - rules are optional
                     updatePageStatus();
 
-                    showToast(allPassed ? 'All rules validated!' : 'Some rules failed - fix them to save');
+                    showToast(allPassed ? 'All rules validated!' : 'Some rules failed - you can still save');
                 } else {
                     showToast(data.error || 'Validation failed', 'error');
                 }
@@ -7688,7 +7688,7 @@
 
             rulesStatus.innerHTML = `<span>Rules: ${pageCustomRules.length}</span>`;
 
-            // Check all conditions for enabling save
+            // Check all conditions for status display
             const hasName = name.length > 0;
             const hasUrl = url.length > 0;
             const hasSection = sectionId && sectionId.length > 0;
@@ -7697,12 +7697,8 @@
             // Rules are valid if all have been auto-validated and passed
             const allRulesPassed = hasRules && pageRulesValidated;
 
-            // When editing existing API, allow save without re-validating rules
-            const isEditing = pageEditingApiId !== null;
-            const canSave = isEditing
-                ? (hasName && hasUrl && hasSection)  // Editing: just need basic info
-                : (hasName && hasUrl && hasSection && hasRules && allRulesPassed);  // New: need validated rules
-            saveBtn.disabled = !canSave;
+            // Save button is ALWAYS enabled - validation happens in saveApiFromPage()
+            saveBtn.disabled = false;
 
             // Update status display
             if (!hasName) {
@@ -7717,18 +7713,18 @@
                 validatedStatus.className = 'status-item fail';
                 validatedStatus.innerHTML = '<span>Missing info</span>';
                 message.textContent = 'Enter request URL';
-            } else if (!hasRules && !isEditing) {
+            } else if (!hasRules) {
                 validatedStatus.className = 'status-item';
                 validatedStatus.innerHTML = '<span>No rules</span>';
-                message.textContent = 'Add at least one test rule';
-            } else if (!allRulesPassed && !isEditing) {
+                message.textContent = 'No test rules added (optional)';
+            } else if (!allRulesPassed) {
                 validatedStatus.className = 'status-item fail';
                 validatedStatus.innerHTML = '<span>Rules failing</span>';
-                message.textContent = 'Fix failing rules to save';
+                message.textContent = 'Some rules are failing - validate to check';
             } else {
                 validatedStatus.className = 'status-item pass';
                 validatedStatus.innerHTML = '<span>✓ Ready</span>';
-                message.textContent = isEditing ? 'Ready to save changes' : 'All checks passed - ready to save';
+                message.textContent = isEditing ? 'Ready to save changes' : 'Ready to save';
             }
         }
 
@@ -8109,7 +8105,7 @@
             const name = document.getElementById('page-api-name').value.trim();
             const curl = getCurrentCurlCommand();
 
-            // Validate required fields
+            // Validate required fields only (rules are optional)
             if (!name) {
                 showToast('API name is required', 'error');
                 return;
@@ -8122,17 +8118,8 @@
                 showToast('Request URL is required', 'error');
                 return;
             }
-            // For new APIs, require rules. For editing, rules are optional (already validated at creation)
-            const isEditing = pageEditingApiId !== null;
 
-            if (!isEditing && pageCustomRules.length === 0) {
-                showToast('Add at least one test rule', 'error');
-                return;
-            }
-            if (!isEditing && !pageRulesValidated) {
-                showToast('All rules must pass before saving', 'error');
-                return;
-            }
+            // Rules are optional - user can save API without any rules
 
             // Check for duplicate API name in section
             if (checkDuplicateName(name, sectionId)) {
