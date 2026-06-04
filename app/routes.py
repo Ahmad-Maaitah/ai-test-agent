@@ -937,6 +937,7 @@ def execute_curl():
 
     req_data = request.get_json()
     curl = req_data.get('curl', '').strip()
+    api_id = req_data.get('apiId')  # Get API ID if executing from editing page
 
     # DEBUG: Show what was received from frontend
     print(f"\n🔴 RAW CURL RECEIVED FROM FRONTEND:")
@@ -1078,13 +1079,18 @@ def execute_curl():
         updated_variables = []
         print(f"\n🔍 Variable Update Check (execute-curl):")
         print(f"   Response JSON present: {response_json is not None}")
+        print(f"   Executing API ID: {api_id or 'None (creating new API)'}")
 
         if response_json is not None:
             from backend.flow_context import get_nested_value
             data = load_data()
             variables_updated = False
             print(f"   Total variables: {len(data.get('variables', []))}")
-            print(f"   Note: Only updating variables WITHOUT apiId (global variables)")
+
+            if api_id:
+                print(f"   Mode: Update variables belonging to API '{api_id}' OR global variables (no apiId)")
+            else:
+                print(f"   Mode: Only update global variables (no apiId)")
 
             for var in data.get('variables', []):
                 source = var.get('source') if var.get('source') else {}
@@ -1093,10 +1099,28 @@ def execute_curl():
 
                 print(f"   Variable '{var['name']}': apiId='{source_api_id}', fieldPath='{field_path}'")
 
-                # Only update variables that are NOT tied to a specific API (global variables)
-                # Variables with apiId are managed by their specific API in /api/run
-                if field_path and not source_api_id:
-                    print(f"      ✅ Global variable - checking for updates")
+                # Skip if no field path
+                if not field_path:
+                    print(f"      ⏭️  Skipped - no field path")
+                    continue
+
+                # Determine if we should update this variable
+                should_update = False
+
+                if not source_api_id:
+                    # Global variable - always update
+                    print(f"      ✅ Global variable (no apiId) - will update")
+                    should_update = True
+                elif api_id and source_api_id == api_id:
+                    # Variable belongs to this API - update
+                    print(f"      ✅ Variable belongs to this API - will update")
+                    should_update = True
+                else:
+                    # Variable belongs to a different API - skip
+                    print(f"      ⏭️  Skipped - variable belongs to API '{source_api_id}', not this API")
+                    continue
+
+                if should_update:
                     # Get value from response using the saved field path
                     new_value = get_nested_value(response_json, field_path)
                     old_value = var.get('value')  # Capture old value BEFORE update
@@ -1129,8 +1153,6 @@ def execute_curl():
                             'newValue': new_value
                         })
                         variables_updated = True
-                elif field_path and source_api_id:
-                    print(f"      ⏭️  Skipped - variable belongs to API '{source_api_id}', managed by /api/run only")
 
             if variables_updated:
                 print(f"💾 SAVING updated variables to database...")

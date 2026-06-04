@@ -4556,7 +4556,10 @@
                 const response = await fetch('/api/execute-curl', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ curl })
+                    body: JSON.stringify({
+                        curl,
+                        apiId: pageEditingApiId || null
+                    })
                 });
 
                 let data;
@@ -6201,7 +6204,10 @@
                 const response = await fetch('/api/execute-curl', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ curl })
+                    body: JSON.stringify({
+                        curl,
+                        apiId: pageEditingApiId || null
+                    })
                 });
 
                 const data = await response.json();
