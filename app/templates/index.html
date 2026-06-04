@@ -4521,10 +4521,44 @@
         }
 
         // =============================================================================
+        // Clipboard Helper (works on both HTTP and HTTPS)
+        // =============================================================================
+
+        async function copyToClipboard(text) {
+            // Try modern clipboard API first (works on HTTPS and localhost)
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (err) {
+                    console.log('Clipboard API failed, trying fallback:', err);
+                }
+            }
+
+            // Fallback for HTTP (non-secure contexts)
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-999999px';
+                textarea.style.top = '-999999px';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                const success = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                return success;
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                return false;
+            }
+        }
+
+        // =============================================================================
         // Rules Builder Functions
         // =============================================================================
 
-        function copyCurlWithVariables() {
+        async function copyCurlWithVariables() {
             const curl = document.getElementById('api-curl').value.trim();
 
             if (!curl) {
@@ -4533,11 +4567,12 @@
             }
 
             // Copy cURL AS-IS with {{variable}} placeholders intact
-            navigator.clipboard.writeText(curl).then(() => {
+            const success = await copyToClipboard(curl);
+            if (success) {
                 showToast('cURL copied to clipboard');
-            }).catch(err => {
-                showToast('Failed to copy: ' + err.message, 'error');
-            });
+            } else {
+                showToast('Failed to copy to clipboard', 'error');
+            }
         }
 
         async function executeAndParseCurl() {
@@ -6108,7 +6143,7 @@
             return buildCurlCommand(method, url, headers, body, bodyType);
         }
 
-        function copyBuiltCurlWithVariables() {
+        async function copyBuiltCurlWithVariables() {
             const method = document.getElementById('request-method').value;
             const url = document.getElementById('request-url').value.trim();
             const headers = getHeadersFromTable();
@@ -6130,10 +6165,11 @@
             // Build cURL command WITHOUT replacing variables - keep {{variable}} as-is
             const curl = buildCurlCommand(method, url, headers, body, bodyType);
 
-            navigator.clipboard.writeText(curl).then(() => {
+            const success = await copyToClipboard(curl);
+            if (success) {
                 showToast('cURL copied to clipboard');
-            }).catch(err => {
-                showToast('Failed to copy: ' + err.message, 'error');
+            } else {
+                showToast('Failed to copy to clipboard', 'error');
             });
         }
 
@@ -6708,18 +6744,19 @@
             });
         }
 
-        function copyResponseJson() {
+        async function copyResponseJson() {
             if (!pageLastResponse) {
                 showToast('No response to copy', 'error');
                 return;
             }
 
             const jsonStr = JSON.stringify(pageLastResponse, null, 2);
-            navigator.clipboard.writeText(jsonStr).then(() => {
+            const success = await copyToClipboard(jsonStr);
+            if (success) {
                 showToast('JSON copied to clipboard');
-            }).catch(err => {
-                showToast('Failed to copy: ' + err.message, 'error');
-            });
+            } else {
+                showToast('Failed to copy to clipboard', 'error');
+            }
         }
 
         // Resizable Panel Functionality
@@ -6938,10 +6975,13 @@
             container.innerHTML = html;
         }
 
-        function copyVariableToClipboard(name) {
-            navigator.clipboard.writeText(`{{${name}}}`).then(() => {
+        async function copyVariableToClipboard(name) {
+            const success = await copyToClipboard(`{{${name}}}`);
+            if (success) {
                 showToast(`Copied {{${name}}} to clipboard`);
-            });
+            } else {
+                showToast('Failed to copy to clipboard', 'error');
+            }
         }
 
         // Variable Injection System
