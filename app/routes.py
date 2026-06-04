@@ -407,35 +407,47 @@ def run_apis():
 
                 print(f"   Variable '{var['name']}': apiId='{source_api_id}', fieldPath='{field_path}'")
 
-                # Only update variables that belong to THIS API
-                if field_path and source_api_id == api['id']:
-                    print(f"      ✅ Variable belongs to this API - checking for updates")
-                    new_value = get_nested_value(response_json, field_path)
-                    old_value = var.get('value')  # Capture old value BEFORE update
+                # Skip if no field path
+                if not field_path:
+                    print(f"      ⏭️  Skipped - no field path")
+                    continue
 
-                    print(f"      Old value: {old_value} (type: {type(old_value).__name__})")
-                    print(f"      New value: {new_value} (type: {type(new_value).__name__})")
+                # Skip if variable has NO apiId (global variables should not be updated by /api/run)
+                if not source_api_id:
+                    print(f"      ⏭️  Skipped - no apiId (global variable, not updated by /api/run)")
+                    continue
 
-                    # Convert both to strings for comparison to avoid type mismatch
-                    old_str = str(old_value) if old_value is not None else ""
-                    new_str = str(new_value) if new_value is not None else ""
-                    print(f"      Values equal: {new_str == old_str}")
-
-                    if new_value is not None and new_str != old_str:
-                        print(f"   🔄 Variable '{var['name']}': {old_value} → {new_value}")
-                        var['value'] = new_value
-                        # Update type based on new value
-                        if isinstance(new_value, bool):
-                            var['type'] = 'boolean'
-                        elif isinstance(new_value, (int, float)):
-                            var['type'] = 'number'
-                        elif isinstance(new_value, str):
-                            var['type'] = 'string'
-                        elif isinstance(new_value, (list, dict)):
-                            var['type'] = 'object'
-                        variables_updated = True
-                elif field_path and source_api_id and source_api_id != api['id']:
+                # Skip if variable belongs to a different API
+                if source_api_id != api['id']:
                     print(f"      ⏭️  Skipped - variable belongs to API '{source_api_id}', not this API")
+                    continue
+
+                # Update variable - it belongs to THIS API
+                print(f"      ✅ Variable belongs to this API - checking for updates")
+                new_value = get_nested_value(response_json, field_path)
+                old_value = var.get('value')  # Capture old value BEFORE update
+
+                print(f"      Old value: {old_value} (type: {type(old_value).__name__})")
+                print(f"      New value: {new_value} (type: {type(new_value).__name__})")
+
+                # Convert both to strings for comparison to avoid type mismatch
+                old_str = str(old_value) if old_value is not None else ""
+                new_str = str(new_value) if new_value is not None else ""
+                print(f"      Values equal: {new_str == old_str}")
+
+                if new_value is not None and new_str != old_str:
+                    print(f"   🔄 Variable '{var['name']}': {old_value} → {new_value}")
+                    var['value'] = new_value
+                    # Update type based on new value
+                    if isinstance(new_value, bool):
+                        var['type'] = 'boolean'
+                    elif isinstance(new_value, (int, float)):
+                        var['type'] = 'number'
+                    elif isinstance(new_value, str):
+                        var['type'] = 'string'
+                    elif isinstance(new_value, (list, dict)):
+                        var['type'] = 'object'
+                    variables_updated = True
 
             if variables_updated:
                 print(f"💾 SAVING updated variables to database...")
