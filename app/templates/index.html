@@ -6504,6 +6504,10 @@
             const apiName = document.getElementById('page-api-name').value || 'Unnamed API';
             const valueType = getValueType(saveVariableValue);
 
+            // Get current API ID if editing existing API
+            const currentApiId = pageEditingApiId || null;
+            console.log(`💾 Saving variable with apiId: ${currentApiId}, apiName: ${apiName}`);
+
             // Check if variable already exists
             const existingVar = savedVariables.find(v => v.name === varName);
 
@@ -6522,6 +6526,7 @@
                             value: saveVariableValue,
                             type: valueType,
                             source: {
+                                apiId: currentApiId,
                                 apiName: apiName,
                                 fieldPath: saveVariableFieldPath
                             }
@@ -6537,6 +6542,7 @@
                             value: saveVariableValue,
                             type: valueType,
                             source: {
+                                apiId: currentApiId,
                                 apiName: apiName,
                                 fieldPath: saveVariableFieldPath
                             }
@@ -8170,6 +8176,35 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    // If creating new API, update all variables with this API name to include the API ID
+                    if (!pageEditingApiId && data.api && data.api.id) {
+                        console.log(`✅ New API created with ID: ${data.api.id}`);
+                        console.log(`📝 Updating variables with apiName="${name}" to include apiId`);
+
+                        // Update all variables that have source.apiName matching this API
+                        for (const variable of savedVariables) {
+                            const source = variable.source || {};
+                            if (source.apiName === name && !source.apiId) {
+                                console.log(`   Updating variable: ${variable.name}`);
+                                await fetch(`/api/variables/${variable.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        name: variable.name,
+                                        value: variable.value,
+                                        type: variable.type,
+                                        source: {
+                                            apiId: data.api.id,
+                                            apiName: source.apiName,
+                                            fieldPath: source.fieldPath
+                                        }
+                                    })
+                                });
+                            }
+                        }
+                        await loadVariables(); // Refresh variables from backend
+                    }
+
                     showToast(pageEditingApiId ?
                         `API updated with ${pageCustomRules.length} rules` :
                         `API created with ${pageCustomRules.length} rules`);
