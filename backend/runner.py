@@ -48,6 +48,10 @@ def execute_api_request(parsed_curl: dict, timeout: int = DEFAULT_TIMEOUT) -> re
     headers = parsed_curl.get('headers', {})
     data = parsed_curl.get('data')
 
+    # Add default User-Agent if missing (prevents 403 on many APIs)
+    if not any(key.lower() == 'user-agent' for key in headers.keys()):
+        headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+
     # Determine if we should send JSON or raw data
     content_type = headers.get('Content-Type', headers.get('content-type', ''))
     is_json = 'application/json' in content_type.lower()
