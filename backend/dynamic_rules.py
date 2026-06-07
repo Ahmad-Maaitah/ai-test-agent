@@ -290,9 +290,12 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
             operator = config.get('operator', 'equals')
             expected_value = config.get('expectedValue', '')
             # Strip surrounding quotes if user added them
-            if expected_value.startswith('"') and expected_value.endswith('"'):
+            # BUT: if value is exactly "" or '', keep it as empty string (user's intent)
+            if expected_value == '""' or expected_value == "''":
+                expected_value = ''
+            elif expected_value.startswith('"') and expected_value.endswith('"') and len(expected_value) > 2:
                 expected_value = expected_value[1:-1]
-            elif expected_value.startswith("'") and expected_value.endswith("'"):
+            elif expected_value.startswith("'") and expected_value.endswith("'") and len(expected_value) > 2:
                 expected_value = expected_value[1:-1]
             value, found = get_nested_field(response, field)
 
