@@ -392,6 +392,15 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
         except Exception:
             result['response_json'] = None
 
+        # DEBUG: Log what we're returning
+        print(f"\n🔍 run_test_pipeline RETURNING:")
+        print(f"   Success: {result['success']}")
+        print(f"   Status Code: {result['status_code']}")
+        print(f"   Rule Results Count: {len(result.get('rule_results', []))}")
+        if result.get('rule_results'):
+            for i, r in enumerate(result['rule_results'][:3]):  # Show first 3
+                print(f"     Rule {i+1}: {r.get('rule_name')} - {r.get('result')}")
+
     except requests.exceptions.Timeout:
         result['error'] = f'API request timed out after {DEFAULT_TIMEOUT} seconds'
         result['rule_results'] = [

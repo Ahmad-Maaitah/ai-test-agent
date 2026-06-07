@@ -346,17 +346,30 @@ def run_apis():
     if not api_ids:
         return jsonify({'success': False, 'error': 'No APIs selected'}), 400
 
+    # Load data for variables and sections
     data = load_data()
 
-    # Find APIs to run
+    # Import database helper to get APIs with rules
+    from backend.db_helpers import get_api_by_id
+
+    # Find APIs to run - load from DATABASE (has rules) instead of data.json
     apis_to_run = []
-    for section in data['sections']:
-        for api in section['apis']:
-            if api['id'] in api_ids:
-                apis_to_run.append({
-                    'api': api,
-                    'section': section['name']
-                })
+    for api_id in api_ids:
+        api = get_api_by_id(api_id)
+        if api:
+            # Find section name
+            section_name = 'Default Section'
+            for section in data.get('sections', []):
+                if section['id'] == api.get('section_id'):
+                    section_name = section['name']
+                    break
+
+            apis_to_run.append({
+                'api': api,
+                'section': section_name
+            })
+            print(f"📦 Loaded API from database: {api['name']}")
+            print(f"   customRules count: {len(api.get('customRules', []))}")
 
     if not apis_to_run:
         return jsonify({'success': False, 'error': 'No valid APIs found'}), 400
@@ -385,7 +398,16 @@ def run_apis():
         start_time = datetime.now()
         # Pass custom rules to runner if available
         custom_rules = api.get('customRules', [])
+        print(f"\n🎯 /api/run calling run_test_pipeline:")
+        print(f"   API: {api['name']}")
+        print(f"   Custom Rules Count: {len(custom_rules)}")
         test_result = run_test_pipeline(curl_command, api_name=api['name'], custom_rules=custom_rules)
+        print(f"\n📥 /api/run RECEIVED from run_test_pipeline:")
+        print(f"   Success: {test_result.get('success')}")
+        print(f"   Rule Results Count: {len(test_result.get('rule_results', []))}")
+        if test_result.get('rule_results'):
+            for i, r in enumerate(test_result['rule_results'][:3]):
+                print(f"     Rule {i+1}: {r.get('rule_name')} - {r.get('result')}")
         end_time = datetime.now()
         execution_time = int((end_time - start_time).total_seconds() * 1000)
 
