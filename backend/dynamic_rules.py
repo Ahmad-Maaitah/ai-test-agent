@@ -405,9 +405,9 @@ def extract_response_fields(data: Any, prefix: str = "", max_depth: int = 10, cu
         wildcard_path = f"{prefix}.*" if prefix else "*"
         fields.append(wildcard_path)
 
-        # Show first 10 items individually for easier access
+        # Show first 50 items individually for easier access
         # This allows accessing all widgets/items in typical API responses
-        for i, item in enumerate(data[:10]):
+        for i, item in enumerate(data[:50]):
             field_path = f"{prefix}.{i}" if prefix else str(i)
 
             if isinstance(item, (dict, list)):
