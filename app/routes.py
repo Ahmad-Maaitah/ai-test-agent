@@ -408,6 +408,8 @@ def update_api_route(api_id):
         update_data['customRules'] = req_data['customRules']
     if 'extractRules' in req_data:
         update_data['extractRules'] = req_data['extractRules']
+    if 'order' in req_data:
+        update_data['order'] = int(req_data['order'])
 
     # Update in database
     success = db_update_api(api_id, update_data)
