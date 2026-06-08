@@ -4453,9 +4453,12 @@
         // Folder Drag and Drop
         // =============================================================================
         function setupFolderDragDrop() {
-            const folderItems = document.querySelectorAll('.folder-item');
+            // Only setup listeners for folders that haven't been initialized
+            const folderItems = document.querySelectorAll('.folder-item:not([data-folder-drag-initialized])');
 
             folderItems.forEach(item => {
+                // Mark as initialized to prevent duplicate listeners
+                item.setAttribute('data-folder-drag-initialized', 'true');
                 const folderId = item.dataset.folderId;
 
                 item.addEventListener('dragstart', (e) => {
@@ -4529,7 +4532,7 @@
                             const response = await fetch(`/api/apis/${sourceId}/move`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ section_id: targetFolderId })
+                                body: JSON.stringify({ targetSectionId: targetFolderId })
                             });
                             const data = await response.json();
                             if (data.success) {
@@ -5790,10 +5793,13 @@
         }
 
         function setupApiDragDrop() {
-            const items = document.querySelectorAll('.api-item');
+            // Only setup listeners for items that haven't been initialized
+            const items = document.querySelectorAll('.api-item:not([data-drag-initialized])');
             let dragOverItem = null;
 
             items.forEach(item => {
+                // Mark as initialized to prevent duplicate listeners
+                item.setAttribute('data-drag-initialized', 'true');
                 const apiId = item.dataset.id;
 
                 item.addEventListener('dragstart', (e) => {
@@ -5822,6 +5828,7 @@
 
                 item.addEventListener('dragover', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     const dragging = document.querySelector('.api-item.dragging');
                     if (dragging && dragging !== item) {
                         // Remove previous indicators
@@ -5861,6 +5868,10 @@
                     const dragging = document.querySelector('.api-item.dragging');
                     if (!dragging || dragging === item) return;
 
+                    // Save original order before DOM manipulation
+                    const originalOrder = Array.from(document.querySelectorAll('.api-item'))
+                        .map(el => el.dataset.id);
+
                     // Determine where to insert
                     const rect = item.getBoundingClientRect();
                     const midY = rect.top + rect.height / 2;
@@ -5871,22 +5882,37 @@
                         item.parentNode.insertBefore(dragging, item.nextSibling);
                     }
 
-                    // Get new order and save
+                    // Get new order after DOM manipulation
                     const newOrder = Array.from(document.querySelectorAll('.api-item'))
                         .map(el => el.dataset.id);
 
                     try {
-                        await fetch(`/api/sections/${currentSectionId}/apis/reorder`, {
+                        const response = await fetch(`/api/sections/${currentSectionId}/apis/reorder`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ apiIds: newOrder })
                         });
-                        await loadSections();
-                        showToast('API order updated', 'success');
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            await loadSections();
+                            showToast('API order updated', 'success');
+                        } else {
+                            throw new Error(data.message || 'Reorder failed');
+                        }
                     } catch (error) {
                         console.error('Reorder error:', error);
-                        showToast('Failed to reorder', 'error');
-                        await loadSections(); // Reload to reset
+                        showToast(`Failed to reorder: ${error.message}`, 'error');
+
+                        // Rollback: restore original order in UI
+                        const container = document.getElementById('apis-list');
+                        const apiItems = Array.from(document.querySelectorAll('.api-item'));
+
+                        originalOrder.forEach(id => {
+                            const apiItem = apiItems.find(el => el.dataset.id === id);
+                            if (apiItem) container.appendChild(apiItem);
+                        });
                     }
                 });
             });
