@@ -26,7 +26,7 @@ class Section(Base):
     # Relationships
     apis = relationship('API', back_populates='section', cascade='all, delete-orphan')
     # Self-referential relationship for parent-child folders
-    children = relationship('Section', backref='parent', remote_side=[id], cascade='all, delete-orphan')
+    children = relationship('Section', backref='parent', remote_side=[id], cascade='all, delete-orphan', single_parent=True)
 
 
 class API(Base):

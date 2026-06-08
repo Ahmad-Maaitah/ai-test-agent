@@ -225,6 +225,144 @@
             display: none;
         }
 
+        /* Folder Tree Styles */
+        .folder-item {
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .folder-item:hover {
+            background: #f8f9fa;
+        }
+
+        .folder-item.active {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .folder-item.drag-over {
+            background: #c5e1a5;
+            border: 2px dashed #7cb342;
+        }
+
+        .folder-item.dragging {
+            opacity: 0.4;
+        }
+
+        /* Indentation by depth */
+        .folder-item.depth-0 { padding-left: 12px; }
+        .folder-item.depth-1 { padding-left: 32px; }
+        .folder-item.depth-2 { padding-left: 52px; }
+        .folder-item.depth-3 { padding-left: 72px; }
+        .folder-item.depth-4 { padding-left: 92px; }
+        .folder-item.depth-5 { padding-left: 112px; }
+
+        .folder-expand-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7f8c8d;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .folder-expand-btn:hover {
+            color: #2c3e50;
+        }
+
+        .folder-icon {
+            font-size: 16px;
+        }
+
+        .folder-name {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .folder-count {
+            background: #ecf0f1;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .folder-actions {
+            display: none;
+            gap: 5px;
+        }
+
+        .folder-item:hover .folder-actions {
+            display: flex;
+        }
+
+        .folder-item:hover .folder-count {
+            display: none;
+        }
+
+        .folder-children {
+            margin-top: 2px;
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 8px 0;
+            z-index: 10000;
+            min-width: 180px;
+            display: none;
+        }
+
+        .context-menu.active {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .context-menu-item:hover {
+            background: #f8f9fa;
+        }
+
+        .context-menu-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .context-menu-item.disabled:hover {
+            background: transparent;
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background: #eee;
+            margin: 6px 0;
+        }
+
         /* APIs Panel */
         .apis-panel {
             background: white;
@@ -3927,10 +4065,14 @@
 
         // State
         let sections = [];
+        let folderTree = [];  // Nested folder structure from backend
+        let expandedFolders = new Set();  // Track which folders are expanded
         let currentSectionId = null;
         let selectedApis = new Set();
         let editingApiId = null;
         let editingSectionId = null;
+        let copiedItem = null;  // For copy/paste: {type: 'folder'|'api', id, data}
+        let draggedItem = null;  // Currently dragging: {type: 'folder'|'api', id}
 
         // Rules Builder State
         let ruleTypes = {};
@@ -4109,33 +4251,47 @@
         }
 
         // =============================================================================
-        // Sections
+        // Sections & Folders
         // =============================================================================
         async function loadSections() {
             try {
-                const response = await fetch('/api/sections');
-                const data = await response.json();
+                // Load folder tree structure
+                const treeResponse = await fetch('/api/folders/tree');
+                const treeData = await treeResponse.json();
 
-                if (data.success) {
-                    sections = data.sections;
-                    renderSections();
-                    populateSectionDropdowns();
+                if (treeData.success) {
+                    folderTree = treeData.tree;
 
-                    if (sections.length > 0 && !currentSectionId) {
-                        selectSection(sections[0].id);
-                    } else if (currentSectionId) {
-                        renderApis();
+                    // Also load flat sections list for backward compatibility
+                    const response = await fetch('/api/sections');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        sections = data.sections;
+                        renderFolderTree();
+                        populateSectionDropdowns();
+
+                        if (sections.length > 0 && !currentSectionId) {
+                            selectSection(sections[0].id);
+                        } else if (currentSectionId) {
+                            renderApis();
+                        }
                     }
                 }
             } catch (error) {
+                console.error('Load error:', error);
                 showToast('Failed to load modules', 'error');
             }
         }
 
         function renderSections() {
+            renderFolderTree();
+        }
+
+        function renderFolderTree() {
             const container = document.getElementById('sections-list');
 
-            if (sections.length === 0) {
+            if (folderTree.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <p>No modules yet</p>
@@ -4144,22 +4300,402 @@
                 return;
             }
 
-            container.innerHTML = sections.map(section => `
-                <div class="section-item ${currentSectionId === section.id ? 'active' : ''}"
-                     data-id="${section.id}"
-                     draggable="true"
-                     onclick="selectSection('${section.id}')">
-                    <span class="drag-handle">⋮⋮</span>
-                    <span class="section-name">${escapeHtml(section.name)}</span>
-                    <span class="section-count">${section.apis.length}</span>
-                    <div class="section-actions">
-                        <button class="btn-icon" onclick="event.stopPropagation(); editSection('${section.id}')" title="Edit">✏️</button>
-                        <button class="btn-icon" onclick="event.stopPropagation(); deleteSection('${section.id}')" title="Delete">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
+            container.innerHTML = renderFolderLevel(folderTree, 0);
+            setupFolderDragDrop();
+            setupContextMenu();
+        }
 
-            setupSectionDragDrop();
+        function renderFolderLevel(folders, depth) {
+            if (!folders || folders.length === 0) return '';
+
+            return folders.map(folder => {
+                const hasChildren = folder.children && folder.children.length > 0;
+                const isExpanded = expandedFolders.has(folder.id);
+                const apiCount = folder.apis ? folder.apis.length : 0;
+                const isActive = currentSectionId === folder.id;
+
+                let html = `
+                    <div class="folder-item depth-${depth} ${isActive ? 'active' : ''}"
+                         data-folder-id="${folder.id}"
+                         data-depth="${depth}"
+                         draggable="true"
+                         onclick="selectFolder('${folder.id}')"
+                         oncontextmenu="showFolderContextMenu(event, '${folder.id}')">
+                        ${hasChildren ? `
+                            <button class="folder-expand-btn"
+                                    onclick="event.stopPropagation(); toggleFolder('${folder.id}')">
+                                ${isExpanded ? '▼' : '▶'}
+                            </button>
+                        ` : '<span style="width: 16px;"></span>'}
+                        <span class="folder-icon">${isExpanded ? '📂' : '📁'}</span>
+                        <span class="folder-name">${escapeHtml(folder.name)}</span>
+                        <span class="folder-count">${apiCount}</span>
+                        <div class="folder-actions">
+                            <button class="btn-icon" onclick="event.stopPropagation(); createSubfolder('${folder.id}')" title="New Subfolder">➕</button>
+                            <button class="btn-icon" onclick="event.stopPropagation(); editSection('${folder.id}')" title="Edit">✏️</button>
+                            <button class="btn-icon" onclick="event.stopPropagation(); deleteSection('${folder.id}')" title="Delete">🗑️</button>
+                        </div>
+                    </div>
+                `;
+
+                // Render children if expanded
+                if (isExpanded && hasChildren) {
+                    html += `<div class="folder-children">${renderFolderLevel(folder.children, depth + 1)}</div>`;
+                }
+
+                return html;
+            }).join('');
+        }
+
+        function toggleFolder(folderId) {
+            if (expandedFolders.has(folderId)) {
+                expandedFolders.delete(folderId);
+            } else {
+                expandedFolders.add(folderId);
+            }
+            renderFolderTree();
+        }
+
+        function selectFolder(folderId) {
+            selectSection(folderId);
+        }
+
+        // =============================================================================
+        // Folder Drag and Drop
+        // =============================================================================
+        function setupFolderDragDrop() {
+            const folderItems = document.querySelectorAll('.folder-item');
+
+            folderItems.forEach(item => {
+                const folderId = item.dataset.folderId;
+
+                item.addEventListener('dragstart', (e) => {
+                    item.classList.add('dragging');
+                    draggedItem = { type: 'folder', id: folderId };
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', folderId);
+                });
+
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                    draggedItem = null;
+                    document.querySelectorAll('.drag-over').forEach(el => {
+                        el.classList.remove('drag-over');
+                    });
+                });
+
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const dragging = document.querySelector('.folder-item.dragging');
+
+                    if (dragging && dragging !== item) {
+                        item.classList.add('drag-over');
+                        // Auto-expand folder if hovering for 1 second
+                        clearTimeout(item.expandTimeout);
+                        item.expandTimeout = setTimeout(() => {
+                            if (!expandedFolders.has(folderId)) {
+                                expandedFolders.add(folderId);
+                                renderFolderTree();
+                            }
+                        }, 1000);
+                    }
+                });
+
+                item.addEventListener('dragleave', (e) => {
+                    clearTimeout(item.expandTimeout);
+                    item.classList.remove('drag-over');
+                });
+
+                item.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    item.classList.remove('drag-over');
+                    clearTimeout(item.expandTimeout);
+
+                    if (!draggedItem) return;
+
+                    const targetFolderId = folderId;
+                    const sourceId = draggedItem.id;
+
+                    if (sourceId === targetFolderId) return;
+
+                    try {
+                        if (draggedItem.type === 'folder') {
+                            // Move folder into target folder
+                            const response = await fetch(`/api/folders/${sourceId}/move`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ new_parent_id: targetFolderId })
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                                showToast('Folder moved successfully', 'success');
+                                await loadSections();
+                            } else {
+                                showToast(data.message || 'Failed to move folder', 'error');
+                            }
+                        } else if (draggedItem.type === 'api') {
+                            // Move API to target folder
+                            const response = await fetch(`/api/apis/${sourceId}/move`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ section_id: targetFolderId })
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                                showToast('API moved successfully', 'success');
+                                await loadSections();
+                            } else {
+                                showToast('Failed to move API', 'error');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Drop error:', error);
+                        showToast('Failed to move item', 'error');
+                    }
+                });
+            });
+        }
+
+        // =============================================================================
+        // Folder Context Menu (Copy/Paste/Duplicate)
+        // =============================================================================
+        function setupContextMenu() {
+            // Close context menu on click outside
+            document.addEventListener('click', () => {
+                const menu = document.getElementById('context-menu');
+                if (menu) menu.classList.remove('active');
+            });
+        }
+
+        function showFolderContextMenu(event, folderId) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const menu = getOrCreateContextMenu();
+            const hasCopied = copiedItem !== null;
+
+            menu.innerHTML = `
+                <div class="context-menu-item" onclick="copyFolder('${folderId}')">
+                    📋 Copy Folder
+                </div>
+                <div class="context-menu-item ${!hasCopied ? 'disabled' : ''}"
+                     onclick="${hasCopied ? `pasteCopied('${folderId}')` : 'return false;'}">
+                    📄 Paste ${hasCopied ? '(' + copiedItem.type + ')' : ''}
+                </div>
+                <div class="context-menu-item" onclick="duplicateFolder('${folderId}')">
+                    📑 Duplicate Folder
+                </div>
+                <div class="context-menu-divider"></div>
+                <div class="context-menu-item" onclick="createSubfolder('${folderId}')">
+                    ➕ New Subfolder
+                </div>
+                <div class="context-menu-item" onclick="editSection('${folderId}')">
+                    ✏️ Rename Folder
+                </div>
+                <div class="context-menu-divider"></div>
+                <div class="context-menu-item" onclick="deleteSection('${folderId}')" style="color: #e74c3c;">
+                    🗑️ Delete Folder
+                </div>
+            `;
+
+            menu.style.left = event.pageX + 'px';
+            menu.style.top = event.pageY + 'px';
+            menu.classList.add('active');
+        }
+
+        function getOrCreateContextMenu() {
+            let menu = document.getElementById('context-menu');
+            if (!menu) {
+                menu = document.createElement('div');
+                menu.id = 'context-menu';
+                menu.className = 'context-menu';
+                document.body.appendChild(menu);
+            }
+            return menu;
+        }
+
+        function copyFolder(folderId) {
+            const findFolder = (folders) => {
+                for (const folder of folders) {
+                    if (folder.id === folderId) return folder;
+                    if (folder.children) {
+                        const found = findFolder(folder.children);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            };
+
+            const folder = findFolder(folderTree);
+            if (folder) {
+                copiedItem = { type: 'folder', id: folderId, data: folder };
+                showToast('Folder copied', 'success');
+            }
+        }
+
+        async function pasteCopied(targetFolderId) {
+            if (!copiedItem) return;
+
+            try {
+                if (copiedItem.type === 'folder') {
+                    const response = await fetch(`/api/folders/${copiedItem.id}/copy`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            new_parent_id: targetFolderId,
+                            include_apis: true
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast('Folder pasted successfully', 'success');
+                        await loadSections();
+                    } else {
+                        showToast('Failed to paste folder', 'error');
+                    }
+                } else if (copiedItem.type === 'api') {
+                    const response = await fetch(`/api/apis/${copiedItem.id}/copy`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ section_id: targetFolderId })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast('API pasted successfully', 'success');
+                        await loadSections();
+                    } else {
+                        showToast('Failed to paste API', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Paste error:', error);
+                showToast('Failed to paste', 'error');
+            }
+        }
+
+        async function duplicateFolder(folderId) {
+            try {
+                const response = await fetch(`/api/folders/${folderId}/copy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        new_parent_id: null,  // Same level
+                        include_apis: true
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Folder duplicated successfully', 'success');
+                    await loadSections();
+                } else {
+                    showToast('Failed to duplicate folder', 'error');
+                }
+            } catch (error) {
+                console.error('Duplicate error:', error);
+                showToast('Failed to duplicate folder', 'error');
+            }
+        }
+
+        function createSubfolder(parentId) {
+            editingSectionId = null;
+            document.getElementById('section-modal-title').textContent = 'Create Subfolder';
+            document.getElementById('section-name').value = '';
+            document.getElementById('section-modal').classList.add('active');
+
+            // Store parent ID for use in saveSection
+            document.getElementById('section-modal').dataset.parentId = parentId;
+        }
+
+        function showApiContextMenu(event, apiId) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const menu = getOrCreateContextMenu();
+            const hasCopied = copiedItem !== null;
+
+            menu.innerHTML = `
+                <div class="context-menu-item" onclick="copyApi('${apiId}')">
+                    📋 Copy API
+                </div>
+                <div class="context-menu-item ${!hasCopied ? 'disabled' : ''}"
+                     onclick="${hasCopied ? `pasteApiToCurrent('${apiId}')` : 'return false;'}">
+                    📄 Paste ${hasCopied ? '(' + copiedItem.type + ')' : ''}
+                </div>
+                <div class="context-menu-item" onclick="duplicateApi('${apiId}')">
+                    📑 Duplicate API
+                </div>
+                <div class="context-menu-divider"></div>
+                <div class="context-menu-item" onclick="openEditApiPage('${apiId}')">
+                    ✏️ Edit API
+                </div>
+                <div class="context-menu-item" onclick="deleteApi('${apiId}')" style="color: #e74c3c;">
+                    🗑️ Delete API
+                </div>
+            `;
+
+            menu.style.left = event.pageX + 'px';
+            menu.style.top = event.pageY + 'px';
+            menu.classList.add('active');
+        }
+
+        function copyApi(apiId) {
+            let api = null;
+            for (const section of sections) {
+                const found = section.apis?.find(a => a.id === apiId);
+                if (found) {
+                    api = found;
+                    break;
+                }
+            }
+
+            if (api) {
+                copiedItem = { type: 'api', id: apiId, data: api };
+                showToast('API copied', 'success');
+            }
+        }
+
+        async function pasteApiToCurrent(targetApiId) {
+            if (!copiedItem || copiedItem.type !== 'api') return;
+
+            try {
+                const response = await fetch(`/api/apis/${copiedItem.id}/copy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ section_id: currentSectionId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('API pasted successfully', 'success');
+                    await loadSections();
+                } else {
+                    showToast('Failed to paste API', 'error');
+                }
+            } catch (error) {
+                console.error('Paste API error:', error);
+                showToast('Failed to paste API', 'error');
+            }
+        }
+
+        async function duplicateApi(apiId) {
+            try {
+                const response = await fetch(`/api/apis/${apiId}/copy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ section_id: currentSectionId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('API duplicated successfully', 'success');
+                    await loadSections();
+                } else {
+                    showToast('Failed to duplicate API', 'error');
+                }
+            } catch (error) {
+                console.error('Duplicate API error:', error);
+                showToast('Failed to duplicate API', 'error');
+            }
         }
 
         function selectSection(sectionId) {
@@ -4173,9 +4709,11 @@
 
         function openAddSectionModal() {
             editingSectionId = null;
+            const modal = document.getElementById('section-modal');
             document.getElementById('section-modal-title').textContent = 'Add Module';
             document.getElementById('section-name').value = '';
-            document.getElementById('section-modal').classList.add('active');
+            delete modal.dataset.parentId;  // Clear parent ID for root folder
+            modal.classList.add('active');
         }
 
         function editSection(sectionId) {
@@ -4192,6 +4730,8 @@
 
         async function saveSection() {
             const name = document.getElementById('section-name').value.trim();
+            const modal = document.getElementById('section-modal');
+            const parentId = modal.dataset.parentId;
 
             if (!name) {
                 showToast('Module name is required', 'error');
@@ -4207,10 +4747,16 @@
                         body: JSON.stringify({ name })
                     });
                 } else {
-                    response = await fetch('/api/sections', {
+                    // Create new folder (or subfolder if parentId exists)
+                    const endpoint = parentId ? '/api/folders' : '/api/sections';
+                    const payload = parentId
+                        ? { name, parent_id: parentId }
+                        : { name };
+
+                    response = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name })
+                        body: JSON.stringify(payload)
                     });
                 }
 
@@ -4219,6 +4765,15 @@
                 if (data.success) {
                     showToast(editingSectionId ? 'Module updated' : 'Module created');
                     closeSectionModal();
+
+                    // Clear parent ID
+                    delete modal.dataset.parentId;
+
+                    // Expand parent folder if creating subfolder
+                    if (parentId) {
+                        expandedFolders.add(parentId);
+                    }
+
                     loadSections();
                 } else {
                     showToast(data.error, 'error');
@@ -4325,7 +4880,8 @@
                 const rulesCount = (api.customRules || []).length;
                 const hasRules = rulesCount > 0;
                 return `
-                <div class="api-item" data-id="${api.id}" draggable="true">
+                <div class="api-item" data-id="${api.id}" draggable="true"
+                     oncontextmenu="showApiContextMenu(event, '${api.id}')">
                     <span class="drag-handle">⋮⋮</span>
                     <input type="checkbox" class="api-checkbox"
                            ${selectedApis.has(api.id) ? 'checked' : ''}
@@ -4339,6 +4895,7 @@
                     </div>
                     <div class="api-actions">
                         <button class="btn-icon" onclick="openEditApiPage('${api.id}')" title="Edit">✏️</button>
+                        <button class="btn-icon" onclick="duplicateApi('${api.id}')" title="Duplicate">📑</button>
                         <button class="btn-icon" onclick="deleteApi('${api.id}')" title="Delete">🗑️</button>
                     </div>
                 </div>
@@ -5042,13 +5599,18 @@
             const items = document.querySelectorAll('.api-item');
 
             items.forEach(item => {
+                const apiId = item.dataset.id;
+
                 item.addEventListener('dragstart', (e) => {
                     item.classList.add('dragging');
-                    e.dataTransfer.setData('text/plain', item.dataset.id);
+                    draggedItem = { type: 'api', id: apiId };
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', apiId);
                 });
 
                 item.addEventListener('dragend', () => {
                     item.classList.remove('dragging');
+                    draggedItem = null;
                 });
 
                 item.addEventListener('dragover', (e) => {
