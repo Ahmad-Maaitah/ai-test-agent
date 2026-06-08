@@ -179,7 +179,7 @@ def create_api(section_id: str, api_data: Dict) -> Dict:
     """Create a new API."""
     session = get_session()
     try:
-        # Get max order for this section
+        # Get max order for this section (count gives us the next order number, starting from 1)
         max_order = session.query(API).filter_by(section_id=section_id).count()
 
         api = API(
@@ -196,7 +196,7 @@ def create_api(section_id: str, api_data: Dict) -> Dict:
             extract_rules=api_data.get('extractRules', []),
             last_status=api_data.get('lastStatus'),
             last_result=api_data.get('lastResult'),
-            order=max_order
+            order=max_order + 1  # Start from 1, not 0
         )
         session.add(api)
         session.flush()  # Get the API ID
@@ -220,6 +220,33 @@ def create_api(section_id: str, api_data: Dict) -> Dict:
         close_session(session)
 
 
+def normalize_api_orders(section_id: str, session=None) -> None:
+    """Normalize API orders in a section to be sequential (1, 2, 3, ...).
+
+    Args:
+        section_id: The section ID to normalize
+        session: Optional existing session. If None, creates new session.
+    """
+    should_close = False
+    if session is None:
+        session = get_session()
+        should_close = True
+
+    try:
+        # Get all APIs in section ordered by current order
+        apis = session.query(API).filter_by(section_id=section_id).order_by(API.order).all()
+
+        # Renumber sequentially starting from 1
+        for idx, api in enumerate(apis, start=1):
+            api.order = idx
+
+        if should_close:
+            session.commit()
+    finally:
+        if should_close:
+            close_session(session)
+
+
 def update_api(api_id: str, api_data: Dict) -> bool:
     """Update an existing API."""
     session = get_session()
@@ -227,6 +254,10 @@ def update_api(api_id: str, api_data: Dict) -> bool:
         api = session.query(API).filter_by(id=api_id).first()
         if not api:
             return False
+
+        # Store section_id for normalization
+        section_id = api.section_id
+        order_changed = False
 
         # Update API fields
         api.name = api_data.get('name', api.name)
@@ -238,6 +269,13 @@ def update_api(api_id: str, api_data: Dict) -> bool:
         api.verify_ssl = api_data.get('verify_ssl', api.verify_ssl)
         api.custom_rules = api_data.get('customRules', api.custom_rules)
         api.extract_rules = api_data.get('extractRules', api.extract_rules)
+
+        # Handle order update
+        if 'order' in api_data:
+            new_order = int(api_data['order'])
+            if api.order != new_order:
+                api.order = new_order
+                order_changed = True
 
         # Update last status and result if provided
         if 'lastStatus' in api_data:
@@ -262,6 +300,12 @@ def update_api(api_id: str, api_data: Dict) -> bool:
             session.add(rule)
 
         session.commit()
+
+        # If order changed, normalize all orders in the section
+        if order_changed:
+            normalize_api_orders(section_id, session)
+            session.commit()
+
         return True
     finally:
         close_session(session)
@@ -275,7 +319,12 @@ def delete_api(api_id: str) -> bool:
         if not api:
             return False
 
+        section_id = api.section_id
         session.delete(api)
+        session.commit()
+
+        # Normalize orders in the section after deletion
+        normalize_api_orders(section_id, session)
         session.commit()
         return True
     finally:

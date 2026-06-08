@@ -275,10 +275,16 @@ def copy_api_route(api_id):
         session = get_session()
 
         try:
+            # Get the target section to find max order
+            target_section_id = target_folder_id or api.get('section_id')
+
+            # Find max order in target section
+            max_order = session.query(API).filter_by(section_id=target_section_id).count()
+
             new_api = API(
                 id=new_api_id,
                 name=f"{api['name']} (Copy)",
-                section_id=target_folder_id or api.get('section_id'),
+                section_id=target_section_id,
                 curl=api.get('curl'),
                 method=api.get('method'),
                 url=api.get('url'),
@@ -287,7 +293,7 @@ def copy_api_route(api_id):
                 verify_ssl=api.get('verify_ssl', True),
                 custom_rules=api.get('customRules'),
                 extract_rules=api.get('extractRules'),
-                order=0
+                order=max_order + 1  # Set to max + 1
             )
 
             session.add(new_api)
@@ -429,34 +435,44 @@ def delete_api_route(api_id):
 @main_bp.route('/api/apis/<api_id>/move', methods=['POST'])
 def move_api(api_id):
     """Move API to another section."""
+    from backend.database import API, get_session, close_session
+    from backend.db_helpers import normalize_api_orders
+
     req_data = request.get_json()
     target_section_id = req_data.get('targetSectionId')
 
-    data = load_data()
+    if not target_section_id:
+        return jsonify({'success': False, 'error': 'Target section ID required'}), 400
 
-    # Find and remove API from current section
-    api_to_move = None
-    for section in data['sections']:
-        for i, api in enumerate(section['apis']):
-            if api['id'] == api_id:
-                api_to_move = section['apis'].pop(i)
-                break
-        if api_to_move:
-            break
+    session = get_session()
+    try:
+        # Find the API
+        api = session.query(API).filter_by(id=api_id).first()
+        if not api:
+            return jsonify({'success': False, 'error': 'API not found'}), 404
 
-    if not api_to_move:
-        return jsonify({'success': False, 'error': 'API not found'}), 404
+        source_section_id = api.section_id
 
-    # Add to target section
-    for section in data['sections']:
-        if section['id'] == target_section_id:
-            max_order = max([a.get('order', 0) for a in section['apis']], default=0)
-            api_to_move['order'] = max_order + 1
-            section['apis'].append(api_to_move)
-            save_data(data)
-            return jsonify({'success': True})
+        # Get max order in target section
+        max_order = session.query(API).filter_by(section_id=target_section_id).count()
 
-    return jsonify({'success': False, 'error': 'Target section not found'}), 404
+        # Move API to target section
+        api.section_id = target_section_id
+        api.order = max_order + 1
+
+        session.commit()
+
+        # Normalize orders in both source and target sections
+        normalize_api_orders(source_section_id, session)
+        normalize_api_orders(target_section_id, session)
+        session.commit()
+
+        return jsonify({'success': True})
+    except Exception as e:
+        session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        close_session(session)
 
 
 @main_bp.route('/api/sections/<section_id>/apis/reorder', methods=['POST'])

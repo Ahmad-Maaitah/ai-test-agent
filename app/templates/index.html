@@ -5101,7 +5101,10 @@
         function renderApis() {
             const container = document.getElementById('apis-list');
             const section = sections.find(s => s.id === currentSectionId);
-            const apis = section ? section.apis : [];
+            let apis = section ? section.apis : [];
+
+            // Sort APIs by order number (start from 1)
+            apis = apis.sort((a, b) => (a.order || 1) - (b.order || 1));
 
             if (apis.length === 0) {
                 container.innerHTML = `
@@ -5122,8 +5125,8 @@
                      oncontextmenu="showApiContextMenu(event, '${api.id}')">
                     <input type="number"
                            class="api-order-input"
-                           value="${api.order || 0}"
-                           min="0"
+                           value="${api.order || 1}"
+                           min="1"
                            onchange="updateApiOrder('${api.id}', this.value)"
                            onclick="event.stopPropagation()"
                            title="Order number">
