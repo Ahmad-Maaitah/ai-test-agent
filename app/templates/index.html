@@ -426,6 +426,16 @@
             opacity: 0.5;
         }
 
+        .api-item.drag-over-top {
+            border-top: 3px solid #3498db;
+            margin-top: -3px;
+        }
+
+        .api-item.drag-over-bottom {
+            border-bottom: 3px solid #3498db;
+            margin-bottom: -3px;
+        }
+
         .api-checkbox {
             margin-right: 15px;
         }
@@ -3497,22 +3507,6 @@
                     </div>
                 </div>
 
-                <!-- Folder Statistics Card -->
-                <div class="dashboard-card folder-stats-card">
-                    <div class="dashboard-card-header">
-                        <h3>📁 Folder Statistics</h3>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="loadDashboard(); return false;">
-                            🔄 Refresh
-                        </button>
-                    </div>
-                    <div class="dashboard-card-body" id="dash-folder-stats">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">📂</div>
-                            <div class="empty-state-text">Loading folder statistics...</div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Last Execution Card (Full Width) -->
                 <div class="dashboard-card execution-card">
                     <div class="dashboard-card-header">
@@ -4722,6 +4716,9 @@
                     📑 Duplicate API
                 </div>
                 <div class="context-menu-divider"></div>
+                <div class="context-menu-item" onclick="showMoveApiToFolderDialog('${apiId}')">
+                    📁 Move to Folder...
+                </div>
                 <div class="context-menu-item" onclick="openEditApiPage('${apiId}')">
                     ✏️ Edit API
                 </div>
@@ -4790,6 +4787,108 @@
             } catch (error) {
                 console.error('Duplicate API error:', error);
                 showToast('Failed to duplicate API', 'error');
+            }
+        }
+
+        function showMoveApiToFolderDialog(apiId) {
+            // Close context menu
+            const menu = document.getElementById('context-menu');
+            if (menu) menu.classList.remove('active');
+
+            // Get API name
+            let apiName = 'API';
+            for (const section of sections) {
+                const found = section.apis?.find(a => a.id === apiId);
+                if (found) {
+                    apiName = found.name;
+                    break;
+                }
+            }
+
+            // Build folder list
+            const folderOptions = buildFolderOptionsHTML(folderTree, 0, currentSectionId);
+
+            // Show dialog
+            const dialog = document.createElement('div');
+            dialog.className = 'modal active';
+            dialog.innerHTML = `
+                <div class="modal-content" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3>Move "${apiName}" to Folder</h3>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="margin-bottom: 15px; color: #7f8c8d;">Select the destination folder:</p>
+                        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px;">
+                            ${folderOptions}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add click handlers
+            dialog.querySelectorAll('.folder-option').forEach(option => {
+                option.addEventListener('click', async () => {
+                    const targetFolderId = option.dataset.folderId;
+                    await moveApiToFolder(apiId, targetFolderId);
+                    dialog.remove();
+                });
+            });
+
+            document.body.appendChild(dialog);
+        }
+
+        function buildFolderOptionsHTML(folders, depth, excludeFolderId) {
+            let html = '';
+            folders.forEach(folder => {
+                const indent = '&nbsp;&nbsp;'.repeat(depth * 2);
+                const isCurrentFolder = folder.id === excludeFolderId;
+                const bgColor = isCurrentFolder ? '#e3f2fd' : 'transparent';
+                const cursor = isCurrentFolder ? 'default' : 'pointer';
+                const opacity = isCurrentFolder ? '0.6' : '1';
+
+                html += `
+                    <div class="folder-option"
+                         data-folder-id="${folder.id}"
+                         style="padding: 12px 16px;
+                                cursor: ${cursor};
+                                background: ${bgColor};
+                                opacity: ${opacity};
+                                transition: background 0.2s;
+                                ${!isCurrentFolder ? 'hover: background: #f8f9fa;' : ''}"
+                         ${isCurrentFolder ? 'title="Already in this folder"' : ''}
+                         onmouseover="${!isCurrentFolder ? 'this.style.background=\'#f8f9fa\'' : ''}"
+                         onmouseout="${!isCurrentFolder ? 'this.style.background=\'' + bgColor + '\'' : ''}">
+                        ${indent}<span style="font-size: 16px;">📁</span> ${escapeHtml(folder.name)}
+                        ${isCurrentFolder ? '<span style="color: #1976d2; font-size: 12px; margin-left: 8px;">(Current)</span>' : ''}
+                    </div>
+                `;
+
+                // Add children
+                if (folder.children && folder.children.length > 0) {
+                    html += buildFolderOptionsHTML(folder.children, depth + 1, excludeFolderId);
+                }
+            });
+            return html;
+        }
+
+        async function moveApiToFolder(apiId, targetFolderId) {
+            try {
+                const response = await fetch(`/api/apis/${apiId}/move`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ section_id: targetFolderId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('API moved successfully', 'success');
+                    await loadSections();
+                } else {
+                    showToast('Failed to move API', 'error');
+                }
+            } catch (error) {
+                console.error('Move API error:', error);
+                showToast('Failed to move API', 'error');
             }
         }
 
@@ -5692,6 +5791,7 @@
 
         function setupApiDragDrop() {
             const items = document.querySelectorAll('.api-item');
+            let dragOverItem = null;
 
             items.forEach(item => {
                 const apiId = item.dataset.id;
@@ -5706,23 +5806,72 @@
                 item.addEventListener('dragend', () => {
                     item.classList.remove('dragging');
                     draggedItem = null;
+                    // Remove all drag-over indicators
+                    document.querySelectorAll('.api-item').forEach(el => {
+                        el.classList.remove('drag-over-top', 'drag-over-bottom');
+                    });
+                });
+
+                item.addEventListener('dragenter', (e) => {
+                    e.preventDefault();
+                    const dragging = document.querySelector('.api-item.dragging');
+                    if (dragging && dragging !== item) {
+                        dragOverItem = item;
+                    }
                 });
 
                 item.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     const dragging = document.querySelector('.api-item.dragging');
                     if (dragging && dragging !== item) {
+                        // Remove previous indicators
+                        document.querySelectorAll('.api-item').forEach(el => {
+                            el.classList.remove('drag-over-top', 'drag-over-bottom');
+                        });
+
+                        // Add visual indicator
                         const rect = item.getBoundingClientRect();
                         const midY = rect.top + rect.height / 2;
                         if (e.clientY < midY) {
-                            item.parentNode.insertBefore(dragging, item);
+                            item.classList.add('drag-over-top');
                         } else {
-                            item.parentNode.insertBefore(dragging, item.nextSibling);
+                            item.classList.add('drag-over-bottom');
                         }
+
+                        dragOverItem = item;
                     }
                 });
 
-                item.addEventListener('drop', async () => {
+                item.addEventListener('dragleave', (e) => {
+                    // Only remove if we're actually leaving the item
+                    if (e.target === item) {
+                        item.classList.remove('drag-over-top', 'drag-over-bottom');
+                    }
+                });
+
+                item.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Remove visual indicators
+                    document.querySelectorAll('.api-item').forEach(el => {
+                        el.classList.remove('drag-over-top', 'drag-over-bottom');
+                    });
+
+                    const dragging = document.querySelector('.api-item.dragging');
+                    if (!dragging || dragging === item) return;
+
+                    // Determine where to insert
+                    const rect = item.getBoundingClientRect();
+                    const midY = rect.top + rect.height / 2;
+
+                    if (e.clientY < midY) {
+                        item.parentNode.insertBefore(dragging, item);
+                    } else {
+                        item.parentNode.insertBefore(dragging, item.nextSibling);
+                    }
+
+                    // Get new order and save
                     const newOrder = Array.from(document.querySelectorAll('.api-item'))
                         .map(el => el.dataset.id);
 
@@ -5732,12 +5881,49 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ apiIds: newOrder })
                         });
-                        loadSections();
+                        await loadSections();
+                        showToast('API order updated', 'success');
                     } catch (error) {
+                        console.error('Reorder error:', error);
                         showToast('Failed to reorder', 'error');
+                        await loadSections(); // Reload to reset
                     }
                 });
             });
+
+            // Also allow dropping on the APIs container (for empty space)
+            const apisContainer = document.getElementById('apis-list');
+            if (apisContainer) {
+                apisContainer.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+
+                apisContainer.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    const dragging = document.querySelector('.api-item.dragging');
+
+                    // If dragging an API within the same folder, just append to end
+                    if (dragging) {
+                        apisContainer.appendChild(dragging);
+
+                        // Save new order
+                        const newOrder = Array.from(document.querySelectorAll('.api-item'))
+                            .map(el => el.dataset.id);
+
+                        try {
+                            await fetch(`/api/sections/${currentSectionId}/apis/reorder`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ apiIds: newOrder })
+                            });
+                            await loadSections();
+                            showToast('API moved to end', 'success');
+                        } catch (error) {
+                            showToast('Failed to reorder', 'error');
+                        }
+                    }
+                });
+            }
         }
 
         // =============================================================================
@@ -9222,7 +9408,6 @@
         // =============================================================================
         async function loadDashboard() {
             await updateDashboardStats();
-            await loadFolderStatistics();
             await loadLastExecution();
         }
 
