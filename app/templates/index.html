@@ -4022,15 +4022,15 @@
 
     <!-- Add Module Modal -->
     <div class="modal-overlay" id="section-modal">
-        <div class="modal">
+        <div class="modal" style="max-width: 450px;">
             <div class="modal-header">
                 <h2 id="section-modal-title">Add Module</h2>
                 <button class="modal-close" onclick="closeSectionModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="section-name">Module Name</label>
-                    <input type="text" id="section-name" placeholder="e.g., User APIs, Payment APIs">
+                <div class="form-group" style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
+                    <label for="section-name" style="display: inline-block; margin-bottom: 0; min-width: 100px; white-space: nowrap;">Module Name:</label>
+                    <input type="text" id="section-name" placeholder="e.g., User APIs" style="flex: 1;">
                 </div>
             </div>
             <div class="modal-footer">
