@@ -5183,18 +5183,33 @@
                 return;
             }
 
+            // List of protected variables that cannot be deleted
+            const protectedVars = ['postTitle', 'postDescription', 'titleLength', 'descriptionLength'];
+
             tbody.innerHTML = savedVariables.map(v => {
                 const displayValue = truncateValue(v.value, 40);
                 const sourceName = v.source ? (v.source.apiName || 'Manual') : 'Manual';
+                const isProtected = protectedVars.includes(v.name);
+
+                // Show special badge for generator type and protected vars
+                const typeDisplay = v.type === 'generator' ? 'auto-gen' : v.type;
+                const protectedIcon = isProtected ? ' 🔒' : '';
+
                 return `
-                    <tr>
-                        <td><span class="var-name-code">{{${escapeHtml(v.name)}}}</span></td>
+                    <tr ${isProtected ? 'style="background: #f0f9ff;"' : ''}>
+                        <td>
+                            <span class="var-name-code">{{${escapeHtml(v.name)}}}${protectedIcon}</span>
+                            ${isProtected ? '<small style="color: #0066cc; display: block; font-size: 11px;">Protected - Auto-generates on use</small>' : ''}
+                        </td>
                         <td><span class="var-value-cell">${escapeHtml(displayValue)}</span></td>
-                        <td><span class="type-badge type-${v.type}">${v.type}</span></td>
+                        <td><span class="type-badge type-${v.type}">${typeDisplay}</span></td>
                         <td>${escapeHtml(sourceName)}</td>
                         <td>
-                            <button class="btn-icon" onclick="editVariableInModal('${v.id}')" title="Edit">✏️</button>
-                            <button class="btn-icon" onclick="deleteVariableFromBackend('${v.id}')" title="Delete">🗑️</button>
+                            <button class="btn-icon" onclick="editVariableInModal('${v.id}')" title="${isProtected ? 'View details' : 'Edit'}">${isProtected ? '👁️' : '✏️'}</button>
+                            ${isProtected
+                                ? '<button class="btn-icon" disabled style="opacity: 0.3; cursor: not-allowed;" title="Protected variable cannot be deleted">🔒</button>'
+                                : `<button class="btn-icon" onclick="deleteVariableFromBackend('${v.id}')" title="Delete">🗑️</button>`
+                            }
                         </td>
                     </tr>
                 `;

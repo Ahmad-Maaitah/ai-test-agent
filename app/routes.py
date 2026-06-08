@@ -915,7 +915,18 @@ def update_variable_route(var_id):
 @main_bp.route('/api/variables/<var_id>', methods=['DELETE'])
 def delete_variable_route(var_id):
     """Delete a variable."""
-    from backend.db_helpers import delete_variable as db_delete_variable
+    from backend.db_helpers import delete_variable as db_delete_variable, get_all_variables
+
+    # Check if this is a protected variable
+    PROTECTED_VARIABLES = ['postTitle', 'postDescription', 'titleLength', 'descriptionLength']
+    variables = get_all_variables()
+    var_to_delete = next((v for v in variables if v['id'] == var_id), None)
+
+    if var_to_delete and var_to_delete['name'] in PROTECTED_VARIABLES:
+        return jsonify({
+            'success': False,
+            'error': f'Cannot delete protected variable "{var_to_delete["name"]}". This variable is used for dynamic text generation.'
+        }), 403
 
     # Delete from database
     success = db_delete_variable(var_id)
@@ -924,6 +935,81 @@ def delete_variable_route(var_id):
         return jsonify({'success': True})
 
     return jsonify({'success': False, 'error': 'Variable not found'}), 404
+
+
+@main_bp.route('/api/generate-random-text', methods=['POST'])
+def generate_random_text():
+    """Generate random 20-character text for title and description."""
+    import random
+
+    # Word pool for generating random text
+    word_pool = [
+        'quick', 'brown', 'fox', 'jumps', 'over', 'lazy', 'dog',
+        'runs', 'fast', 'slow', 'smart', 'happy', 'sunny', 'cloud',
+        'water', 'fire', 'earth', 'wind', 'light', 'dark', 'moon',
+        'star', 'ocean', 'river', 'mount', 'field', 'forest', 'sky',
+        'stone', 'green', 'blue', 'red', 'gold', 'silver', 'bright',
+        'warm', 'cold', 'soft', 'hard', 'tall', 'small', 'big', 'tiny'
+    ]
+
+    # Track generated texts to ensure uniqueness
+    used_texts = set()
+
+    def generate_text(length, used_set):
+        """Generate exactly length characters of random words."""
+        max_attempts = 100
+        for _ in range(max_attempts):
+            result = ''
+            while len(result) < length:
+                word = random.choice(word_pool)
+                # Add space if not first word and it fits
+                if result and len(result) + len(word) + 1 <= length:
+                    result += ' ' + word
+                elif not result and len(word) <= length:
+                    result = word
+                else:
+                    # Need to fill remaining space
+                    remaining = length - len(result)
+                    if remaining > 0:
+                        # Try to find a word that fits exactly or pad with spaces
+                        fitting_words = [w for w in word_pool if len(w) == remaining - (1 if result else 0)]
+                        if fitting_words:
+                            result += (' ' if result else '') + random.choice(fitting_words)
+                        else:
+                            # Pad with spaces if needed
+                            result = result.ljust(length)
+                    break
+
+            # Ensure exactly 20 characters
+            result = result[:length].ljust(length)
+
+            # Check uniqueness
+            if result not in used_set:
+                used_set.add(result)
+                return result
+
+        # Fallback: add random numbers to ensure uniqueness
+        base = result[:17]
+        num = random.randint(100, 999)
+        return f"{base}{num}"
+
+    # Generate unique title and description
+    title = generate_text(20, used_texts)
+    description = generate_text(20, used_texts)
+
+    # Ensure description is different from title
+    while description == title:
+        description = generate_text(20, used_texts)
+
+    return jsonify({
+        'success': True,
+        'data': {
+            'postTitle': title,
+            'postDescription': description,
+            'titleLength': len(title),
+            'descriptionLength': len(description)
+        }
+    })
 
 
 # =============================================================================

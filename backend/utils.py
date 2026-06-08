@@ -216,6 +216,7 @@ def write_file(path: str, content: str) -> None:
 def substitute_variables(text: str, variables: list) -> str:
     """
     Substitute variables in text with their actual values.
+    Supports dynamic generator variables that auto-generate values on use.
 
     Args:
         text: Text containing variable placeholders like {{variableName}}
@@ -227,14 +228,95 @@ def substitute_variables(text: str, variables: list) -> str:
     if not text or not variables:
         return text
 
+    # Track generated texts for uniqueness
+    generated_texts = {}
+
     result = text
     for var in variables:
         var_name = var.get('name', '')
         var_value = var.get('value', '')
+        var_type = var.get('type', 'string')
 
-        if var_name:
-            # Replace {{variableName}} with the actual value
-            placeholder = f"{{{{{var_name}}}}}"
-            result = result.replace(placeholder, str(var_value))
+        if not var_name:
+            continue
+
+        placeholder = f"{{{{{var_name}}}}}"
+
+        # Check if this is a dynamic generator variable
+        if var_type == 'generator' or var_name in ['postTitle', 'postDescription', 'titleLength', 'descriptionLength']:
+            # Generate random text for title and description
+            if var_name == 'postTitle':
+                if 'postTitle' not in generated_texts:
+                    generated_texts['postTitle'] = _generate_random_text(20, generated_texts)
+                var_value = generated_texts['postTitle']
+            elif var_name == 'postDescription':
+                if 'postDescription' not in generated_texts:
+                    generated_texts['postDescription'] = _generate_random_text(20, generated_texts)
+                var_value = generated_texts['postDescription']
+            elif var_name == 'titleLength':
+                var_value = '20'
+            elif var_name == 'descriptionLength':
+                var_value = '20'
+
+        # Replace placeholder with value
+        result = result.replace(placeholder, str(var_value))
 
     return result
+
+
+def _generate_random_text(length: int, used_texts: dict) -> str:
+    """
+    Generate random text of exactly length characters.
+
+    Args:
+        length: Desired length of text
+        used_texts: Dict of already generated texts to ensure uniqueness
+
+    Returns:
+        Random text string of exact length
+    """
+    import random
+
+    word_pool = [
+        'quick', 'brown', 'fox', 'jumps', 'over', 'lazy', 'dog',
+        'runs', 'fast', 'slow', 'smart', 'happy', 'sunny', 'cloud',
+        'water', 'fire', 'earth', 'wind', 'light', 'dark', 'moon',
+        'star', 'ocean', 'river', 'mount', 'field', 'forest', 'sky',
+        'stone', 'green', 'blue', 'red', 'gold', 'silver', 'bright',
+        'warm', 'cold', 'soft', 'hard', 'tall', 'small', 'big', 'tiny'
+    ]
+
+    max_attempts = 100
+    for _ in range(max_attempts):
+        result = ''
+        while len(result) < length:
+            word = random.choice(word_pool)
+            # Add space if not first word and it fits
+            if result and len(result) + len(word) + 1 <= length:
+                result += ' ' + word
+            elif not result and len(word) <= length:
+                result = word
+            else:
+                # Need to fill remaining space
+                remaining = length - len(result)
+                if remaining > 0:
+                    # Try to find a word that fits exactly or pad with spaces
+                    fitting_words = [w for w in word_pool if len(w) == remaining - (1 if result else 0)]
+                    if fitting_words:
+                        result += (' ' if result else '') + random.choice(fitting_words)
+                    else:
+                        # Pad with spaces if needed
+                        result = result.ljust(length)
+                break
+
+        # Ensure exactly the requested length
+        result = result[:length].ljust(length)
+
+        # Check uniqueness against all previously generated texts
+        if result not in used_texts.values():
+            return result
+
+    # Fallback: add random numbers to ensure uniqueness
+    base = result[:17]
+    num = random.randint(100, 999)
+    return f"{base}{num}"

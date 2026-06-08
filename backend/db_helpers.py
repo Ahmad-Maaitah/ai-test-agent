@@ -364,11 +364,19 @@ def update_variable(var_id: str, var_data: Dict) -> bool:
 
 
 def delete_variable(var_id: str) -> bool:
-    """Delete a variable."""
+    """Delete a variable. Protected variables cannot be deleted."""
+    # List of protected variable names that cannot be deleted
+    PROTECTED_VARIABLES = ['postTitle', 'postDescription', 'titleLength', 'descriptionLength']
+
     session = get_session()
     try:
         variable = session.query(Variable).filter_by(id=var_id).first()
         if not variable:
+            return False
+
+        # Check if this is a protected variable
+        if variable.name in PROTECTED_VARIABLES:
+            print(f"⚠️  Cannot delete protected variable: {variable.name}")
             return False
 
         session.delete(variable)
@@ -508,5 +516,69 @@ def delete_report(report_id: str) -> bool:
         session.delete(report)
         session.commit()
         return True
+    finally:
+        close_session(session)
+
+
+# =============================================================================
+# Protected Variables Initialization
+# =============================================================================
+
+def initialize_protected_variables():
+    """
+    Initialize protected variables for dynamic text generation.
+    These variables cannot be deleted and auto-generate values when used.
+    """
+    PROTECTED_VARIABLES = [
+        {
+            'id': 'var-protected-postTitle',
+            'name': 'postTitle',
+            'value': '',
+            'type': 'generator',
+            'description': 'Auto-generates 20-character random title. Protected variable.'
+        },
+        {
+            'id': 'var-protected-postDescription',
+            'name': 'postDescription',
+            'value': '',
+            'type': 'generator',
+            'description': 'Auto-generates 20-character random description. Protected variable.'
+        },
+        {
+            'id': 'var-protected-titleLength',
+            'name': 'titleLength',
+            'value': '20',
+            'type': 'generator',
+            'description': 'Returns 20 (length of generated title). Protected variable.'
+        },
+        {
+            'id': 'var-protected-descriptionLength',
+            'name': 'descriptionLength',
+            'value': '20',
+            'type': 'generator',
+            'description': 'Returns 20 (length of generated description). Protected variable.'
+        }
+    ]
+
+    session = get_session()
+    try:
+        for var_data in PROTECTED_VARIABLES:
+            # Check if variable already exists
+            existing = session.query(Variable).filter_by(name=var_data['name']).first()
+            if not existing:
+                variable = Variable(
+                    id=var_data['id'],
+                    name=var_data['name'],
+                    value=var_data['value'],
+                    type=var_data['type'],
+                    description=var_data['description']
+                )
+                session.add(variable)
+                print(f"✅ Created protected variable: {var_data['name']}")
+
+        session.commit()
+    except Exception as e:
+        print(f"⚠️  Error initializing protected variables: {e}")
+        session.rollback()
     finally:
         close_session(session)

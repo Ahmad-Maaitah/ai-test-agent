@@ -6,6 +6,7 @@ Run this file to start the Flask application.
 
 from app import create_app
 from backend.database import init_db
+from backend.db_helpers import initialize_protected_variables
 import os
 
 
@@ -18,6 +19,11 @@ if not os.path.exists(db_path):
 else:
     # Ensure database schema is up to date
     init_db()
+
+# Initialize protected variables for dynamic text generation
+print("🔒 Initializing protected variables...")
+initialize_protected_variables()
+print("✅ Protected variables ready")
 
 app = create_app()
 
