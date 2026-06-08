@@ -366,7 +366,7 @@ def update_variable(var_id: str, var_data: Dict) -> bool:
 def delete_variable(var_id: str) -> bool:
     """Delete a variable. Protected variables cannot be deleted."""
     # List of protected variable names that cannot be deleted
-    PROTECTED_VARIABLES = ['postTitle', 'postDescription', 'titleLength', 'descriptionLength']
+    PROTECTED_VARIABLES = ['postTitle', 'postDescription']
 
     session = get_session()
     try:
@@ -543,20 +543,6 @@ def initialize_protected_variables():
             'value': '',
             'type': 'generator',
             'description': 'Auto-generates 20-character random description. Protected variable.'
-        },
-        {
-            'id': 'var-protected-titleLength',
-            'name': 'titleLength',
-            'value': '20',
-            'type': 'generator',
-            'description': 'Returns 20 (length of generated title). Protected variable.'
-        },
-        {
-            'id': 'var-protected-descriptionLength',
-            'name': 'descriptionLength',
-            'value': '20',
-            'type': 'generator',
-            'description': 'Returns 20 (length of generated description). Protected variable.'
         }
     ]
 

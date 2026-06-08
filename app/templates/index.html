@@ -5184,7 +5184,7 @@
             }
 
             // List of protected variables that cannot be deleted
-            const protectedVars = ['postTitle', 'postDescription', 'titleLength', 'descriptionLength'];
+            const protectedVars = ['postTitle', 'postDescription'];
 
             tbody.innerHTML = savedVariables.map(v => {
                 const displayValue = truncateValue(v.value, 40);

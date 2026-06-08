@@ -243,7 +243,7 @@ def substitute_variables(text: str, variables: list) -> str:
         placeholder = f"{{{{{var_name}}}}}"
 
         # Check if this is a dynamic generator variable
-        if var_type == 'generator' or var_name in ['postTitle', 'postDescription', 'titleLength', 'descriptionLength']:
+        if var_type == 'generator' or var_name in ['postTitle', 'postDescription']:
             # Generate random text for title and description
             if var_name == 'postTitle':
                 if 'postTitle' not in generated_texts:
@@ -253,10 +253,6 @@ def substitute_variables(text: str, variables: list) -> str:
                 if 'postDescription' not in generated_texts:
                     generated_texts['postDescription'] = _generate_random_text(20, generated_texts)
                 var_value = generated_texts['postDescription']
-            elif var_name == 'titleLength':
-                var_value = '20'
-            elif var_name == 'descriptionLength':
-                var_value = '20'
 
         # Replace placeholder with value
         result = result.replace(placeholder, str(var_value))

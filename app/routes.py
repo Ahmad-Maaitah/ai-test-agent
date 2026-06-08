@@ -918,7 +918,7 @@ def delete_variable_route(var_id):
     from backend.db_helpers import delete_variable as db_delete_variable, get_all_variables
 
     # Check if this is a protected variable
-    PROTECTED_VARIABLES = ['postTitle', 'postDescription', 'titleLength', 'descriptionLength']
+    PROTECTED_VARIABLES = ['postTitle', 'postDescription']
     variables = get_all_variables()
     var_to_delete = next((v for v in variables if v['id'] == var_id), None)
 
@@ -1005,9 +1005,7 @@ def generate_random_text():
         'success': True,
         'data': {
             'postTitle': title,
-            'postDescription': description,
-            'titleLength': len(title),
-            'descriptionLength': len(description)
+            'postDescription': description
         }
     })
 
