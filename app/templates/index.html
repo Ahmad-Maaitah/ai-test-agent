@@ -2018,6 +2018,85 @@
             padding: 28px;
         }
 
+        /* Folder Statistics Styles */
+        .folder-stats-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .folder-stats-table thead {
+            background: #f8f9fa;
+        }
+
+        .folder-stats-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .folder-stats-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .folder-stats-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .folder-stats-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .folder-stats-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .folder-stats-name .folder-icon {
+            font-size: 16px;
+        }
+
+        .folder-stats-indent {
+            display: inline-block;
+        }
+
+        .folder-stats-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .folder-stats-badge.subfolders {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .folder-stats-badge.apis {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .folder-stats-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .folder-stats-actions .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
         /* Execution Stats Row */
         .execution-stats-row {
             display: grid;
@@ -3415,6 +3494,22 @@
                         <span class="stat-card-icon">📊</span>
                         <div class="stat-card-label">Last Run Status</div>
                         <div class="stat-card-value" id="dash-last-status">--</div>
+                    </div>
+                </div>
+
+                <!-- Folder Statistics Card -->
+                <div class="dashboard-card folder-stats-card">
+                    <div class="dashboard-card-header">
+                        <h3>📁 Folder Statistics</h3>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="loadDashboard(); return false;">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                    <div class="dashboard-card-body" id="dash-folder-stats">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📂</div>
+                            <div class="empty-state-text">Loading folder statistics...</div>
+                        </div>
                     </div>
                 </div>
 
@@ -9127,7 +9222,230 @@
         // =============================================================================
         async function loadDashboard() {
             await updateDashboardStats();
+            await loadFolderStatistics();
             await loadLastExecution();
+        }
+
+        async function loadFolderStatistics() {
+            try {
+                const container = document.getElementById('dash-folder-stats');
+
+                if (folderTree.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📂</div>
+                            <div class="empty-state-text">No folders yet. Create folders to organize your APIs.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Fetch statistics for all root folders
+                const folderStatsPromises = folderTree.map(async (folder) => {
+                    try {
+                        const response = await fetch(`/api/folders/${folder.id}/statistics?recursive=true`);
+                        const data = await response.json();
+                        return data.success ? { ...folder, stats: data.statistics } : { ...folder, stats: null };
+                    } catch (error) {
+                        console.error(`Failed to fetch stats for ${folder.id}:`, error);
+                        return { ...folder, stats: null };
+                    }
+                });
+
+                const foldersWithStats = await Promise.all(folderStatsPromises);
+
+                // Render table
+                let html = `
+                    <table class="folder-stats-table">
+                        <thead>
+                            <tr>
+                                <th>Folder Name</th>
+                                <th style="text-align: center;">Subfolders</th>
+                                <th style="text-align: center;">APIs</th>
+                                <th style="text-align: center;">Depth</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                foldersWithStats.forEach(folder => {
+                    const stats = folder.stats || {};
+                    const subfolders = stats.total_subfolders || 0;
+                    const apis = stats.total_apis || 0;
+                    const depth = folder.depth || 0;
+                    const indent = '&nbsp;'.repeat(depth * 4);
+
+                    html += `
+                        <tr>
+                            <td>
+                                <div class="folder-stats-name">
+                                    <span class="folder-stats-indent">${indent}</span>
+                                    <span class="folder-icon">📁</span>
+                                    <span>${escapeHtml(folder.name)}</span>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                ${subfolders > 0 ? `<span class="folder-stats-badge subfolders">${subfolders}</span>` : '<span style="color: #bdc3c7;">—</span>'}
+                            </td>
+                            <td style="text-align: center;">
+                                ${apis > 0 ? `<span class="folder-stats-badge apis">${apis}</span>` : '<span style="color: #bdc3c7;">—</span>'}
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="color: #7f8c8d;">${depth}</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <div class="folder-stats-actions">
+                                    <button class="btn btn-sm btn-secondary" onclick="selectFolderFromDashboard('${folder.id}')" title="View Folder">
+                                        👁️ View
+                                    </button>
+                                    ${apis > 0 ? `
+                                        <button class="btn btn-sm btn-primary" onclick="runFolderFromDashboard('${folder.id}')" title="Run All APIs in Folder">
+                                            ▶️ Run
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+
+                    // Add children if they exist
+                    if (folder.children && folder.children.length > 0) {
+                        html += renderFolderStatsRows(folder.children, depth + 1);
+                    }
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                `;
+
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Failed to load folder statistics:', error);
+                const container = document.getElementById('dash-folder-stats');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-text">Failed to load folder statistics</div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderFolderStatsRows(folders, depth) {
+            let html = '';
+            folders.forEach(folder => {
+                const apis = folder.apis ? folder.apis.length : 0;
+                const subfolders = folder.children ? folder.children.length : 0;
+                const indent = '&nbsp;'.repeat(depth * 4);
+
+                html += `
+                    <tr>
+                        <td>
+                            <div class="folder-stats-name">
+                                <span class="folder-stats-indent">${indent}</span>
+                                <span class="folder-icon">📁</span>
+                                <span>${escapeHtml(folder.name)}</span>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            ${subfolders > 0 ? `<span class="folder-stats-badge subfolders">${subfolders}</span>` : '<span style="color: #bdc3c7;">—</span>'}
+                        </td>
+                        <td style="text-align: center;">
+                            ${apis > 0 ? `<span class="folder-stats-badge apis">${apis}</span>` : '<span style="color: #bdc3c7;">—</span>'}
+                        </td>
+                        <td style="text-align: center;">
+                            <span style="color: #7f8c8d;">${depth}</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <div class="folder-stats-actions">
+                                <button class="btn btn-sm btn-secondary" onclick="selectFolderFromDashboard('${folder.id}')" title="View Folder">
+                                    👁️ View
+                                </button>
+                                ${apis > 0 ? `
+                                    <button class="btn btn-sm btn-primary" onclick="runFolderFromDashboard('${folder.id}')" title="Run All APIs in Folder">
+                                        ▶️ Run
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
+                // Recursively render children
+                if (folder.children && folder.children.length > 0) {
+                    html += renderFolderStatsRows(folder.children, depth + 1);
+                }
+            });
+            return html;
+        }
+
+        function selectFolderFromDashboard(folderId) {
+            // Switch to Saved APIs tab
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            const savedApisTab = document.querySelector('[data-tab="saved-apis"]');
+            const savedApisContent = document.getElementById('saved-apis');
+
+            if (savedApisTab) savedApisTab.classList.add('active');
+            if (savedApisContent) savedApisContent.classList.add('active');
+
+            // Select the folder
+            selectSection(folderId);
+
+            // Expand the folder if it has children
+            if (!expandedFolders.has(folderId)) {
+                expandedFolders.add(folderId);
+                renderFolderTree();
+            }
+        }
+
+        async function runFolderFromDashboard(folderId) {
+            try {
+                // Get folder statistics to find all API IDs
+                const response = await fetch(`/api/folders/${folderId}/statistics?recursive=true`);
+                const data = await response.json();
+
+                if (data.success && data.statistics.api_ids && data.statistics.api_ids.length > 0) {
+                    const apiIds = data.statistics.api_ids;
+
+                    // Collect API details
+                    const apisList = [];
+                    sections.forEach(section => {
+                        section.apis?.forEach(api => {
+                            if (apiIds.includes(api.id)) {
+                                apisList.push({ id: api.id, name: api.name, section: section.name });
+                            }
+                        });
+                    });
+
+                    if (apisList.length > 0) {
+                        const folder = findFolderById(folderId, folderTree);
+                        const folderName = folder ? folder.name : 'Folder';
+                        await runApisWithProgress(apisList, `Run ${folderName}`);
+                    } else {
+                        showToast('No APIs found in this folder', 'error');
+                    }
+                } else {
+                    showToast('No APIs to run in this folder', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to run folder:', error);
+                showToast('Failed to run folder', 'error');
+            }
+        }
+
+        function findFolderById(folderId, folders) {
+            for (const folder of folders) {
+                if (folder.id === folderId) return folder;
+                if (folder.children) {
+                    const found = findFolderById(folderId, folder.children);
+                    if (found) return found;
+                }
+            }
+            return null;
         }
 
         async function updateDashboardStats() {
