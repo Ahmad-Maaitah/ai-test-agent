@@ -5236,10 +5236,18 @@
             document.body.appendChild(variableTooltip);
         }
 
-        // Resolve variable value from runtimeVariables
+        // Resolve variable value from runtimeVariables or savedVariables
         function resolveVariableValue(varName) {
+            // Check runtime variables first
             if (runtimeVariables && runtimeVariables[varName]) {
                 return runtimeVariables[varName].value;
+            }
+            // Check saved variables (includes protected variables)
+            if (savedVariables) {
+                const savedVar = savedVariables.find(v => v.name === varName);
+                if (savedVar) {
+                    return savedVar;
+                }
             }
             return undefined;
         }
@@ -5248,10 +5256,23 @@
         function showVariableTooltip(element, varName) {
             if (!variableTooltip) initializeVariableTooltip();
 
-            const value = resolveVariableValue(varName);
+            const varData = resolveVariableValue(varName);
             const rect = element.getBoundingClientRect();
 
-            if (value !== undefined) {
+            // Check if this is a generator variable
+            const isGenerator = varData && varData.type === 'generator';
+            const protectedVars = ['postTitle', 'postDescription'];
+            const isProtected = protectedVars.includes(varName);
+
+            if (isGenerator || isProtected) {
+                // Show special message for generator variables
+                variableTooltip.innerHTML = `
+                    <div class="tooltip-header">🔒 Protected Generator Variable</div>
+                    <div class="tooltip-value" style="color: #0066cc; font-style: italic;">Auto-generates 20-char random text on execution</div>
+                    <div class="tooltip-hint" style="font-size: 11px; color: #666; margin-top: 5px;">Example: "quick brown fox jump"</div>
+                `;
+            } else if (varData !== undefined) {
+                const value = typeof varData === 'object' ? varData.value : varData;
                 const displayValue = truncateValue(value, 100);
                 variableTooltip.innerHTML = `
                     <div class="tooltip-header">Current Value:</div>
