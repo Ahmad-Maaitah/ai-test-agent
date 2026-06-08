@@ -440,6 +440,46 @@
             margin-right: 15px;
         }
 
+        .api-order-input {
+            width: 50px;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+            margin-right: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .api-order-input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+
+        .folder-move-select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-right: 8px;
+            background: white;
+            cursor: pointer;
+            color: #2c3e50;
+        }
+
+        .folder-move-select:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .folder-move-select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+
         .api-info {
             flex: 1;
         }
@@ -5076,9 +5116,17 @@
             container.innerHTML = apis.map(api => {
                 const rulesCount = (api.customRules || []).length;
                 const hasRules = rulesCount > 0;
+                const folderOptions = buildFolderSelectOptions(folderTree, 0, currentSectionId);
                 return `
                 <div class="api-item" data-id="${api.id}" draggable="true"
                      oncontextmenu="showApiContextMenu(event, '${api.id}')">
+                    <input type="number"
+                           class="api-order-input"
+                           value="${api.order || 0}"
+                           min="0"
+                           onchange="updateApiOrder('${api.id}', this.value)"
+                           onclick="event.stopPropagation()"
+                           title="Order number">
                     <span class="drag-handle">⋮⋮</span>
                     <input type="checkbox" class="api-checkbox"
                            ${selectedApis.has(api.id) ? 'checked' : ''}
@@ -5091,6 +5139,10 @@
                         <div class="api-curl">${escapeHtml(api.curl)}</div>
                     </div>
                     <div class="api-actions">
+                        <select class="folder-move-select" onchange="moveApiToFolderQuick('${api.id}', this.value); this.value=''" onclick="event.stopPropagation()">
+                            <option value="">📁 Move to...</option>
+                            ${folderOptions}
+                        </select>
                         <button class="btn-icon" onclick="openEditApiPage('${api.id}')" title="Edit">✏️</button>
                         <button class="btn-icon" onclick="duplicateApi('${api.id}')" title="Duplicate">📑</button>
                         <button class="btn-icon" onclick="deleteApi('${api.id}')" title="Delete">🗑️</button>
@@ -5100,6 +5152,67 @@
 
             setupApiDragDrop();
             updateSelectedCount();
+        }
+
+        function buildFolderSelectOptions(folders, depth, excludeFolderId) {
+            let options = '';
+            folders.forEach(folder => {
+                const indent = '\u00A0\u00A0'.repeat(depth * 2);
+                const isCurrent = folder.id === excludeFolderId;
+                const label = isCurrent ? `${folder.name} (current)` : folder.name;
+
+                options += `<option value="${folder.id}" ${isCurrent ? 'disabled' : ''}>${indent}${label}</option>`;
+
+                // Add children recursively
+                if (folder.children && folder.children.length > 0) {
+                    options += buildFolderSelectOptions(folder.children, depth + 1, excludeFolderId);
+                }
+            });
+            return options;
+        }
+
+        async function moveApiToFolderQuick(apiId, targetFolderId) {
+            if (!targetFolderId) return;
+
+            try {
+                const response = await fetch(`/api/apis/${apiId}/move`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetSectionId: targetFolderId })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showToast('API moved successfully', 'success');
+                    await loadSections();
+                } else {
+                    showToast('Failed to move API', 'error');
+                }
+            } catch (error) {
+                console.error('Move API error:', error);
+                showToast('Failed to move API', 'error');
+            }
+        }
+
+        async function updateApiOrder(apiId, newOrder) {
+            try {
+                const response = await fetch(`/api/apis/${apiId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order: parseInt(newOrder) })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Order updated', 'success');
+                    await loadSections();
+                } else {
+                    showToast('Failed to update order', 'error');
+                }
+            } catch (error) {
+                console.error('Update order error:', error);
+                showToast('Failed to update order', 'error');
+            }
         }
 
         function toggleApiSelection(apiId) {
