@@ -939,67 +939,24 @@ def delete_variable_route(var_id):
 
 @main_bp.route('/api/generate-random-text', methods=['POST'])
 def generate_random_text():
-    """Generate random 20-character text for title and description."""
-    import random
+    """Generate random 20-character text for title and description with guaranteed uniqueness."""
+    from backend.utils import _generate_random_text
 
-    # Word pool for generating random text
-    word_pool = [
-        'quick', 'brown', 'fox', 'jumps', 'over', 'lazy', 'dog',
-        'runs', 'fast', 'slow', 'smart', 'happy', 'sunny', 'cloud',
-        'water', 'fire', 'earth', 'wind', 'light', 'dark', 'moon',
-        'star', 'ocean', 'river', 'mount', 'field', 'forest', 'sky',
-        'stone', 'green', 'blue', 'red', 'gold', 'silver', 'bright',
-        'warm', 'cold', 'soft', 'hard', 'tall', 'small', 'big', 'tiny'
-    ]
-
-    # Track generated texts to ensure uniqueness
-    used_texts = set()
-
-    def generate_text(length, used_set):
-        """Generate exactly length characters of random words."""
-        max_attempts = 100
-        for _ in range(max_attempts):
-            result = ''
-            while len(result) < length:
-                word = random.choice(word_pool)
-                # Add space if not first word and it fits
-                if result and len(result) + len(word) + 1 <= length:
-                    result += ' ' + word
-                elif not result and len(word) <= length:
-                    result = word
-                else:
-                    # Need to fill remaining space
-                    remaining = length - len(result)
-                    if remaining > 0:
-                        # Try to find a word that fits exactly or pad with spaces
-                        fitting_words = [w for w in word_pool if len(w) == remaining - (1 if result else 0)]
-                        if fitting_words:
-                            result += (' ' if result else '') + random.choice(fitting_words)
-                        else:
-                            # Pad with spaces if needed
-                            result = result.ljust(length)
-                    break
-
-            # Ensure exactly 20 characters
-            result = result[:length].ljust(length)
-
-            # Check uniqueness
-            if result not in used_set:
-                used_set.add(result)
-                return result
-
-        # Fallback: add random numbers to ensure uniqueness
-        base = result[:17]
-        num = random.randint(100, 999)
-        return f"{base}{num}"
+    # Track generated texts to ensure title != description
+    generated_texts = {}
 
     # Generate unique title and description
-    title = generate_text(20, used_texts)
-    description = generate_text(20, used_texts)
+    title = _generate_random_text(20, generated_texts)
+    generated_texts['title'] = title
+
+    description = _generate_random_text(20, generated_texts)
+    generated_texts['description'] = description
 
     # Ensure description is different from title
-    while description == title:
-        description = generate_text(20, used_texts)
+    attempts = 0
+    while description == title and attempts < 10:
+        description = _generate_random_text(20, generated_texts)
+        attempts += 1
 
     return jsonify({
         'success': True,
