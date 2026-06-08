@@ -9386,6 +9386,9 @@
             container.innerHTML = reports.map(report => {
                 // Group results by module (section)
                 const moduleGroups = {};
+                let totalApisPassed = 0;
+                let totalApisFailed = 0;
+
                 report.results.forEach(result => {
                     const moduleName = result.section || 'Unknown';
                     if (!moduleGroups[moduleName]) {
@@ -9394,8 +9397,10 @@
                     moduleGroups[moduleName].apis.push(result);
                     if (result.result === 'PASS') {
                         moduleGroups[moduleName].passed++;
+                        totalApisPassed++;
                     } else {
                         moduleGroups[moduleName].failed++;
+                        totalApisFailed++;
                     }
                 });
 
@@ -9408,12 +9413,20 @@
                         </div>
                         <div class="report-stats">
                             <div class="stat">
+                                <div class="stat-value pass">${totalApisPassed}</div>
+                                <div class="stat-label">APIs Passed</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value fail">${totalApisFailed}</div>
+                                <div class="stat-label">APIs Failed</div>
+                            </div>
+                            <div class="stat">
                                 <div class="stat-value pass">${report.passed}</div>
-                                <div class="stat-label">Passed</div>
+                                <div class="stat-label">Rules Passed</div>
                             </div>
                             <div class="stat">
                                 <div class="stat-value fail">${report.failed}</div>
-                                <div class="stat-label">Failed</div>
+                                <div class="stat-label">Rules Failed</div>
                             </div>
                         </div>
                     </div>
