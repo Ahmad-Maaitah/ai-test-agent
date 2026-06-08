@@ -2,6 +2,7 @@
 database.db
 database.db-journal
 *.db
+data.json
 
 # Backup files
 data.json.backup
