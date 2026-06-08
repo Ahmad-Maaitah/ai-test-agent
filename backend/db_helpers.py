@@ -568,3 +568,331 @@ def initialize_protected_variables():
         session.rollback()
     finally:
         close_session(session)
+
+
+# =============================================================================
+# Folder Management Operations
+# =============================================================================
+
+def get_folder_tree() -> List[Dict]:
+    """
+    Get complete folder hierarchy with nested structure.
+    Returns tree structure suitable for frontend rendering.
+    """
+    session = get_session()
+    try:
+        # Get all sections ordered by depth and order
+        all_sections = session.query(Section).order_by(Section.depth, Section.order).all()
+
+        # Build dictionary for quick lookup
+        sections_dict = {}
+        root_sections = []
+
+        for section in all_sections:
+            section_dict = {
+                'id': section.id,
+                'name': section.name,
+                'description': section.description or '',
+                'parent_id': section.parent_id,
+                'is_folder': section.is_folder if hasattr(section, 'is_folder') else True,
+                'path': section.path if hasattr(section, 'path') else f'/{section.id}',
+                'depth': section.depth if hasattr(section, 'depth') else 0,
+                'order': section.order,
+                'children': [],  # Nested folders
+                'apis': []  # APIs in this folder
+            }
+
+            sections_dict[section.id] = section_dict
+
+            if section.parent_id is None:
+                root_sections.append(section_dict)
+
+        # Build parent-child relationships
+        for section in all_sections:
+            if section.parent_id and section.parent_id in sections_dict:
+                sections_dict[section.parent_id]['children'].append(sections_dict[section.id])
+
+        # Attach APIs to their folders
+        apis = session.query(API).order_by(API.order).all()
+        for api in apis:
+            if api.section_id in sections_dict:
+                api_dict = {
+                    'id': api.id,
+                    'name': api.name,
+                    'curl': api.curl,
+                    'method': api.method,
+                    'url': api.url,
+                    'order': api.order,
+                    'lastStatus': api.last_status,
+                    'lastResult': api.last_result
+                }
+                sections_dict[api.section_id]['apis'].append(api_dict)
+
+        return root_sections
+    finally:
+        close_session(session)
+
+
+def create_folder(name: str, parent_id: str = None, description: str = '') -> Dict:
+    """Create a new folder (section with nesting support)."""
+    session = get_session()
+    try:
+        # Calculate depth and path
+        depth = 0
+        path = ''
+
+        if parent_id:
+            parent = session.query(Section).filter_by(id=parent_id).first()
+            if not parent:
+                raise ValueError('Parent folder not found')
+            depth = (parent.depth if hasattr(parent, 'depth') else 0) + 1
+            parent_path = parent.path if hasattr(parent, 'path') else f'/{parent.id}'
+            path = parent_path
+        else:
+            path = '/'
+
+        # Get max order at this level
+        if parent_id:
+            max_order = session.query(Section).filter_by(parent_id=parent_id).count()
+        else:
+            max_order = session.query(Section).filter_by(parent_id=None).count()
+
+        import time
+        folder_id = f'folder-{int(time.time() * 1000)}'
+        path = f"{path}/{folder_id}"
+
+        folder = Section(
+            id=folder_id,
+            name=name,
+            description=description,
+            parent_id=parent_id,
+            is_folder=True,
+            path=path,
+            depth=depth,
+            order=max_order
+        )
+
+        session.add(folder)
+        session.commit()
+
+        return {
+            'id': folder.id,
+            'name': folder.name,
+            'description': folder.description,
+            'parent_id': folder.parent_id,
+            'depth': folder.depth,
+            'order': folder.order,
+            'path': folder.path
+        }
+    finally:
+        close_session(session)
+
+
+def move_folder(folder_id: str, new_parent_id: str = None) -> bool:
+    """
+    Move a folder to a new parent (supports drag-and-drop).
+    Updates path and depth for all descendants.
+    """
+    session = get_session()
+    try:
+        folder = session.query(Section).filter_by(id=folder_id).first()
+        if not folder:
+            return False
+
+        # Prevent moving folder into its own descendants
+        if new_parent_id:
+            new_parent = session.query(Section).filter_by(id=new_parent_id).first()
+            if not new_parent:
+                return False
+
+            # Check if new_parent is a descendant of folder
+            folder_path = folder.path if hasattr(folder, 'path') else f'/{folder.id}'
+            new_parent_path = new_parent.path if hasattr(new_parent, 'path') else f'/{new_parent.id}'
+
+            if new_parent_path.startswith(folder_path):
+                raise ValueError('Cannot move folder into its own descendant')
+
+        # Calculate new depth and path
+        old_depth = folder.depth if hasattr(folder, 'depth') else 0
+        old_path = folder.path if hasattr(folder, 'path') else f'/{folder.id}'
+
+        if new_parent_id:
+            new_parent = session.query(Section).filter_by(id=new_parent_id).first()
+            new_depth = (new_parent.depth if hasattr(new_parent, 'depth') else 0) + 1
+            new_parent_path = new_parent.path if hasattr(new_parent, 'path') else f'/{new_parent.id}'
+            new_path = f"{new_parent_path}/{folder.id}"
+        else:
+            new_depth = 0
+            new_path = f"/{folder.id}"
+
+        depth_diff = new_depth - old_depth
+
+        # Update folder
+        folder.parent_id = new_parent_id
+        folder.depth = new_depth
+        folder.path = new_path
+
+        # Update all descendants (recursive path update)
+        descendants = session.query(Section).filter(
+            Section.path.like(f"{old_path}/%")
+        ).all()
+
+        for desc in descendants:
+            # Update depth
+            desc.depth = (desc.depth if hasattr(desc, 'depth') else 0) + depth_diff
+            # Update path
+            old_desc_path = desc.path if hasattr(desc, 'path') else f'/{desc.id}'
+            desc.path = old_desc_path.replace(old_path, new_path, 1)
+
+        session.commit()
+        return True
+    except Exception as e:
+        session.rollback()
+        print(f"Error moving folder: {e}")
+        raise
+    finally:
+        close_session(session)
+
+
+def copy_folder(folder_id: str, new_parent_id: str = None, include_apis: bool = True) -> Dict:
+    """
+    Copy/duplicate a folder with all its contents.
+    Recursively copies subfolders and APIs.
+    """
+    session = get_session()
+    try:
+        original = session.query(Section).filter_by(id=folder_id).first()
+        if not original:
+            raise ValueError('Folder not found')
+
+        # Create new folder
+        new_folder = create_folder(
+            name=f"{original.name} (Copy)",
+            parent_id=new_parent_id or original.parent_id,
+            description=original.description or ''
+        )
+
+        if include_apis:
+            # Copy APIs
+            apis = session.query(API).filter_by(section_id=folder_id).all()
+            for api in apis:
+                import time
+                new_api_id = f'api-{int(time.time() * 1000000)}'
+
+                new_api = API(
+                    id=new_api_id,
+                    name=api.name,
+                    section_id=new_folder['id'],
+                    curl=api.curl,
+                    method=api.method,
+                    url=api.url,
+                    headers=api.headers,
+                    body=api.body,
+                    verify_ssl=api.verify_ssl,
+                    custom_rules=api.custom_rules,
+                    extract_rules=api.extract_rules,
+                    last_status=api.last_status,
+                    last_result=api.last_result,
+                    order=api.order
+                )
+                session.add(new_api)
+
+            session.commit()
+
+        # Recursively copy child folders
+        children = session.query(Section).filter_by(parent_id=folder_id).all()
+        for child in children:
+            copy_folder(child.id, new_folder['id'], include_apis)
+
+        return new_folder
+    except Exception as e:
+        session.rollback()
+        print(f"Error copying folder: {e}")
+        raise
+    finally:
+        close_session(session)
+
+
+def get_folder_statistics(folder_id: str, recursive: bool = True) -> Dict:
+    """
+    Get statistics for a folder (for reporting).
+
+    Returns:
+        {
+            'folder_id': str,
+            'folder_name': str,
+            'total_apis': int,
+            'total_subfolders': int,
+            'depth': int,
+            'api_ids': List[str],  # For running all APIs in folder
+            'folder_path': str
+        }
+    """
+    session = get_session()
+    try:
+        folder = session.query(Section).filter_by(id=folder_id).first()
+        if not folder:
+            return None
+
+        folder_path = folder.path if hasattr(folder, 'path') else f'/{folder.id}'
+
+        stats = {
+            'folder_id': folder_id,
+            'folder_name': folder.name,
+            'folder_path': folder_path,
+            'depth': folder.depth if hasattr(folder, 'depth') else 0,
+            'total_apis': 0,
+            'total_subfolders': 0,
+            'api_ids': []
+        }
+
+        if recursive:
+            # Get all descendants using path
+            descendants = session.query(Section).filter(
+                Section.path.like(f"{folder_path}/%")
+            ).all()
+
+            stats['total_subfolders'] = len(descendants)
+
+            # Get APIs from this folder and all descendants
+            folder_ids = [folder.id] + [d.id for d in descendants]
+            apis = session.query(API).filter(API.section_id.in_(folder_ids)).all()
+            stats['total_apis'] = len(apis)
+            stats['api_ids'] = [api.id for api in apis]
+        else:
+            # Only direct children
+            apis = session.query(API).filter_by(section_id=folder_id).all()
+            subfolders = session.query(Section).filter_by(parent_id=folder_id).count()
+
+            stats['total_apis'] = len(apis)
+            stats['total_subfolders'] = subfolders
+            stats['api_ids'] = [api.id for api in apis]
+
+        return stats
+    finally:
+        close_session(session)
+
+
+def get_folder_path_name(folder_id: str) -> str:
+    """
+    Get human-readable folder path (e.g., "Add Post / Cars For Sale / Create Listing").
+    """
+    session = get_session()
+    try:
+        folder = session.query(Section).filter_by(id=folder_id).first()
+        if not folder:
+            return ""
+
+        path_parts = []
+        current = folder
+
+        while current:
+            path_parts.insert(0, current.name)
+            if current.parent_id:
+                current = session.query(Section).filter_by(id=current.parent_id).first()
+            else:
+                break
+
+        return " / ".join(path_parts)
+    finally:
+        close_session(session)

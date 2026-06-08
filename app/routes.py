@@ -160,6 +160,153 @@ def delete_section_route(section_id):
     return jsonify({'success': False, 'error': 'Section not found'}), 404
 
 
+# =============================================================================
+# Folder Management API (with nesting support)
+# =============================================================================
+
+@main_bp.route('/api/folders/tree', methods=['GET'])
+def get_folder_tree_route():
+    """Get complete folder hierarchy with nested structure."""
+    from backend.db_helpers import get_folder_tree
+
+    try:
+        tree = get_folder_tree()
+        return jsonify({
+            'success': True,
+            'tree': tree
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@main_bp.route('/api/folders', methods=['POST'])
+def create_folder_route():
+    """Create a new folder."""
+    from backend.db_helpers import create_folder
+
+    req_data = request.get_json()
+    name = req_data.get('name', '').strip()
+    parent_id = req_data.get('parent_id')
+    description = req_data.get('description', '')
+
+    if not name:
+        return jsonify({'success': False, 'error': 'Folder name is required'}), 400
+
+    try:
+        folder = create_folder(name, parent_id, description)
+        return jsonify({'success': True, 'folder': folder})
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@main_bp.route('/api/folders/<folder_id>/move', methods=['POST'])
+def move_folder_route(folder_id):
+    """Move folder to new parent (drag-and-drop)."""
+    from backend.db_helpers import move_folder
+
+    req_data = request.get_json()
+    new_parent_id = req_data.get('new_parent_id')
+
+    try:
+        success = move_folder(folder_id, new_parent_id)
+        if success:
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Folder not found'}), 404
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@main_bp.route('/api/folders/<folder_id>/copy', methods=['POST'])
+def copy_folder_route(folder_id):
+    """Copy/duplicate folder with contents."""
+    from backend.db_helpers import copy_folder
+
+    req_data = request.get_json()
+    new_parent_id = req_data.get('new_parent_id')
+    include_apis = req_data.get('include_apis', True)
+
+    try:
+        new_folder = copy_folder(folder_id, new_parent_id, include_apis)
+        return jsonify({'success': True, 'folder': new_folder})
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@main_bp.route('/api/folders/<folder_id>/statistics', methods=['GET'])
+def get_folder_statistics_route(folder_id):
+    """Get folder statistics (for reporting)."""
+    from backend.db_helpers import get_folder_statistics
+
+    recursive = request.args.get('recursive', 'true').lower() == 'true'
+
+    try:
+        stats = get_folder_statistics(folder_id, recursive)
+        if stats:
+            return jsonify({'success': True, 'statistics': stats})
+        return jsonify({'success': False, 'error': 'Folder not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@main_bp.route('/api/apis/<api_id>/copy', methods=['POST'])
+def copy_api_route(api_id):
+    """Copy/duplicate a single API."""
+    from backend.db_helpers import get_api_by_id
+
+    req_data = request.get_json()
+    target_folder_id = req_data.get('target_folder_id')
+
+    try:
+        api = get_api_by_id(api_id)
+        if not api:
+            return jsonify({'success': False, 'error': 'API not found'}), 404
+
+        # Create copy
+        import time
+        new_api_id = f'api-{int(time.time() * 1000000)}'
+
+        from backend.database import API, get_session, close_session
+        session = get_session()
+
+        try:
+            new_api = API(
+                id=new_api_id,
+                name=f"{api['name']} (Copy)",
+                section_id=target_folder_id or api.get('section_id'),
+                curl=api.get('curl'),
+                method=api.get('method'),
+                url=api.get('url'),
+                headers=api.get('headers'),
+                body=api.get('data'),
+                verify_ssl=api.get('verify_ssl', True),
+                custom_rules=api.get('customRules'),
+                extract_rules=api.get('extractRules'),
+                order=0
+            )
+
+            session.add(new_api)
+            session.commit()
+
+            result = {
+                'id': new_api.id,
+                'name': new_api.name,
+                'section_id': new_api.section_id
+            }
+
+            return jsonify({'success': True, 'api': result})
+        finally:
+            close_session(session)
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @main_bp.route('/api/sections/reorder', methods=['POST'])
 def reorder_sections():
     """Reorder sections."""

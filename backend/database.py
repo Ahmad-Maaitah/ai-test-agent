@@ -10,17 +10,23 @@ Base = declarative_base()
 
 
 class Section(Base):
-    """Section model for organizing APIs."""
+    """Section model for organizing APIs with folder hierarchy support."""
     __tablename__ = 'sections'
 
     id = Column(String(50), primary_key=True)
     name = Column(String(200), nullable=False)
     description = Column(Text)
+    parent_id = Column(String(50), ForeignKey('sections.id', ondelete='CASCADE'))  # For folder nesting
+    is_folder = Column(Boolean, default=True)  # Flag to identify folders
+    path = Column(Text)  # Materialized path for efficient queries (e.g., "/parent_id/this_id")
+    depth = Column(Integer, default=0)  # Nesting level: 0 for root, 1 for first level, etc.
     created_at = Column(DateTime, default=datetime.utcnow)
     order = Column(Integer, default=0)
 
     # Relationships
     apis = relationship('API', back_populates='section', cascade='all, delete-orphan')
+    # Self-referential relationship for parent-child folders
+    children = relationship('Section', backref='parent', remote_side=[id], cascade='all, delete-orphan')
 
 
 class API(Base):
@@ -82,11 +88,13 @@ class Variable(Base):
 
 
 class Report(Base):
-    """Report model for storing test execution reports."""
+    """Report model for storing test execution reports with folder context."""
     __tablename__ = 'reports'
 
     id = Column(String(50), primary_key=True)
     module = Column(String(200))
+    folder_id = Column(String(50))  # ID of folder that was tested
+    folder_path = Column(Text)  # Full path of folder for hierarchy display
     total_apis = Column(Integer, default=0)  # Number of APIs tested
     total_rules = Column(Integer, default=0)  # Number of rules tested
     passed = Column(Integer, default=0)  # Rules passed
