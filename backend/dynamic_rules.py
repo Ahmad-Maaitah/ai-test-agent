@@ -373,7 +373,7 @@ def apply_dynamic_rules(rules: List[Dict], response: Any, response_time_ms: floa
     return results
 
 
-def extract_response_fields(data: Any, prefix: str = "", max_depth: int = 10, current_depth: int = 0) -> List[str]:
+def extract_response_fields(data: Any, prefix: str = "", max_depth: int = 15, current_depth: int = 0) -> List[str]:
     """
     Recursively extract all field paths from JSON response.
 
