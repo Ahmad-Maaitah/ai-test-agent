@@ -297,6 +297,23 @@ def generate_run_html_report(
     total_failed = sum(1 for r in results if r['result'] == 'FAIL')
     overall_result = 'PASS' if total_failed == 0 else 'FAIL'
 
+    # Calculate total response time
+    total_response_time_ms = 0
+    for r in results:
+        exec_time = r.get('executionTime', '0ms')
+        # Extract numeric value from "123.45ms" format
+        try:
+            time_value = float(exec_time.replace('ms', '').strip())
+            total_response_time_ms += time_value
+        except (ValueError, AttributeError):
+            pass
+
+    # Format total response time
+    if total_response_time_ms >= 1000:
+        total_response_time_display = f"{total_response_time_ms / 1000:.2f}s"
+    else:
+        total_response_time_display = f"{total_response_time_ms:.2f}ms"
+
     # Build modules HTML
     modules_html = ""
     for module_name, apis in modules.items():
@@ -341,6 +358,28 @@ def generate_run_html_report(
             api_icon = '✓' if api['result'] == 'PASS' else '✗'
             api_id = api.get('apiId', '')
 
+            # Get request/response data
+            request_data = api.get('requestData', {})
+            response_data = api.get('responseData', {})
+
+            # Format request details
+            request_method = request_data.get('method', 'N/A')
+            request_url = request_data.get('url', 'N/A')
+            request_headers = request_data.get('headers', {})
+            request_body = request_data.get('body', '')
+
+            # Format response details
+            response_status = api.get('statusCode', 'N/A')
+            response_headers = response_data.get('headers', {})
+            response_body = response_data.get('body', '')
+
+            # Format headers as string
+            import json
+            request_headers_str = json.dumps(request_headers, indent=2) if request_headers else 'No headers'
+            response_headers_str = json.dumps(response_headers, indent=2) if response_headers else 'No headers'
+            response_body_str = json.dumps(response_body, indent=2) if isinstance(response_body, (dict, list)) else str(response_body) if response_body else 'Empty response'
+            request_body_str = json.dumps(request_body, indent=2) if isinstance(request_body, (dict, list)) else str(request_body) if request_body else 'No body'
+
             apis_html += f'''
             <div class="api-card {api_result_class}" id="{api_id}">
                 <div class="api-header">
@@ -358,6 +397,53 @@ def generate_run_html_report(
                 <div class="api-tests">
                     <h5 class="tests-title">Test Cases</h5>
                     {tests_html}
+                </div>
+                <div class="api-request-response">
+                    <div class="collapse-section">
+                        <div class="collapse-header" onclick="toggleCollapse(this)">
+                            <span class="collapse-icon">▶</span>
+                            <span class="collapse-title">Request Details</span>
+                        </div>
+                        <div class="collapse-content">
+                            <div class="request-details">
+                                <div class="detail-item">
+                                    <strong>Method:</strong> <span class="method-badge">{request_method}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>URL:</strong> <code class="url-code">{request_url}</code>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Headers:</strong>
+                                    <pre class="code-block">{request_headers_str}</pre>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Body:</strong>
+                                    <pre class="code-block">{request_body_str}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collapse-section">
+                        <div class="collapse-header" onclick="toggleCollapse(this)">
+                            <span class="collapse-icon">▶</span>
+                            <span class="collapse-title">Response Details</span>
+                        </div>
+                        <div class="collapse-content">
+                            <div class="response-details">
+                                <div class="detail-item">
+                                    <strong>Status:</strong> <span class="status-badge status-{response_status}">{response_status}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Headers:</strong>
+                                    <pre class="code-block">{response_headers_str}</pre>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Body:</strong>
+                                    <pre class="code-block response-body">{response_body_str}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>'''
 
@@ -611,6 +697,125 @@ def generate_run_html_report(
         }}
         .footer a {{ color: #3498db; text-decoration: none; }}
 
+        /* Request/Response Collapse Sections */
+        .api-request-response {{
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }}
+        .collapse-section {{
+            margin-bottom: 12px;
+        }}
+        .collapse-section:last-child {{
+            margin-bottom: 0;
+        }}
+        .collapse-header {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 15px;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #dee2e6;
+        }}
+        .collapse-header:hover {{
+            background: #f1f3f5;
+            border-color: #3498db;
+        }}
+        .collapse-icon {{
+            font-size: 12px;
+            transition: transform 0.2s;
+            color: #3498db;
+        }}
+        .collapse-header.expanded .collapse-icon {{
+            transform: rotate(90deg);
+        }}
+        .collapse-title {{
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }}
+        .collapse-content {{
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }}
+        .collapse-content.expanded {{
+            max-height: 2000px;
+            padding-top: 12px;
+        }}
+        .request-details, .response-details {{
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }}
+        .detail-item {{
+            margin-bottom: 15px;
+        }}
+        .detail-item:last-child {{
+            margin-bottom: 0;
+        }}
+        .detail-item strong {{
+            display: block;
+            color: #495057;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }}
+        .method-badge {{
+            display: inline-block;
+            padding: 4px 12px;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }}
+        .status-badge {{
+            display: inline-block;
+            padding: 4px 12px;
+            background: #28a745;
+            color: white;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }}
+        .status-badge.status-400, .status-badge.status-401, .status-badge.status-403, .status-badge.status-404 {{
+            background: #ffc107;
+        }}
+        .status-badge.status-500, .status-badge.status-502, .status-badge.status-503 {{
+            background: #dc3545;
+        }}
+        .url-code {{
+            display: inline-block;
+            padding: 6px 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #495057;
+            word-break: break-all;
+        }}
+        .code-block {{
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #212529;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #dee2e6;
+            margin: 0;
+        }}
+        .response-body {{
+            max-height: 400px;
+            overflow-y: auto;
+        }}
+
         /* Print styles */
         @media print {{
             body {{ background: white; padding: 0; }}
@@ -645,6 +850,10 @@ def generate_run_html_report(
                 <div class="summary-value fail">{total_failed}</div>
                 <div class="summary-label">Failed</div>
             </div>
+            <div class="summary-card">
+                <div class="summary-value" style="color: #3498db;">{total_response_time_display}</div>
+                <div class="summary-label">Total Response Time</div>
+            </div>
         </div>
 
         <div class="content">
@@ -659,6 +868,19 @@ def generate_run_html_report(
     </div>
 
     <script>
+        function toggleCollapse(header) {{
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.collapse-icon');
+
+            if (header.classList.contains('expanded')) {{
+                header.classList.remove('expanded');
+                content.classList.remove('expanded');
+            }} else {{
+                header.classList.add('expanded');
+                content.classList.add('expanded');
+            }}
+        }}
+
         function toggleModule(header) {{
             const moduleSection = header.parentElement;
             const apis = moduleSection.querySelector('.module-apis');

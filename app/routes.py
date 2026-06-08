@@ -687,7 +687,9 @@ def run_apis():
             'executionTime': f'{execution_time}ms',
             'errorMessage': error_message,
             'ruleResults': test_result.get('rule_results', []),
-            'reportPaths': test_result.get('report_paths', {})
+            'reportPaths': test_result.get('report_paths', {}),
+            'requestData': test_result.get('requestData', {}),
+            'responseData': test_result.get('responseData', {})
         }
 
         results.append(result_entry)

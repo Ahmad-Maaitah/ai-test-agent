@@ -396,6 +396,25 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
         except Exception:
             result['response_json'] = None
 
+        # Store request/response data for report
+        result['requestData'] = {
+            'method': parsed_curl.get('method', 'GET'),
+            'url': parsed_curl.get('url', ''),
+            'headers': parsed_curl.get('headers', {}),
+            'body': parsed_curl.get('data', '')
+        }
+
+        # Capture response details
+        try:
+            response_body = response.json()
+        except Exception:
+            response_body = response.text if hasattr(response, 'text') else ''
+
+        result['responseData'] = {
+            'headers': dict(response.headers) if hasattr(response, 'headers') else {},
+            'body': response_body
+        }
+
         # DEBUG: Log what we're returning
         print(f"\n🔍 run_test_pipeline RETURNING:")
         print(f"   Success: {result['success']}")
