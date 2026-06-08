@@ -262,7 +262,7 @@ def substitute_variables(text: str, variables: list) -> str:
 
 def _generate_random_text(length: int, used_texts: dict) -> str:
     """
-    Generate random text of exactly length characters with timestamp-based uniqueness.
+    Generate random characters of exactly length characters with timestamp-based uniqueness.
     Ensures DIFFERENT text on every execution to avoid duplicate posts.
 
     Args:
@@ -270,76 +270,50 @@ def _generate_random_text(length: int, used_texts: dict) -> str:
         used_texts: Dict of already generated texts to ensure uniqueness
 
     Returns:
-        Random text string of exact length with guaranteed uniqueness
+        Random character string of exact length with guaranteed uniqueness
     """
     import random
     import time
-
-    word_pool = [
-        'quick', 'brown', 'fox', 'jumps', 'over', 'lazy', 'dog',
-        'runs', 'fast', 'slow', 'smart', 'happy', 'sunny', 'cloud',
-        'water', 'fire', 'earth', 'wind', 'light', 'dark', 'moon',
-        'star', 'ocean', 'river', 'mount', 'field', 'forest', 'sky',
-        'stone', 'green', 'blue', 'red', 'gold', 'silver', 'bright',
-        'warm', 'cold', 'soft', 'hard', 'tall', 'small', 'big', 'tiny',
-        'deep', 'wide', 'old', 'new', 'rich', 'pure', 'wild', 'calm',
-        'loud', 'quiet', 'sharp', 'round', 'sweet', 'fresh', 'clean', 'dirty',
-        'high', 'low', 'long', 'short', 'thick', 'thin', 'heavy', 'light'
-    ]
+    import string
 
     # Add timestamp-based random seed for uniqueness across executions
-    timestamp_seed = int(time.time() * 1000000) % 100000
+    timestamp_seed = int(time.time() * 1000000) % 1000000
     random.seed(timestamp_seed + random.randint(1, 99999))
 
-    # Generate random words
+    # Generate completely random characters (lowercase letters only)
+    # Pattern: random letters with some spaces for readability
     result = ''
-    attempts = 0
-    max_word_attempts = 50
 
-    while len(result) < length and attempts < max_word_attempts:
-        word = random.choice(word_pool)
+    # Generate groups of random letters separated by spaces
+    # Example: "hshsh shshhs dhdhd"
+    remaining = length
+    while remaining > 0:
+        # Generate a group of 4-6 random letters
+        group_size = min(random.randint(4, 6), remaining)
 
-        # Add space if not first word and it fits
-        if result and len(result) + len(word) + 1 <= length:
-            result += ' ' + word
-        elif not result and len(word) <= length:
-            result = word
+        # Generate random lowercase letters
+        group = ''.join(random.choice(string.ascii_lowercase) for _ in range(group_size))
+
+        if result and remaining > group_size:
+            # Add space before group if not first and space fits
+            result += ' ' + group
+            remaining -= (group_size + 1)
         else:
-            # Need to fill remaining space
-            remaining = length - len(result)
-            if remaining > 0:
-                # Try to find a word that fits or add random chars
-                fitting_words = [w for w in word_pool if len(w) == remaining - (1 if result else 0)]
-                if fitting_words:
-                    result += (' ' if result else '') + random.choice(fitting_words)
-                else:
-                    # Fill with random number to ensure exact length
-                    if remaining == 1:
-                        result += str(random.randint(0, 9))
-                    elif remaining == 2:
-                        result += str(random.randint(10, 99))
-                    elif remaining == 3:
-                        result += str(random.randint(100, 999))
-                    else:
-                        # Add random word and continue
-                        short_words = [w for w in word_pool if len(w) < remaining]
-                        if short_words:
-                            result += (' ' if result else '') + random.choice(short_words)
-                        else:
-                            result = result.ljust(length)
-            break
-
-        attempts += 1
+            result += group
+            remaining -= group_size
 
     # Ensure exactly the requested length
-    result = result[:length].ljust(length)
+    result = result[:length]
 
-    # Add timestamp-based uniqueness to avoid duplicates across executions
-    # Replace last 3-4 chars with unique number if result already exists
+    # Pad with random letters if needed
+    while len(result) < length:
+        result += random.choice(string.ascii_lowercase)
+
+    # Add additional uniqueness check - replace some chars if duplicate
     if result in used_texts.values():
-        base = result[:16]
-        unique_num = (timestamp_seed % 1000)
-        result = f"{base}{unique_num:04d}"[:length]
+        # Replace last few characters with timestamp-based unique chars
+        unique_suffix = str(timestamp_seed)[-4:]
+        result = result[:length-4] + unique_suffix
 
     # Reset random seed for next call
     random.seed()

@@ -5253,7 +5253,7 @@
         }
 
         // Show tooltip with variable value
-        function showVariableTooltip(element, varName) {
+        async function showVariableTooltip(element, varName) {
             if (!variableTooltip) initializeVariableTooltip();
 
             const varData = resolveVariableValue(varName);
@@ -5265,12 +5265,53 @@
             const isProtected = protectedVars.includes(varName);
 
             if (isGenerator || isProtected) {
-                // Show special message for generator variables
+                // Show loading state first
                 variableTooltip.innerHTML = `
-                    <div class="tooltip-header">🔒 Protected Generator Variable</div>
-                    <div class="tooltip-value" style="color: #0066cc; font-style: italic;">Auto-generates 20-char random text on execution</div>
-                    <div class="tooltip-hint" style="font-size: 11px; color: #666; margin-top: 5px;">Example: "quick brown fox jump"</div>
+                    <div class="tooltip-header">🔒 Generating Preview...</div>
+                    <div class="tooltip-value" style="color: #999;">Loading...</div>
                 `;
+
+                // Position and show tooltip immediately
+                const tooltipRect = variableTooltip.getBoundingClientRect();
+                const left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                const top = rect.top - tooltipRect.height - 10;
+                variableTooltip.style.left = Math.max(10, Math.min(left, window.innerWidth - tooltipRect.width - 10)) + 'px';
+                variableTooltip.style.top = top + 'px';
+                variableTooltip.classList.add('show');
+
+                // Generate actual preview for generator variables
+                try {
+                    const response = await fetch('/api/generate-random-text', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const previewValue = data.data[varName] || data.data.postTitle;
+                        variableTooltip.innerHTML = `
+                            <div class="tooltip-header">🔒 Preview (will be different on each execution):</div>
+                            <div class="tooltip-value" style="color: #0066cc; font-weight: bold; font-family: monospace;">"${escapeHtml(previewValue)}"</div>
+                            <div class="tooltip-hint" style="font-size: 11px; color: #666; margin-top: 5px;">⚡ Generates NEW random text every time</div>
+                        `;
+
+                        // Re-position after content change
+                        const newRect = variableTooltip.getBoundingClientRect();
+                        const newLeft = rect.left + (rect.width / 2) - (newRect.width / 2);
+                        const newTop = rect.top - newRect.height - 10;
+                        variableTooltip.style.left = Math.max(10, Math.min(newLeft, window.innerWidth - newRect.width - 10)) + 'px';
+                        variableTooltip.style.top = newTop + 'px';
+                    } else {
+                        throw new Error('Failed to generate preview');
+                    }
+                } catch (error) {
+                    variableTooltip.innerHTML = `
+                        <div class="tooltip-header">🔒 Protected Generator Variable</div>
+                        <div class="tooltip-value" style="color: #0066cc; font-style: italic;">Auto-generates 20-char random text on execution</div>
+                        <div class="tooltip-hint" style="font-size: 11px; color: #666; margin-top: 5px;">Example: "hshsh shshhs dhdhd"</div>
+                    `;
+                }
+                return; // Exit early, positioning already done
             } else if (varData !== undefined) {
                 const value = typeof varData === 'object' ? varData.value : varData;
                 const displayValue = truncateValue(value, 100);
