@@ -1308,8 +1308,13 @@ def execute_curl():
         # Parse response
         try:
             response_json = response.json()
+            print(f"[BACKEND] Successfully parsed JSON, type: {type(response_json)}")
+            print(f"[BACKEND] JSON keys: {list(response_json.keys()) if isinstance(response_json, dict) else 'not a dict'}")
             fields = extract_response_fields(response_json)
-        except Exception:
+            print(f"[BACKEND] Extracted {len(fields)} fields")
+        except Exception as e:
+            print(f"[BACKEND] Failed to parse JSON: {e}")
+            print(f"[BACKEND] Response text preview: {response.text[:200]}")
             response_json = None
             fields = []
 
@@ -1397,7 +1402,7 @@ def execute_curl():
                 save_data(data)
                 print(f"[OK] Variables saved successfully!")
 
-        return jsonify({
+        result_data = {
             'success': True,
             'status_code': response.status_code,
             'response_time_ms': int(response_time_ms),
@@ -1405,7 +1410,14 @@ def execute_curl():
             'response_text': response.text[:5000] if response_json is None else None,
             'fields': fields,
             'updatedVariables': updated_variables
-        })
+        }
+
+        print(f"[BACKEND] Returning to frontend:")
+        print(f"[BACKEND]   response is None: {response_json is None}")
+        print(f"[BACKEND]   response_text is None: {result_data['response_text'] is None}")
+        print(f"[BACKEND]   fields count: {len(fields)}")
+
+        return jsonify(result_data)
 
     except requests.exceptions.Timeout:
         return jsonify({'success': False, 'error': 'Request timed out (30s limit)'}), 408
