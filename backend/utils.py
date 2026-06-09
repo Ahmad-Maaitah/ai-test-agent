@@ -34,23 +34,23 @@ def parse_curl(curl_command: str) -> dict:
     # It captures everything between the quotes, including newlines
 
     # DEBUG: Show what we're trying to match
-    print(f"\n🔍 Trying to extract data from curl command...")
+    print(f"\n[PARSE] Trying to extract data from curl command...")
     print(f"   Curl length: {len(curl_command)} chars")
     print(f"   Curl preview: {curl_command[:200]}")
     if '-d ' in curl_command or '--data' in curl_command:
-        print(f"   ✓ Contains -d or --data flag")
+        print(f"   [+] Contains -d or --data flag")
         # Find the -d section
         d_index = curl_command.find('-d ')
         if d_index >= 0:
             print(f"   -d section: {curl_command[d_index:d_index+50]}")
     else:
-        print(f"   ✗ No -d or --data flag found!")
+        print(f"   [-] No -d or --data flag found!")
 
     data_pattern = r"(--data(?:-raw|-binary)?|--json|-d)\s+(['\"])(.+?)\2"
     data_match = re.search(data_pattern, curl_command, re.MULTILINE | re.DOTALL)
 
     if data_match:
-        print(f"🔍 Data pattern matched!")
+        print(f"[PARSE] Data pattern matched!")
         print(f"   Flag: {data_match.group(1)}")
         print(f"   Quote: {data_match.group(2)}")
         print(f"   Content: {data_match.group(3)}")

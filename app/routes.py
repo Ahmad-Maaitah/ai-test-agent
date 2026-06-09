@@ -79,7 +79,7 @@ def version():
         'version': '1.1',
         'message': 'Git Pull Test - Update Successful!',
         'timestamp': datetime.now().isoformat(),
-        'utf8_fix': 'Applied ✓',
+        'utf8_fix': 'Applied [OK]',
         'server': 'Windows Server 172.16.1.4'
     })
 
@@ -596,17 +596,17 @@ def run_apis():
 
                 # Skip if no field path
                 if not field_path:
-                    print(f"      ⏭️  Skipped - no field path")
+                    print(f"      [SKIP] Skipped - no field path")
                     continue
 
                 # Skip if variable has NO apiId (global variables should not be updated by /api/run)
                 if not source_api_id:
-                    print(f"      ⏭️  Skipped - no apiId (global variable, not updated by /api/run)")
+                    print(f"      [SKIP] Skipped - no apiId (global variable, not updated by /api/run)")
                     continue
 
                 # Skip if variable belongs to a different API
                 if source_api_id != api['id']:
-                    print(f"      ⏭️  Skipped - variable belongs to API '{source_api_id}', not this API")
+                    print(f"      [SKIP] Skipped - variable belongs to API '{source_api_id}', not this API")
                     continue
 
                 # Update variable - it belongs to THIS API
@@ -623,7 +623,7 @@ def run_apis():
                 print(f"      Values equal: {new_str == old_str}")
 
                 if new_value is not None and new_str != old_str:
-                    print(f"   🔄 Variable '{var['name']}': {old_value} → {new_value}")
+                    print(f"   [UPDATE] Variable '{var['name']}': {old_value} -> {new_value}")
                     var['value'] = new_value
                     # Update type based on new value
                     if isinstance(new_value, bool):
@@ -1257,7 +1257,7 @@ def execute_curl():
         # Add default User-Agent if missing (prevents 403 on many APIs)
         if not any(key.lower() == 'user-agent' for key in headers.keys()):
             headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            print("ℹ️  Added default User-Agent header (was missing)")
+            print("[INFO] Added default User-Agent header (was missing)")
 
         data = parsed_curl.get('data')
         content_type = headers.get('Content-Type', headers.get('content-type', ''))
@@ -1331,7 +1331,7 @@ def execute_curl():
 
                 # Skip if no field path
                 if not field_path:
-                    print(f"      ⏭️  Skipped - no field path")
+                    print(f"      [SKIP] Skipped - no field path")
                     continue
 
                 # Determine if we should update this variable
@@ -1347,7 +1347,7 @@ def execute_curl():
                     should_update = True
                 else:
                     # Variable belongs to a different API - skip
-                    print(f"      ⏭️  Skipped - variable belongs to API '{source_api_id}', not this API")
+                    print(f"      [SKIP] Skipped - variable belongs to API '{source_api_id}', not this API")
                     continue
 
                 if should_update:
@@ -1364,7 +1364,7 @@ def execute_curl():
                     print(f"      Values equal: {new_str == old_str}")
 
                     if new_value is not None and new_str != old_str:
-                        print(f"   🔄 Updating variable '{var['name']}': {old_value} → {new_value}")
+                        print(f"   [UPDATE] Updating variable '{var['name']}': {old_value} -> {new_value}")
                         var['value'] = new_value
                         # Update type based on new value
                         if isinstance(new_value, bool):
