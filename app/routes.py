@@ -747,7 +747,8 @@ def run_apis():
         'failed': rules_failed,  # Rules failed
         'duration': total_duration,
         'htmlPath': run_report_path,
-        'status': 'completed'
+        'status': 'completed',
+        'results': results  # Individual API test results
     }
 
     # Create report in database
