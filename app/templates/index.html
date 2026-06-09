@@ -7346,7 +7346,20 @@
                         if (data.response) {
                             jsonDiv.classList.add('interactive');
                             jsonNodeCounter = 0; // Reset counter for new response
-                            jsonDiv.innerHTML = renderInteractiveJson(data.response);
+
+                            // Smart unwrapping: Extract meaningful data from common wrapper patterns
+                            let displayData = data.response;
+
+                            // Pattern 1: {success: bool, result: {status: number, data: {...}}}
+                            if (displayData.result && displayData.result.data && typeof displayData.result.status === 'number') {
+                                displayData = displayData.result.data;
+                            }
+                            // Pattern 2: {data: {...}, status: number} (alternative wrapper)
+                            else if (displayData.data && typeof displayData.status === 'number' && Object.keys(displayData).length <= 3) {
+                                displayData = displayData.data;
+                            }
+
+                            jsonDiv.innerHTML = renderInteractiveJson(displayData);
                         } else {
                             jsonDiv.classList.remove('interactive');
                             jsonDiv.textContent = data.response_text || 'No JSON response';
