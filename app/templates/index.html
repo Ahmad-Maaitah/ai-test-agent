@@ -7343,11 +7343,26 @@
                     const jsonDiv = document.getElementById('page-response-json');
                     if (jsonDiv) {
                         jsonDiv.classList.remove('empty');
+
+                        console.log('[RENDER-FIX] data.response type:', typeof data.response);
+                        console.log('[RENDER-FIX] data.response value:', data.response);
+                        console.log('[RENDER-FIX] data.response_text:', data.response_text);
+
                         if (data.response) {
+                            console.log('[RENDER-FIX] Rendering as interactive JSON');
                             jsonDiv.classList.add('interactive');
                             jsonNodeCounter = 0; // Reset counter for new response
-                            jsonDiv.innerHTML = renderInteractiveJson(data.response);
+                            try {
+                                const html = renderInteractiveJson(data.response);
+                                console.log('[RENDER-FIX] renderInteractiveJson returned:', html.substring(0, 100));
+                                jsonDiv.innerHTML = html;
+                                console.log('[RENDER-FIX] Successfully set innerHTML');
+                            } catch (error) {
+                                console.error('[RENDER-FIX] Error in renderInteractiveJson:', error);
+                                jsonDiv.textContent = JSON.stringify(data.response, null, 2);
+                            }
                         } else {
+                            console.log('[RENDER-FIX] No response object, showing text');
                             jsonDiv.classList.remove('interactive');
                             jsonDiv.textContent = data.response_text || 'No JSON response';
                         }
