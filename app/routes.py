@@ -47,7 +47,7 @@ def save_data(data):
                     'type': var.get('type'),
                     'source': var.get('source')
                 })
-                print(f"   💾 Saved variable '{var.get('name')}' = {var.get('value')} to database")
+                print(f"   [SAVE] Saved variable '{var.get('name')}' = {var.get('value')} to database")
 
 
 def generate_id():
@@ -533,7 +533,7 @@ def run_apis():
                 'api': api,
                 'section': section_name
             })
-            print(f"📦 Loaded API from database: {api['name']}")
+            print(f"[*] Loaded API from database: {api['name']}")
             print(f"   customRules count: {len(api.get('customRules', []))}")
 
     if not apis_to_run:
@@ -563,11 +563,11 @@ def run_apis():
         start_time = datetime.now()
         # Pass custom rules to runner if available
         custom_rules = api.get('customRules', [])
-        print(f"\n🎯 /api/run calling run_test_pipeline:")
+        print(f"\n[>] /api/run calling run_test_pipeline:")
         print(f"   API: {api['name']}")
         print(f"   Custom Rules Count: {len(custom_rules)}")
         test_result = run_test_pipeline(curl_command, api_name=api['name'], custom_rules=custom_rules)
-        print(f"\n📥 /api/run RECEIVED from run_test_pipeline:")
+        print(f"\n[<] /api/run RECEIVED from run_test_pipeline:")
         print(f"   Success: {test_result.get('success')}")
         print(f"   Rule Results Count: {len(test_result.get('rule_results', []))}")
         if test_result.get('rule_results'):
@@ -578,7 +578,7 @@ def run_apis():
 
         # Auto-update saved variables if response contains matching fields
         response_json = test_result.get('response_json')
-        print(f"\n🔍 Variable Update Check:")
+        print(f"\n[?] Variable Update Check:")
         print(f"   Response JSON present: {response_json is not None}")
         print(f"   Total variables: {len(data.get('variables', []))}")
         print(f"   Current API ID: {api['id']}")
@@ -610,7 +610,7 @@ def run_apis():
                     continue
 
                 # Update variable - it belongs to THIS API
-                print(f"      ✅ Variable belongs to this API - checking for updates")
+                print(f"      [OK] Variable belongs to this API - checking for updates")
                 new_value = get_nested_value(response_json, field_path)
                 old_value = var.get('value')  # Capture old value BEFORE update
 
@@ -637,9 +637,9 @@ def run_apis():
                     variables_updated = True
 
             if variables_updated:
-                print(f"💾 SAVING updated variables to database...")
+                print(f"[SAVE] SAVING updated variables to database...")
                 save_data(data)
-                print(f"✅ Variables saved successfully!")
+                print(f"[OK] Variables saved successfully!")
 
         # Determine overall result based on rule_type
         structural_pass = all(
@@ -1307,7 +1307,7 @@ def execute_curl():
 
         # Auto-update saved variables if response contains matching fields
         updated_variables = []
-        print(f"\n🔍 Variable Update Check (execute-curl):")
+        print(f"\n[?] Variable Update Check (execute-curl):")
         print(f"   Response JSON present: {response_json is not None}")
         print(f"   Executing API ID: {api_id or 'None (creating new API)'}")
 
@@ -1339,11 +1339,11 @@ def execute_curl():
 
                 if not source_api_id:
                     # Global variable - always update
-                    print(f"      ✅ Global variable (no apiId) - will update")
+                    print(f"      [OK] Global variable (no apiId) - will update")
                     should_update = True
                 elif api_id and source_api_id == api_id:
                     # Variable belongs to this API - update
-                    print(f"      ✅ Variable belongs to this API - will update")
+                    print(f"      [OK] Variable belongs to this API - will update")
                     should_update = True
                 else:
                     # Variable belongs to a different API - skip
@@ -1385,9 +1385,9 @@ def execute_curl():
                         variables_updated = True
 
             if variables_updated:
-                print(f"💾 SAVING updated variables to database...")
+                print(f"[SAVE] SAVING updated variables to database...")
                 save_data(data)
-                print(f"✅ Variables saved successfully!")
+                print(f"[OK] Variables saved successfully!")
 
         return jsonify({
             'success': True,
