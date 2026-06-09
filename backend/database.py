@@ -96,6 +96,8 @@ class Report(Base):
     folder_id = Column(String(50))  # ID of folder that was tested
     folder_path = Column(Text)  # Full path of folder for hierarchy display
     total_apis = Column(Integer, default=0)  # Number of APIs tested
+    apis_passed = Column(Integer, default=0)  # APIs that passed
+    apis_failed = Column(Integer, default=0)  # APIs that failed
     total_rules = Column(Integer, default=0)  # Number of rules tested
     passed = Column(Integer, default=0)  # Rules passed
     failed = Column(Integer, default=0)  # Rules failed

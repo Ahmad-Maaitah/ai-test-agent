@@ -501,36 +501,53 @@ def get_all_reports(limit: int = None) -> List[Dict]:
 
 
 def get_report_by_id(report_id: str) -> Optional[Dict]:
-    """Get a single report by ID."""
+    """Get a single report by ID with test results."""
     session = get_session()
     try:
         report = session.query(Report).filter_by(id=report_id).first()
         if not report:
             return None
 
+        # Retrieve test results
+        test_results = []
+        for result in report.results:
+            test_results.append({
+                'apiId': result.api_id,
+                'apiName': result.api_name,
+                'result': result.status,  # 'PASS' or 'FAIL'
+                'statusCode': result.status_code,
+                'executionTime': f'{int(result.response_time)}ms' if result.response_time else '0ms',
+                'errorMessage': result.error_message,
+                'ruleResults': result.rule_results or [],
+                'section': report.module  # Add section for grouping
+            })
+
         return {
             'id': report.id,
+            'runId': report.id,
             'module': report.module,
-            'totalApis': report.total_apis,  # Number of APIs
+            'totalApis': report.total_apis,
+            'apisPassed': getattr(report, 'apis_passed', 0),
+            'apisFailed': getattr(report, 'apis_failed', 0),
             'total': report.total_rules if hasattr(report, 'total_rules') and report.total_rules else report.total_apis,
             'totalRules': report.total_rules if hasattr(report, 'total_rules') else 0,
             'passed': report.passed,
             'failed': report.failed,
             'duration': report.total_duration,
             'timestamp': report.created_at.isoformat() if report.created_at else None,
-            'date': report.created_at.isoformat() if report.created_at else None,  # Frontend compatibility
+            'date': report.created_at.isoformat() if report.created_at else None,
             'htmlPath': report.html_path,
             'jsonPath': report.json_path,
             'status': report.status,
             'error': report.error,
-            'results': []  # Empty array for frontend compatibility
+            'results': test_results
         }
     finally:
         close_session(session)
 
 
 def create_report(report_data: Dict) -> Dict:
-    """Create a new report."""
+    """Create a new report with individual test results."""
     session = get_session()
     try:
         report = Report(
@@ -544,9 +561,29 @@ def create_report(report_data: Dict) -> Dict:
             html_path=report_data.get('htmlPath'),
             json_path=report_data.get('jsonPath'),
             status=report_data.get('status', 'completed'),
-            error=report_data.get('error')
+            error=report_data.get('error'),
+            apis_passed=report_data.get('apis_passed', 0),
+            apis_failed=report_data.get('apis_failed', 0)
         )
         session.add(report)
+        session.flush()  # Get report ID before adding results
+
+        # Save individual test results if provided
+        if 'results' in report_data and report_data['results']:
+            from backend.database import TestResult
+            for result_item in report_data['results']:
+                test_result = TestResult(
+                    report_id=report.id,
+                    api_id=result_item.get('apiId'),
+                    api_name=result_item.get('apiName'),
+                    status=result_item.get('result'),  # 'PASS' or 'FAIL'
+                    response_time=float(result_item.get('executionTime', '0ms').replace('ms', '')) if result_item.get('executionTime') else 0,
+                    status_code=result_item.get('statusCode'),
+                    error_message=result_item.get('errorMessage'),
+                    rule_results=result_item.get('ruleResults', [])
+                )
+                session.add(test_result)
+
         session.commit()
 
         return {'id': report.id}
