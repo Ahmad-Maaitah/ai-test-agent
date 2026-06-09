@@ -1170,7 +1170,7 @@ def execute_curl():
     api_id = req_data.get('apiId')  # Get API ID if executing from editing page
 
     # DEBUG: Show what was received from frontend
-    print(f"\n🔴 RAW CURL RECEIVED FROM FRONTEND:")
+    print(f"\n[!] RAW CURL RECEIVED FROM FRONTEND:")
     print(f"   Length: {len(curl)} chars")
     print(f"   FULL CURL COMMAND:")
     print(f"   {curl}")
@@ -1197,7 +1197,7 @@ def execute_curl():
         data = load_data()
         variables = data.get('variables', [])
 
-        print(f"\n🟡 BEFORE substitute_variables:")
+        print(f"\n[-] BEFORE substitute_variables:")
         print(f"   Variables count: {len(variables)}")
         for var in variables[:5]:  # Show first 5 variables
             print(f"   - {var.get('name')}: {var.get('value')}")
@@ -1207,7 +1207,7 @@ def execute_curl():
 
         curl = substitute_variables(curl, variables)
 
-        print(f"\n🟢 AFTER substitute_variables:")
+        print(f"\n[+] AFTER substitute_variables:")
         if '-d ' in curl:
             d_index = curl.find('-d ')
             print(f"   Section around -d: {curl[max(0, d_index-10):min(len(curl), d_index+60)]}")
@@ -1221,7 +1221,7 @@ def execute_curl():
                 all_d.append(curl[idx:min(len(curl), idx+30)])
                 idx += 1
             if len(all_d) > 1:
-                print(f"   ⚠️  WARNING: Found {len(all_d)} -d flags!")
+                print(f"   [WARN]  WARNING: Found {len(all_d)} -d flags!")
                 for i, d in enumerate(all_d):
                     print(f"      {i+1}. {d}")
 
