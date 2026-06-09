@@ -731,10 +731,16 @@ def run_apis():
         rules_passed += sum(1 for r in rule_results if r.get('result') == 'PASS')
         rules_failed += sum(1 for r in rule_results if r.get('result') == 'FAIL')
 
+    # Count API-level statistics
+    apis_passed = sum(1 for r in results if r.get('result') == 'PASS')
+    apis_failed = sum(1 for r in results if r.get('result') == 'FAIL')
+
     report = {
         'id': run_id,
         'module': 'Selected APIs',
         'total_apis': len(results),  # Number of APIs tested
+        'apis_passed': apis_passed,  # APIs passed
+        'apis_failed': apis_failed,  # APIs failed
         'total_rules': total_rules,  # Total rules tested
         'total': total_rules,  # For backward compatibility
         'passed': rules_passed,  # Rules passed
@@ -752,6 +758,8 @@ def run_apis():
         'runId': run_id,
         'date': run_date,
         'totalApis': len(results),
+        'apisPassed': apis_passed,  # APIs passed
+        'apisFailed': apis_failed,  # APIs failed
         'passed': rules_passed,  # Rules passed
         'failed': rules_failed,  # Rules failed
         'total': total_rules,  # Total rules
