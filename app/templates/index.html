@@ -7343,6 +7343,10 @@
                     const jsonDiv = document.getElementById('page-response-json');
                     if (jsonDiv) {
                         jsonDiv.classList.remove('empty');
+
+                        console.log('[DEBUG] Response type:', typeof data.response);
+                        console.log('[DEBUG] Response value:', data.response);
+
                         if (data.response) {
                             jsonDiv.classList.add('interactive');
                             jsonNodeCounter = 0; // Reset counter for new response
@@ -7350,17 +7354,26 @@
                             // Smart unwrapping: Extract meaningful data from common wrapper patterns
                             let displayData = data.response;
 
+                            console.log('[DEBUG] Before unwrap:', displayData);
+
                             // Pattern 1: {success: bool, result: {status: number, data: {...}}}
                             if (displayData.result && displayData.result.data && typeof displayData.result.status === 'number') {
+                                console.log('[DEBUG] Unwrapping pattern 1');
                                 displayData = displayData.result.data;
                             }
                             // Pattern 2: {data: {...}, status: number} (alternative wrapper)
                             else if (displayData.data && typeof displayData.status === 'number' && Object.keys(displayData).length <= 3) {
+                                console.log('[DEBUG] Unwrapping pattern 2');
                                 displayData = displayData.data;
                             }
 
+                            console.log('[DEBUG] After unwrap:', displayData);
+                            console.log('[DEBUG] Calling renderInteractiveJson...');
+
                             jsonDiv.innerHTML = renderInteractiveJson(displayData);
+                            console.log('[DEBUG] renderInteractiveJson completed');
                         } else {
+                            console.log('[DEBUG] No response, showing text');
                             jsonDiv.classList.remove('interactive');
                             jsonDiv.textContent = data.response_text || 'No JSON response';
                         }
