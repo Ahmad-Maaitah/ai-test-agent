@@ -13,17 +13,17 @@ import os
 # Initialize database
 db_path = os.path.join(os.path.dirname(__file__), 'database.db')
 if not os.path.exists(db_path):
-    print("📦 Initializing database...")
+    print("[*] Initializing database...")
     init_db()
-    print("✅ Database initialized")
+    print("[+] Database initialized")
 else:
     # Ensure database schema is up to date
     init_db()
 
 # Initialize protected variables for dynamic text generation
-print("🔒 Initializing protected variables...")
+print("[*] Initializing protected variables...")
 initialize_protected_variables()
-print("✅ Protected variables ready")
+print("[+] Protected variables ready")
 
 app = create_app()
 
