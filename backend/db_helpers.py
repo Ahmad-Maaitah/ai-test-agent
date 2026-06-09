@@ -482,10 +482,12 @@ def get_all_reports(limit: int = None) -> List[Dict]:
                 'id': r.id,
                 'module': r.module,
                 'totalApis': r.total_apis,  # Number of APIs
+                'apisPassed': getattr(r, 'apis_passed', 0),  # APIs that passed
+                'apisFailed': getattr(r, 'apis_failed', 0),  # APIs that failed
                 'total': r.total_rules if hasattr(r, 'total_rules') and r.total_rules else r.total_apis,  # Rules count
                 'totalRules': r.total_rules if hasattr(r, 'total_rules') else 0,
-                'passed': r.passed,
-                'failed': r.failed,
+                'passed': r.passed,  # Rules passed
+                'failed': r.failed,  # Rules failed
                 'duration': r.total_duration,
                 'timestamp': r.created_at.isoformat() if r.created_at else None,
                 'date': r.created_at.isoformat() if r.created_at else None,  # Frontend compatibility

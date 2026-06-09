@@ -889,6 +889,8 @@ def get_reports():
             'timestamp': db_report.get('timestamp', ''),
             'total': db_report.get('total', 0),
             'totalApis': db_report.get('totalApis', db_report.get('total', 0)),
+            'apisPassed': db_report.get('apisPassed', 0),
+            'apisFailed': db_report.get('apisFailed', 0),
             'passed': db_report.get('passed', 0),
             'failed': db_report.get('failed', 0),
             'duration': db_report.get('duration', 0),
@@ -896,7 +898,7 @@ def get_reports():
             'jsonPath': db_report.get('jsonPath', ''),
             'status': db_report.get('status', 'completed'),
             'error': db_report.get('error'),
-            'results': []  # Empty for now, can be populated if needed
+            'results': db_report.get('results', [])
         }
         reports.append(report)
 
