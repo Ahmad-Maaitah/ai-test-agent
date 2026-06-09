@@ -416,7 +416,7 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
         }
 
         # DEBUG: Log what we're returning
-        print(f"\n🔍 run_test_pipeline RETURNING:")
+        print(f"\n[RETURN] run_test_pipeline RETURNING:")
         print(f"   Success: {result['success']}")
         print(f"   Status Code: {result['status_code']}")
         print(f"   Rule Results Count: {len(result.get('rule_results', []))}")
