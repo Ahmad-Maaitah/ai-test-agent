@@ -417,7 +417,7 @@ def extract_response_fields(data: Any, prefix: str = "", max_depth: int = 15, cu
 
     # Add debug logging at the top level only
     if current_depth == 0:
-        print(f"📋 Extracted {len(fields)} fields from response (max_depth={max_depth})")
+        print(f"[FIELDS] Extracted {len(fields)} fields from response (max_depth={max_depth})")
         if len(fields) > 50:
             print(f"   First 10 fields: {fields[:10]}")
             print(f"   Last 10 fields: {fields[-10:]}")
