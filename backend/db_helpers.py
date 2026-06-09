@@ -548,6 +548,13 @@ def get_report_by_id(report_id: str) -> Optional[Dict]:
 
 def create_report(report_data: Dict) -> Dict:
     """Create a new report with individual test results."""
+    print(f"\n[DB-REPORT] Creating report:")
+    print(f"  ID: {report_data.get('id')}")
+    print(f"  Total APIs: {report_data.get('total_apis', 0)}")
+    print(f"  APIs Passed: {report_data.get('apis_passed', 0)}")
+    print(f"  APIs Failed: {report_data.get('apis_failed', 0)}")
+    print(f"  Results count: {len(report_data.get('results', []))}")
+
     session = get_session()
     try:
         report = Report(
@@ -569,9 +576,15 @@ def create_report(report_data: Dict) -> Dict:
         session.flush()  # Get report ID before adding results
 
         # Save individual test results if provided
+        print(f"[DB-REPORT] Checking results: 'results' in report_data = {'results' in report_data}")
+        if 'results' in report_data:
+            print(f"[DB-REPORT] Results array has {len(report_data['results'])} items")
+
         if 'results' in report_data and report_data['results']:
             from backend.database import TestResult
-            for result_item in report_data['results']:
+            print(f"[DB-REPORT] Saving {len(report_data['results'])} test results...")
+            for i, result_item in enumerate(report_data['results']):
+                print(f"  Result {i+1}: {result_item.get('apiName')} - {result_item.get('result')}")
                 test_result = TestResult(
                     report_id=report.id,
                     api_id=result_item.get('apiId'),
@@ -583,8 +596,12 @@ def create_report(report_data: Dict) -> Dict:
                     rule_results=result_item.get('ruleResults', [])
                 )
                 session.add(test_result)
+            print(f"[DB-REPORT] Test results added to session")
+        else:
+            print(f"[DB-REPORT] NO results to save!")
 
         session.commit()
+        print(f"[DB-REPORT] Report committed to database successfully")
 
         return {'id': report.id}
     finally:
