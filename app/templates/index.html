@@ -8159,10 +8159,16 @@
         // Initialize form listeners once
         document.addEventListener('DOMContentLoaded', setupPageFormListeners);
 
-        function openCreateApiPage() {
+        async function openCreateApiPage() {
             // Close any open modals first
             document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
             closeVarPicker();
+
+            // CRITICAL: Refresh variables from backend BEFORE displaying create form
+            // This ensures tooltips and variable picker show fresh values
+            console.log('[OPEN-CREATE] Loading fresh variables before opening create page...');
+            await loadVariables();
+            console.log('[OPEN-CREATE] Variables refreshed');
 
             pageEditingApiId = null;
             pageCustomRules = [];
@@ -8271,7 +8277,7 @@
             document.getElementById('create-api').classList.add('active');
         }
 
-        function openEditApiPage(apiId) {
+        async function openEditApiPage(apiId) {
             let api, sectionId;
             for (const section of sections) {
                 const found = section.apis.find(a => a.id === apiId);
@@ -8282,6 +8288,12 @@
                 }
             }
             if (!api) return;
+
+            // CRITICAL: Refresh variables from backend BEFORE displaying the API
+            // This ensures tooltips show fresh values (e.g., draft_id from First API)
+            console.log('[OPEN-API] Loading fresh variables before opening API...');
+            await loadVariables();
+            console.log('[OPEN-API] Variables refreshed, tooltips will show current values');
 
             pageEditingApiId = apiId;
             pageCustomRules = api.customRules ? JSON.parse(JSON.stringify(api.customRules)) : [];
