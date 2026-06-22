@@ -10167,6 +10167,10 @@
                         }
                     });
 
+                    // Reload variables to refresh cache after API execution
+                    // This ensures subsequent API runs use updated variable values
+                    await loadVariables();
+
                     // Show summary
                     summaryContainer.innerHTML = `
                         <div style="display: flex; gap: 20px; justify-content: center;">
