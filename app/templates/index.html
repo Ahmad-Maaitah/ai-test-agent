@@ -6153,10 +6153,13 @@
 
         async function loadVariables() {
             try {
+                console.log('[LOAD-VARS] Loading variables from backend...');
                 const response = await fetch('/api/variables');
                 const data = await response.json();
                 if (data.success) {
                     savedVariables = data.variables || [];
+                    console.log(`[LOAD-VARS] Loaded ${savedVariables.length} variables`);
+
                     // Sync to runtimeVariables for use in requests
                     runtimeVariables = {};
                     savedVariables.forEach(v => {
@@ -6165,8 +6168,13 @@
                             type: v.type,
                             source: v.source
                         };
+                        // Log draft_id specifically for debugging
+                        if (v.name === 'draft_id') {
+                            console.log(`[LOAD-VARS] draft_id = ${v.value}`);
+                        }
                     });
                     renderVariablesTable();
+                    console.log('[LOAD-VARS] Variables cache refreshed successfully');
                 }
             } catch (error) {
                 console.error('Failed to load variables:', error);
@@ -6239,14 +6247,24 @@
         function resolveVariableValue(varName) {
             // Check runtime variables first
             if (runtimeVariables && runtimeVariables[varName]) {
-                return runtimeVariables[varName].value;
+                const value = runtimeVariables[varName].value;
+                if (varName === 'draft_id') {
+                    console.log(`[RESOLVE-VAR] ${varName} from runtimeVariables = ${value}`);
+                }
+                return value;
             }
             // Check saved variables (includes protected variables)
             if (savedVariables) {
                 const savedVar = savedVariables.find(v => v.name === varName);
                 if (savedVar) {
+                    if (varName === 'draft_id') {
+                        console.log(`[RESOLVE-VAR] ${varName} from savedVariables = ${savedVar.value}`);
+                    }
                     return savedVar;
                 }
+            }
+            if (varName === 'draft_id') {
+                console.log(`[RESOLVE-VAR] ${varName} is undefined`);
             }
             return undefined;
         }
@@ -10171,7 +10189,9 @@
 
                     // Reload variables to refresh cache after API execution
                     // This ensures subsequent API runs use updated variable values
+                    console.log('[API-COMPLETE] APIs finished, reloading variables...');
                     await loadVariables();
+                    console.log('[API-COMPLETE] Variables reloaded, cache should be fresh');
 
                     // Show summary
                     summaryContainer.innerHTML = `
