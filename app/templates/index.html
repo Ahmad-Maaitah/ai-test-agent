@@ -9402,25 +9402,27 @@
             }
 
             container.innerHTML = reports.map(report => {
-                // Group results by module (section)
-                const moduleGroups = {};
-                let totalApisPassed = 0;
-                let totalApisFailed = 0;
+                // Use API counts from backend (stored in database)
+                // For reports list, we don't load full results for performance
+                const totalApisPassed = report.apisPassed || 0;
+                const totalApisFailed = report.apisFailed || 0;
 
-                report.results.forEach(result => {
-                    const moduleName = result.section || 'Unknown';
-                    if (!moduleGroups[moduleName]) {
-                        moduleGroups[moduleName] = { passed: 0, failed: 0, apis: [] };
-                    }
-                    moduleGroups[moduleName].apis.push(result);
-                    if (result.result === 'PASS') {
-                        moduleGroups[moduleName].passed++;
-                        totalApisPassed++;
-                    } else {
-                        moduleGroups[moduleName].failed++;
-                        totalApisFailed++;
-                    }
-                });
+                // Group results by module (section) if available
+                const moduleGroups = {};
+                if (report.results && report.results.length > 0) {
+                    report.results.forEach(result => {
+                        const moduleName = result.section || 'Unknown';
+                        if (!moduleGroups[moduleName]) {
+                            moduleGroups[moduleName] = { passed: 0, failed: 0, apis: [] };
+                        }
+                        moduleGroups[moduleName].apis.push(result);
+                        if (result.result === 'PASS') {
+                            moduleGroups[moduleName].passed++;
+                        } else {
+                            moduleGroups[moduleName].failed++;
+                        }
+                    });
+                }
 
                 return `
                 <div class="report-card">
