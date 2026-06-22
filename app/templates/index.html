@@ -10193,6 +10193,19 @@
                     await loadVariables();
                     console.log('[API-COMPLETE] Variables reloaded, cache should be fresh');
 
+                    // Force refresh ALL variable UI components to pick up new values
+                    // This ensures if user has Second API open, tooltips show fresh values
+                    if (typeof renderVariablesPanel === 'function') {
+                        renderVariablesPanel(); // Refresh variables panel in Create API page
+                    }
+                    if (typeof updateRequestVariableIndicator === 'function') {
+                        updateRequestVariableIndicator(); // Update variable indicator badges
+                    }
+                    if (typeof scheduleHoverEnable === 'function') {
+                        scheduleHoverEnable(); // Re-enable hover tooltips with fresh data
+                    }
+                    console.log('[API-COMPLETE] Variable UI components refreshed');
+
                     // Show summary
                     summaryContainer.innerHTML = `
                         <div style="display: flex; gap: 20px; justify-content: center;">
