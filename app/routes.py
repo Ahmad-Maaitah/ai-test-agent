@@ -550,9 +550,15 @@ def run_apis():
     # Generate fresh values for generator variables (postTitle, postDescription)
     # These variables should generate NEW random text on each execution
     from backend.utils import _generate_random_text
+    generated_texts = {}
+    title = _generate_random_text(20, generated_texts)
+    generated_texts['title'] = title
+    description = _generate_random_text(20, generated_texts)
+    generated_texts['description'] = description
+
     generator_variables = {
-        'postTitle': _generate_random_text(),
-        'postDescription': _generate_random_text()
+        'postTitle': title,
+        'postDescription': description
     }
     print(f"[RUN] Generated fresh values for generator variables:")
     print(f"  postTitle: {generator_variables['postTitle']}")
