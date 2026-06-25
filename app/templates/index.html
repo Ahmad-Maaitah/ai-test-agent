@@ -6245,6 +6245,12 @@
 
         // Resolve variable value from runtimeVariables or savedVariables
         function resolveVariableValue(varName) {
+            // Check if this is a generator variable (always valid, generates on execution)
+            const generatorVariables = ['postTitle', 'postDescription'];
+            if (generatorVariables.includes(varName)) {
+                return { type: 'generator', value: '', name: varName };
+            }
+
             // Check runtime variables first
             if (runtimeVariables && runtimeVariables[varName]) {
                 const value = runtimeVariables[varName].value;
@@ -7305,13 +7311,43 @@
                 return;
             }
 
-            // Replace variables
-            const processedUrl = replaceVariables(url).text;
+            // Generate random values for generator variables if they're used in the request
+            const generatedValues = {};
+            const generatorVariables = ['postTitle', 'postDescription'];
+            const usesGeneratorVars = generatorVariables.some(varName =>
+                allText.includes(`{{${varName}}`)
+            );
+
+            if (usesGeneratorVars) {
+                console.log('[EXECUTE] Request uses generator variables, generating fresh values...');
+                try {
+                    const genResponse = await fetch('/api/generate-random-text', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const genData = await genResponse.json();
+                    if (genData.success && genData.data) {
+                        generatedValues.postTitle = genData.data.postTitle;
+                        generatedValues.postDescription = genData.data.postDescription;
+                        console.log('[EXECUTE] Generated postTitle:', generatedValues.postTitle);
+                        console.log('[EXECUTE] Generated postDescription:', generatedValues.postDescription);
+                    } else {
+                        throw new Error('Failed to generate random text');
+                    }
+                } catch (error) {
+                    console.error('[EXECUTE] Failed to generate random values:', error);
+                    showToast('Failed to generate random text for protected variables', 'error');
+                    return;
+                }
+            }
+
+            // Replace variables (pass generated values for postTitle/postDescription)
+            const processedUrl = replaceVariables(url, generatedValues).text;
             const processedHeaders = {};
             for (const [key, value] of Object.entries(headers)) {
-                processedHeaders[replaceVariables(key).text] = replaceVariables(value).text;
+                processedHeaders[replaceVariables(key, generatedValues).text] = replaceVariables(value, generatedValues).text;
             }
-            const processedBody = replaceVariables(body).text;
+            const processedBody = replaceVariables(body, generatedValues).text;
 
             console.log('\n🔍 === AFTER VARIABLE REPLACEMENT ===');
             console.log('Processed URL:', processedUrl);
@@ -8096,15 +8132,16 @@
         }
 
         // Variable Injection System
-        function replaceVariables(text) {
+        function replaceVariables(text, generatedValues = {}) {
             const result = { text: text, errors: [], replaced: [] };
             const pattern = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
+            const generatorVariables = ['postTitle', 'postDescription'];
             let match;
 
             while ((match = pattern.exec(text)) !== null) {
                 const varName = match[1];
-                if (runtimeVariables[varName]) {
-                    const value = runtimeVariables[varName].value;
+                // Generator variables are valid even if they have empty stored values
+                if (runtimeVariables[varName] || generatorVariables.includes(varName)) {
                     result.replaced.push(varName);
                 } else {
                     result.errors.push(varName);
@@ -8113,7 +8150,22 @@
 
             if (result.errors.length === 0) {
                 result.text = text.replace(pattern, (match, varName) => {
-                    const value = runtimeVariables[varName].value;
+                    // Use generated value if provided (for generator variables)
+                    if (generatedValues[varName]) {
+                        console.log(`[REPLACE-VAR] Using generated value for ${varName}: ${generatedValues[varName]}`);
+                        return generatedValues[varName];
+                    }
+
+                    // Use runtime variable value
+                    const value = runtimeVariables[varName]?.value;
+
+                    // If it's a generator variable with empty value, use empty string
+                    // (frontend will generate it before calling this function)
+                    if (generatorVariables.includes(varName) && (!value || value === '')) {
+                        console.warn(`[REPLACE-VAR] Generator variable ${varName} has no generated value - using empty string`);
+                        return '';
+                    }
+
                     return typeof value === 'object' ? JSON.stringify(value) : String(value);
                 });
             }
@@ -8123,13 +8175,15 @@
 
         function validateVariablesInText(text) {
             const pattern = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
+            const generatorVariables = ['postTitle', 'postDescription'];
             const found = [];
             const missing = [];
             let match;
 
             while ((match = pattern.exec(text)) !== null) {
                 const varName = match[1];
-                if (runtimeVariables[varName]) {
+                // Generator variables are always valid (generate on execution)
+                if (runtimeVariables[varName] || generatorVariables.includes(varName)) {
                     if (!found.includes(varName)) found.push(varName);
                 } else {
                     if (!missing.includes(varName)) missing.push(varName);
