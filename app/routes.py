@@ -547,6 +547,17 @@ def run_apis():
     # Get saved variables for replacement
     saved_variables = {v['name']: v['value'] for v in data.get('variables', [])}
 
+    # Generate fresh values for generator variables (postTitle, postDescription)
+    # These variables should generate NEW random text on each execution
+    from backend.utils import _generate_random_text
+    generator_variables = {
+        'postTitle': _generate_random_text(),
+        'postDescription': _generate_random_text()
+    }
+    print(f"[RUN] Generated fresh values for generator variables:")
+    print(f"  postTitle: {generator_variables['postTitle']}")
+    print(f"  postDescription: {generator_variables['postDescription']}")
+
     for item in apis_to_run:
         api = item['api']
         section_name = item['section']
@@ -555,6 +566,11 @@ def run_apis():
         curl_command = api['curl']
         def replace_var(match):
             var_name = match.group(1)
+            # Use generated value for generator variables
+            if var_name in generator_variables:
+                print(f"[RUN] Replacing {{{{{{var_name}}}}}} with generated value: {generator_variables[var_name]}")
+                return str(generator_variables[var_name])
+            # Use saved value for regular variables
             if var_name in saved_variables:
                 return str(saved_variables[var_name])
             return match.group(0)  # Keep original if not found
