@@ -560,10 +560,10 @@ def execute_api_parallel(api_item, variables_dict, generator_vars):
             'section': section_name,
             'status': test_result['status'],
             'responseTime': execution_time,
-            'statusCode': test_result.get('statusCode'),
+            'statusCode': test_result.get('status_code'),
             'error': test_result.get('error'),
-            'ruleResults': test_result.get('ruleResults', []),
-            'response': test_result.get('response')
+            'ruleResults': test_result.get('rule_results', []),
+            'response': test_result.get('response_json')
         }
 
         print(f"[PARALLEL] Completed API: {api['name']} - {test_result['status']} ({execution_time}ms)")
