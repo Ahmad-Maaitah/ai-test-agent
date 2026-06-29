@@ -554,11 +554,14 @@ def execute_api_parallel(api_item, variables_dict, generator_vars):
         execution_time = int((end_time - start_time).total_seconds() * 1000)
 
         # Build result entry
+        success = test_result.get('success', False)
+        status_str = 'PASS' if success else 'FAIL'
+
         result_entry = {
             'apiId': api['id'],
             'apiName': api['name'],
             'section': section_name,
-            'status': test_result['status'],
+            'status': status_str,
             'responseTime': execution_time,
             'statusCode': test_result.get('status_code'),
             'error': test_result.get('error'),
@@ -566,7 +569,8 @@ def execute_api_parallel(api_item, variables_dict, generator_vars):
             'response': test_result.get('response_json')
         }
 
-        print(f"[PARALLEL] Completed API: {api['name']} - {test_result['status']} ({execution_time}ms)")
+        print(f"[PARALLEL] Completed API: {api['name']} - {status_str} ({execution_time}ms)")
+        print(f"[PARALLEL]   Rule Results: {len(test_result.get('rule_results', []))} rules")
 
         return result_entry
 
