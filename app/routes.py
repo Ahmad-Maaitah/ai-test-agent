@@ -5,6 +5,7 @@ import json
 import uuid
 import re
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from flask import Blueprint, render_template, request, jsonify, send_from_directory
 
 from backend.runner import run_test_pipeline, generate_allure_report
@@ -499,6 +500,152 @@ def reorder_apis(section_id):
 
 
 # =============================================================================
+# Parallel Execution Helper Functions
+# =============================================================================
+
+def execute_api_parallel(api_item, variables_dict, generator_vars):
+    """
+    Execute a single API in a thread-safe manner.
+
+    Args:
+        api_item: Dict with 'api' and 'section' keys
+        variables_dict: Shared dict of variable name -> value mappings
+        generator_vars: Dict with postTitle/postDescription values
+
+    Returns:
+        Dict with result data for this API
+    """
+    from datetime import datetime
+    import re
+    from backend.runner import run_test_pipeline
+
+    api = api_item['api']
+    section_name = api_item['section']
+
+    print(f"\n[PARALLEL] Starting API: {api['name']}")
+
+    # Variable replacement function (thread-local)
+    def replace_var(match):
+        var_name = match.group(1)
+
+        # Check generator variables first
+        if var_name in generator_vars:
+            return str(generator_vars[var_name])
+
+        # Check runtime variables
+        if var_name in variables_dict:
+            return str(variables_dict[var_name])
+
+        # Variable not found - return placeholder
+        return match.group(0)
+
+    # Replace variables in cURL command
+    curl_command = api['curl']
+    curl_command = re.sub(r'\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}', replace_var, curl_command)
+
+    # Execute the API
+    start_time = datetime.now()
+
+    try:
+        custom_rules = api.get('custom_rules', [])
+        test_result = run_test_pipeline(curl_command, api_name=api['name'], custom_rules=custom_rules)
+
+        end_time = datetime.now()
+        execution_time = int((end_time - start_time).total_seconds() * 1000)
+
+        # Build result entry
+        result_entry = {
+            'apiId': api['id'],
+            'apiName': api['name'],
+            'section': section_name,
+            'status': test_result['status'],
+            'responseTime': execution_time,
+            'statusCode': test_result.get('statusCode'),
+            'error': test_result.get('error'),
+            'ruleResults': test_result.get('ruleResults', []),
+            'response': test_result.get('response')
+        }
+
+        print(f"[PARALLEL] Completed API: {api['name']} - {test_result['status']} ({execution_time}ms)")
+
+        return result_entry
+
+    except Exception as e:
+        end_time = datetime.now()
+        execution_time = int((end_time - start_time).total_seconds() * 1000)
+
+        print(f"[PARALLEL] Failed API: {api['name']} - {str(e)}")
+
+        return {
+            'apiId': api['id'],
+            'apiName': api['name'],
+            'section': section_name,
+            'status': 'FAIL',
+            'responseTime': execution_time,
+            'statusCode': None,
+            'error': str(e),
+            'ruleResults': [],
+            'response': None
+        }
+
+
+def get_variable_dependencies(apis_to_run, variables_dict):
+    """
+    Analyze APIs to detect variable dependencies and create execution batches.
+
+    Args:
+        apis_to_run: List of API items to execute
+        variables_dict: Current variable values
+
+    Returns:
+        List of batches, where each batch is a list of APIs that can run in parallel
+    """
+    import re
+
+    batches = []
+    current_batch = []
+    variables_set_so_far = set(variables_dict.keys())
+
+    for api_item in apis_to_run:
+        api = api_item['api']
+
+        # Extract variables used in this API's cURL command
+        curl_command = api.get('curl', '')
+        variables_used = set(re.findall(r'\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}', curl_command))
+
+        # Check if this API depends on variables not yet set
+        unresolved_deps = variables_used - variables_set_so_far - {'postTitle', 'postDescription'}
+
+        if unresolved_deps and current_batch:
+            # Has dependencies on variables not yet available
+            # Finish current batch and start new one
+            batches.append(current_batch)
+            current_batch = [api_item]
+            print(f"[BATCH] API '{api['name']}' depends on {unresolved_deps}, starting new batch")
+        else:
+            # Can run in parallel with current batch
+            current_batch.append(api_item)
+
+        # Check if this API extracts variables (for next batch)
+        extract_rules = api.get('extract_rules', [])
+        if extract_rules:
+            for rule in extract_rules:
+                var_name = rule.get('variable_name')
+                if var_name:
+                    variables_set_so_far.add(var_name)
+
+    # Add final batch
+    if current_batch:
+        batches.append(current_batch)
+
+    print(f"\n[BATCH] Created {len(batches)} execution batches")
+    for i, batch in enumerate(batches):
+        print(f"  Batch {i+1}: {len(batch)} APIs - {[api['api']['name'] for api in batch]}")
+
+    return batches
+
+
+# =============================================================================
 # Run APIs
 # =============================================================================
 
@@ -564,165 +711,218 @@ def run_apis():
     print(f"  postTitle: {generator_variables['postTitle']}")
     print(f"  postDescription: {generator_variables['postDescription']}")
 
-    for item in apis_to_run:
-        api = item['api']
-        section_name = item['section']
+    # Build variable dictionary for thread-safe access
+    variables_dict = {v['name']: v['value'] for v in data.get('variables', [])}
 
-        # Replace variables in cURL command
-        curl_command = api['curl']
-        def replace_var(match):
-            var_name = match.group(1)
-            # Use generated value for generator variables
-            if var_name in generator_variables:
-                print(f"[RUN] Replacing {{{{{{var_name}}}}}} with generated value: {generator_variables[var_name]}")
-                return str(generator_variables[var_name])
-            # Use saved value for regular variables
-            if var_name in saved_variables:
-                return str(saved_variables[var_name])
-            return match.group(0)  # Keep original if not found
-        curl_command = re.sub(r'\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}', replace_var, curl_command)
+    # Detect variable dependencies and create execution batches
+    batches = get_variable_dependencies(apis_to_run, variables_dict)
 
-        start_time = datetime.now()
-        # Pass custom rules to runner if available
-        custom_rules = api.get('customRules', [])
-        print(f"\n[>] /api/run calling run_test_pipeline:")
-        print(f"   API: {api['name']}")
-        print(f"   Custom Rules Count: {len(custom_rules)}")
-        test_result = run_test_pipeline(curl_command, api_name=api['name'], custom_rules=custom_rules)
-        print(f"\n[<] /api/run RECEIVED from run_test_pipeline:")
-        print(f"   Success: {test_result.get('success')}")
-        print(f"   Rule Results Count: {len(test_result.get('rule_results', []))}")
-        if test_result.get('rule_results'):
-            for i, r in enumerate(test_result['rule_results'][:3]):
-                print(f"     Rule {i+1}: {r.get('rule_name')} - {r.get('result')}")
-        end_time = datetime.now()
-        execution_time = int((end_time - start_time).total_seconds() * 1000)
+    # Execute APIs in parallel batches
+    all_results = []
+    total_start_time = datetime.now()
 
-        # Auto-update saved variables if response contains matching fields
-        response_json = test_result.get('response_json')
-        print(f"\n[?] Variable Update Check:")
-        print(f"   Response JSON present: {response_json is not None}")
-        print(f"   Total variables: {len(data.get('variables', []))}")
-        print(f"   Current API ID: {api['id']}")
+    for batch_num, batch in enumerate(batches, 1):
+        print(f"\n[BATCH {batch_num}/{len(batches)}] Executing {len(batch)} APIs in parallel (max 5 workers)...")
+        batch_start = datetime.now()
 
-        if response_json is not None:
-            from backend.flow_context import get_nested_value
-            variables_updated = False
+        # Use ThreadPoolExecutor for parallel execution (max 5 concurrent)
+        max_workers = min(5, len(batch))
+        batch_results = []
 
-            for var in data.get('variables', []):
-                source = var.get('source') if var.get('source') else {}
-                field_path = source.get('fieldPath', '') if source else ''
-                source_api_id = source.get('apiId', '') if source else ''
+        # Prepare API items with custom rules
+        batch_items_with_rules = []
+        for item in batch:
+            api_with_rules = item['api'].copy()
+            api_with_rules['custom_rules'] = api_with_rules.get('customRules', [])
+            batch_items_with_rules.append({
+                'api': api_with_rules,
+                'section': item['section']
+            })
 
-                print(f"   Variable '{var['name']}': apiId='{source_api_id}', fieldPath='{field_path}'")
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all APIs in this batch
+            future_to_api = {
+                executor.submit(execute_api_parallel, api_item, variables_dict, generator_variables): api_item
+                for api_item in batch_items_with_rules
+            }
 
-                # Skip if no field path
-                if not field_path:
-                    print(f"      [SKIP] Skipped - no field path")
-                    continue
+            # Collect results as they complete
+            for future in as_completed(future_to_api):
+                api_item = future_to_api[future]
+                try:
+                    result = future.result()
+                    batch_results.append(result)
+                except Exception as e:
+                    print(f"[ERROR] Thread execution failed for {api_item['api']['name']}: {e}")
+                    # Add failed result
+                    batch_results.append({
+                        'apiId': api_item['api']['id'],
+                        'apiName': api_item['api']['name'],
+                        'section': api_item['section'],
+                        'status': 'FAIL',
+                        'responseTime': 0,
+                        'error': f'Thread error: {str(e)}',
+                        'ruleResults': []
+                    })
 
-                # Skip if variable has NO apiId (global variables should not be updated by /api/run)
-                if not source_api_id:
-                    print(f"      [SKIP] Skipped - no apiId (global variable, not updated by /api/run)")
-                    continue
+        batch_end = datetime.now()
+        batch_duration = int((batch_end - batch_start).total_seconds() * 1000)
+        print(f"[BATCH {batch_num}] Completed in {batch_duration}ms")
 
-                # Skip if variable belongs to a different API
-                if source_api_id != api['id']:
-                    print(f"      [SKIP] Skipped - variable belongs to API '{source_api_id}', not this API")
-                    continue
-
-                # Update variable - it belongs to THIS API
-                print(f"      [OK] Variable belongs to this API - checking for updates")
-                new_value = get_nested_value(response_json, field_path)
-                old_value = var.get('value')  # Capture old value BEFORE update
-
-                print(f"      Old value: {old_value} (type: {type(old_value).__name__})")
-                print(f"      New value: {new_value} (type: {type(new_value).__name__})")
-
-                # Convert both to strings for comparison to avoid type mismatch
-                old_str = str(old_value) if old_value is not None else ""
-                new_str = str(new_value) if new_value is not None else ""
-                print(f"      Values equal: {new_str == old_str}")
-
-                if new_value is not None and new_str != old_str:
-                    print(f"   [UPDATE] Variable '{var['name']}': {old_value} -> {new_value}")
-                    var['value'] = new_value
-                    # Update type based on new value
-                    if isinstance(new_value, bool):
-                        var['type'] = 'boolean'
-                    elif isinstance(new_value, (int, float)):
-                        var['type'] = 'number'
-                    elif isinstance(new_value, str):
-                        var['type'] = 'string'
-                    elif isinstance(new_value, (list, dict)):
-                        var['type'] = 'object'
-                    variables_updated = True
-
-            if variables_updated:
-                print(f"[SAVE] SAVING updated variables to database...")
-                save_data(data)
-                print(f"[OK] Variables saved successfully!")
-
-        # Determine overall result based on rule_type
-        structural_pass = all(
-            r['result'] == 'PASS'
-            for r in test_result.get('rule_results', [])
-            if r.get('rule_type') == 'structural'
-        )
-        functional_pass = all(
-            r['result'] == 'PASS'
-            for r in test_result.get('rule_results', [])
-            if r.get('rule_type') == 'functional'
-        )
-
-        overall_result = 'PASS' if (structural_pass and functional_pass) else 'FAIL'
-
-        # Get status code directly from test result (set by runner)
-        status_code = test_result.get('status_code')
-        error_message = None
-
-        # Fallback: try to get from rule results for legacy compatibility
-        if status_code is None:
-            for r in test_result.get('rule_results', []):
-                if r['rule_name'] == 'Status Code Rule':
-                    if r['reason']:
-                        match = re.search(r'got (\d+)', r['reason'])
-                        if match:
-                            status_code = int(match.group(1))
-                    else:
-                        status_code = 200
-
-        # Collect error messages from failed rules
-        for r in test_result.get('rule_results', []):
-            if r['result'] == 'FAIL' and r['reason']:
-                error_message = r['reason']
-                break
-
-        result_entry = {
-            'apiId': api['id'],
-            'apiName': api['name'],
-            'section': section_name,
-            'statusCode': status_code,
-            'result': overall_result,
-            'structuralResult': 'PASS' if structural_pass else 'FAIL',
-            'functionalResult': 'PASS' if functional_pass else 'FAIL',
-            'executionTime': f'{execution_time}ms',
-            'errorMessage': error_message,
-            'ruleResults': test_result.get('rule_results', []),
-            'reportPaths': test_result.get('report_paths', {}),
-            'requestData': test_result.get('requestData', {}),
-            'responseData': test_result.get('responseData', {})
-        }
-
-        results.append(result_entry)
-
-        # Update API last status in database
+        # Process results from this batch
+        from backend.flow_context import get_nested_value
         from backend.db_helpers import get_api_by_id, update_api as db_update_api
-        api_data = get_api_by_id(api['id'])
-        if api_data:
-            api_data['lastStatus'] = str(status_code) if status_code else None
-            api_data['lastResult'] = overall_result
-            db_update_api(api['id'], api_data)
+
+        for thread_result in batch_results:
+            # Find the original API item
+            api_id = thread_result['apiId']
+            api_item = next((item for item in batch_items_with_rules if item['api']['id'] == api_id), None)
+            if not api_item:
+                all_results.append(thread_result)
+                continue
+
+            api = api_item['api']
+
+            # Extract test result details
+            test_result = {
+                'response_json': thread_result.get('response'),
+                'status_code': thread_result.get('statusCode'),
+                'rule_results': thread_result.get('ruleResults', [])
+            }
+
+            # Auto-update saved variables if response contains matching fields
+            response_json = test_result.get('response_json')
+            print(f"\n[?] Variable Update Check for API {api['name']}:")
+            print(f"   Response JSON present: {response_json is not None}")
+            print(f"   Total variables: {len(data.get('variables', []))}")
+            print(f"   Current API ID: {api['id']}")
+
+            if response_json is not None:
+                variables_updated = False
+
+                for var in data.get('variables', []):
+                    source = var.get('source') if var.get('source') else {}
+                    field_path = source.get('fieldPath', '') if source else ''
+                    source_api_id = source.get('apiId', '') if source else ''
+
+                    print(f"   Variable '{var['name']}': apiId='{source_api_id}', fieldPath='{field_path}'")
+
+                    # Skip if no field path
+                    if not field_path:
+                        print(f"      [SKIP] Skipped - no field path")
+                        continue
+
+                    # Skip if variable has NO apiId (global variables should not be updated by /api/run)
+                    if not source_api_id:
+                        print(f"      [SKIP] Skipped - no apiId (global variable, not updated by /api/run)")
+                        continue
+
+                    # Skip if variable belongs to a different API
+                    if source_api_id != api['id']:
+                        print(f"      [SKIP] Skipped - variable belongs to API '{source_api_id}', not this API")
+                        continue
+
+                    # Update variable - it belongs to THIS API
+                    print(f"      [OK] Variable belongs to this API - checking for updates")
+                    new_value = get_nested_value(response_json, field_path)
+                    old_value = var.get('value')
+
+                    print(f"      Old value: {old_value} (type: {type(old_value).__name__})")
+                    print(f"      New value: {new_value} (type: {type(new_value).__name__})")
+
+                    # Convert both to strings for comparison to avoid type mismatch
+                    old_str = str(old_value) if old_value is not None else ""
+                    new_str = str(new_value) if new_value is not None else ""
+                    print(f"      Values equal: {new_str == old_str}")
+
+                    if new_value is not None and new_str != old_str:
+                        print(f"   [UPDATE] Variable '{var['name']}': {old_value} -> {new_value}")
+                        var['value'] = new_value
+                        # Update variables_dict for next batch
+                        variables_dict[var['name']] = new_value
+                        # Update type based on new value
+                        if isinstance(new_value, bool):
+                            var['type'] = 'boolean'
+                        elif isinstance(new_value, (int, float)):
+                            var['type'] = 'number'
+                        elif isinstance(new_value, str):
+                            var['type'] = 'string'
+                        elif isinstance(new_value, (list, dict)):
+                            var['type'] = 'object'
+                        variables_updated = True
+
+                if variables_updated:
+                    print(f"[SAVE] SAVING updated variables to database...")
+                    save_data(data)
+                    print(f"[OK] Variables saved successfully!")
+
+            # Determine overall result based on rule_type
+            structural_pass = all(
+                r['result'] == 'PASS'
+                for r in test_result.get('rule_results', [])
+                if r.get('rule_type') == 'structural'
+            )
+            functional_pass = all(
+                r['result'] == 'PASS'
+                for r in test_result.get('rule_results', [])
+                if r.get('rule_type') == 'functional'
+            )
+
+            overall_result = 'PASS' if (structural_pass and functional_pass) else 'FAIL'
+
+            # Get status code
+            status_code = test_result.get('status_code')
+            error_message = None
+
+            # Fallback: try to get from rule results for legacy compatibility
+            if status_code is None:
+                for r in test_result.get('rule_results', []):
+                    if r['rule_name'] == 'Status Code Rule':
+                        if r['reason']:
+                            match = re.search(r'got (\d+)', r['reason'])
+                            if match:
+                                status_code = int(match.group(1))
+                        else:
+                            status_code = 200
+
+            # Collect error messages from failed rules
+            for r in test_result.get('rule_results', []):
+                if r['result'] == 'FAIL' and r['reason']:
+                    error_message = r['reason']
+                    break
+
+            # Build final result entry
+            result_entry = {
+                'apiId': api['id'],
+                'apiName': api['name'],
+                'section': api_item['section'],
+                'statusCode': status_code,
+                'result': overall_result,
+                'structuralResult': 'PASS' if structural_pass else 'FAIL',
+                'functionalResult': 'PASS' if functional_pass else 'FAIL',
+                'executionTime': f"{thread_result['responseTime']}ms",
+                'errorMessage': error_message,
+                'ruleResults': test_result.get('rule_results', []),
+                'reportPaths': {},
+                'requestData': {},
+                'responseData': {'response': response_json} if response_json else {}
+            }
+
+            all_results.append(result_entry)
+
+            # Update API last status in database
+            api_data = get_api_by_id(api['id'])
+            if api_data:
+                api_data['lastStatus'] = str(status_code) if status_code else None
+                api_data['lastResult'] = overall_result
+                db_update_api(api['id'], api_data)
+
+    total_end_time = datetime.now()
+    total_execution_time = int((total_end_time - total_start_time).total_seconds() * 1000)
+    print(f"\n[RUN] All batches completed in {total_execution_time}ms")
+
+    # Use all_results instead of results for report generation
+    results = all_results
 
     # Generate combined HTML report for this run
     run_report_filename = f'run_report_{run_id}.html'
