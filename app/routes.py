@@ -1549,3 +1549,44 @@ def test_rules():
         return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
 
 
+@main_bp.route('/api/test-single-rule', methods=['POST'])
+def test_single_rule():
+    """Test a single rule against provided response data."""
+    req_data = request.get_json()
+
+    rule = req_data.get('rule')
+    response_json = req_data.get('responseJson')
+    status_code = req_data.get('statusCode', 200)
+    response_time_ms = req_data.get('responseTimeMs', 0)
+
+    if not rule:
+        return jsonify({'success': False, 'error': 'Rule is required'}), 400
+
+    print(f"\n[TEST-SINGLE-RULE] Testing rule: {rule.get('name', 'Unnamed')}")
+    print(f"  Rule Type: {rule.get('type')}")
+    print(f"  Status Code: {status_code}")
+    print(f"  Response Time: {response_time_ms}ms")
+
+    try:
+        from backend.dynamic_rules import evaluate_rule
+
+        # Test the single rule
+        result = evaluate_rule(rule, response_json, response_time_ms, status_code)
+
+        print(f"  Result: {result.get('result')}")
+        print(f"  Expected: {result.get('expected')}")
+        print(f"  Actual: {result.get('actual')}")
+        if result.get('reason'):
+            print(f"  Reason: {result.get('reason')}")
+
+        return jsonify({
+            'success': True,
+            'result': result
+        })
+    except Exception as e:
+        print(f"[ERROR] Failed to test rule: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+

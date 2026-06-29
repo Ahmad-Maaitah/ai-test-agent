@@ -1671,6 +1671,26 @@
             color: #721c24;
         }
 
+        /* Test Rule Button */
+        .test-rule-btn {
+            background: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .test-rule-btn:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        .test-rule-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
         /* Right Panel */
         .right-panel {
             background: white;
@@ -7444,6 +7464,9 @@
                     }
                     renderPageFieldsList();
 
+                    // Re-render rules to enable Test buttons now that we have a response
+                    renderPageRules();
+
                     // For new APIs, require re-validation after request changes
                     // For editing, rules already passed at creation
                     if (pageEditingApiId === null) {
@@ -8757,6 +8780,12 @@
                                        style="border: none; background: transparent; font-weight: 600; font-size: 14px; color: #667eea; padding: 0; outline: none; max-width: 200px;">
                                 <span style="font-size: 11px; background: #e0e0e0; padding: 2px 8px; border-radius: 10px; color: #666;">${typeConfig.ruleType || 'functional'}</span>
                             </div>
+                            <button class="btn-icon test-rule-btn"
+                                    onclick="testSingleRule('${rule.id}')"
+                                    title="Test this rule"
+                                    ${!pageLastResponse ? 'disabled' : ''}>
+                                ✓
+                            </button>
                             <button class="btn-icon" onclick="removePageRule('${rule.id}')" title="Remove">🗑️</button>
                         </div>
                         <div class="rule-fields">
@@ -8894,6 +8923,76 @@
 
             btn.disabled = false;
             btn.textContent = 'Validate All Rules';
+        }
+
+        async function testSingleRule(ruleId) {
+            // Find the rule in pageCustomRules
+            const rule = pageCustomRules.find(r => r.id === ruleId);
+            if (!rule) {
+                showToast('Rule not found', 'error');
+                return;
+            }
+
+            // Check if we have a response to test against
+            if (!pageLastResponse) {
+                showToast('Execute the API request first to get a response', 'error');
+                return;
+            }
+
+            // Show loading state on button
+            const card = document.getElementById(`page-rule-${ruleId}`);
+            const btn = card.querySelector('.test-rule-btn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '...';
+
+            try {
+                const response = await fetch('/api/test-single-rule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        rule: rule,
+                        responseJson: pageLastResponse,
+                        statusCode: pageLastStatusCode,
+                        responseTimeMs: pageLastResponseTime
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.result) {
+                    const result = data.result;
+
+                    // Update the rule card with validation result
+                    card.classList.remove('valid', 'invalid');
+                    card.classList.add(result.result === 'PASS' ? 'valid' : 'invalid');
+
+                    // Add or update validation result banner
+                    let resultDiv = card.querySelector('.validation-result');
+                    if (!resultDiv) {
+                        resultDiv = document.createElement('div');
+                        resultDiv.className = 'validation-result';
+                        card.appendChild(resultDiv);
+                    }
+
+                    resultDiv.className = `validation-result ${result.result.toLowerCase()}`;
+                    resultDiv.innerHTML = result.result === 'PASS' ?
+                        `✓ PASS - Expected: ${escapeHtml(result.expected)}, Actual: ${escapeHtml(result.actual)}` :
+                        `✗ FAIL - ${escapeHtml(result.reason)}`;
+
+                    showToast(result.result === 'PASS' ? 'Rule passed!' : 'Rule failed',
+                             result.result === 'PASS' ? 'success' : 'error');
+                } else {
+                    showToast(data.error || 'Test failed', 'error');
+                }
+            } catch (error) {
+                console.error('Test rule error:', error);
+                showToast('Failed to test rule: ' + error.message, 'error');
+            } finally {
+                // Restore button state
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         }
 
         function updatePageStatus() {
