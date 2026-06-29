@@ -4976,6 +4976,9 @@
 
             const section = sections.find(s => s.id === sectionId);
             document.getElementById('current-section-name').textContent = section ? section.name : 'All APIs';
+
+            // Update "Select All" checkbox state when switching folders
+            updateSelectAllCheckbox();
         }
 
         function openAddSectionModal() {
@@ -5278,6 +5281,28 @@
         function updateSelectedCount() {
             document.getElementById('selected-count').textContent = selectedApis.size;
             document.getElementById('run-btn').disabled = selectedApis.size === 0;
+
+            // Update "Select All" checkbox state
+            updateSelectAllCheckbox();
+        }
+
+        function updateSelectAllCheckbox() {
+            const selectAllCheckbox = document.getElementById('select-all');
+            if (!selectAllCheckbox) return;
+
+            const section = sections.find(s => s.id === currentSectionId);
+            const apis = section ? section.apis : [];
+
+            if (apis.length === 0) {
+                // No APIs in this folder
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.disabled = true;
+            } else {
+                // Check if all APIs in current folder are selected
+                const allSelected = apis.every(api => selectedApis.has(api.id));
+                selectAllCheckbox.checked = allSelected;
+                selectAllCheckbox.disabled = false;
+            }
         }
 
         function populateSectionDropdowns() {
