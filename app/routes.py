@@ -519,10 +519,17 @@ def execute_api_parallel(api_item, variables_dict, generator_vars):
     import re
     from backend.runner import run_test_pipeline
 
+    # Safe print helper for Windows encoding issues
+    def safe_print(msg):
+        try:
+            print(msg)
+        except UnicodeEncodeError:
+            print(msg.encode('ascii', 'replace').decode('ascii'))
+
     api = api_item['api']
     section_name = api_item['section']
 
-    print(f"\n[PARALLEL] Starting API: {api['name']}")
+    safe_print(f"\n[PARALLEL] Starting API: {api['name']}")
 
     # Variable replacement function (thread-local)
     def replace_var(match):
@@ -569,8 +576,8 @@ def execute_api_parallel(api_item, variables_dict, generator_vars):
             'response': test_result.get('response_json')
         }
 
-        print(f"[PARALLEL] Completed API: {api['name']} - {status_str} ({execution_time}ms)")
-        print(f"[PARALLEL]   Rule Results: {len(test_result.get('rule_results', []))} rules")
+        safe_print(f"[PARALLEL] Completed API: {api['name']} - {status_str} ({execution_time}ms)")
+        safe_print(f"[PARALLEL]   Rule Results: {len(test_result.get('rule_results', []))} rules")
 
         return result_entry
 
@@ -578,7 +585,7 @@ def execute_api_parallel(api_item, variables_dict, generator_vars):
         end_time = datetime.now()
         execution_time = int((end_time - start_time).total_seconds() * 1000)
 
-        print(f"[PARALLEL] Failed API: {api['name']} - {str(e)}")
+        safe_print(f"[PARALLEL] Failed API: {api['name']} - {str(e)}")
 
         return {
             'apiId': api['id'],
@@ -1766,10 +1773,18 @@ def test_single_rule():
     if not rule:
         return jsonify({'success': False, 'error': 'Rule is required'}), 400
 
-    print(f"\n[TEST-SINGLE-RULE] Testing rule: {rule.get('name', 'Unnamed')}")
-    print(f"  Rule Type: {rule.get('type')}")
-    print(f"  Status Code: {status_code}")
-    print(f"  Response Time: {response_time_ms}ms")
+    # Safe print helper for Windows encoding issues
+    def safe_print(msg):
+        try:
+            print(msg)
+        except UnicodeEncodeError:
+            # Fallback: print without problematic characters
+            print(msg.encode('ascii', 'replace').decode('ascii'))
+
+    safe_print(f"\n[TEST-SINGLE-RULE] Testing rule: {rule.get('name', 'Unnamed')}")
+    safe_print(f"  Rule Type: {rule.get('type')}")
+    safe_print(f"  Status Code: {status_code}")
+    safe_print(f"  Response Time: {response_time_ms}ms")
 
     try:
         from backend.dynamic_rules import evaluate_rule
@@ -1777,11 +1792,11 @@ def test_single_rule():
         # Test the single rule
         result = evaluate_rule(rule, response_json, response_time_ms, status_code)
 
-        print(f"  Result: {result.get('result')}")
-        print(f"  Expected: {result.get('expected')}")
-        print(f"  Actual: {result.get('actual')}")
+        safe_print(f"  Result: {result.get('result')}")
+        safe_print(f"  Expected: {result.get('expected')}")
+        safe_print(f"  Actual: {result.get('actual')}")
         if result.get('reason'):
-            print(f"  Reason: {result.get('reason')}")
+            safe_print(f"  Reason: {result.get('reason')}")
 
         return jsonify({
             'success': True,
