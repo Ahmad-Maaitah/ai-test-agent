@@ -4463,13 +4463,26 @@
             setupContextMenu();
         }
 
+        function getTotalApiCount(folder) {
+            // Recursively count APIs in this folder and all subfolders
+            let count = folder.apis ? folder.apis.length : 0;
+
+            if (folder.children && folder.children.length > 0) {
+                folder.children.forEach(child => {
+                    count += getTotalApiCount(child);
+                });
+            }
+
+            return count;
+        }
+
         function renderFolderLevel(folders, depth) {
             if (!folders || folders.length === 0) return '';
 
             return folders.map(folder => {
                 const hasChildren = folder.children && folder.children.length > 0;
                 const isExpanded = expandedFolders.has(folder.id);
-                const apiCount = folder.apis ? folder.apis.length : 0;
+                const apiCount = getTotalApiCount(folder); // Total count including subfolders
                 const isActive = currentSectionId === folder.id;
 
                 let html = `
@@ -5061,10 +5074,10 @@
             // Find the section name and API count for confirmation message
             const section = sections.find(s => s.id === sectionId);
             const sectionName = section ? section.name : 'this module';
-            const apiCount = section ? section.apis.length : 0;
+            const apiCount = section ? getTotalApiCount(section) : 0;
 
             const message = apiCount > 0
-                ? `Are you sure you want to delete "${sectionName}"?\n\nThis will also delete ${apiCount} API(s) in this module.\n\nThis action cannot be undone.`
+                ? `Are you sure you want to delete "${sectionName}"?\n\nThis will also delete ${apiCount} API(s) in this folder and all subfolders.\n\nThis action cannot be undone.`
                 : `Are you sure you want to delete "${sectionName}"?\n\nThis action cannot be undone.`;
 
             if (!confirm(message)) return;
