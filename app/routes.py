@@ -1378,6 +1378,24 @@ def generate_random_text():
     })
 
 
+@main_bp.route('/api/opensooq/logged-out-token', methods=['GET', 'POST'])
+def opensooq_logged_out_token():
+    """Fetch a fresh OpenSooq logged-out JWT (ticket + AuthManager signature)."""
+    from backend.opensooq_auth import get_logged_out_token, OpenSooqError
+
+    try:
+        record = get_logged_out_token()
+        return jsonify({'success': True, 'data': record})
+    except OpenSooqError as exc:
+        return jsonify({
+            'success': False,
+            'error': str(exc),
+            'payload': getattr(exc, 'payload', None),
+        }), 502
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+
 # =============================================================================
 # Dynamic Rules API
 # =============================================================================
