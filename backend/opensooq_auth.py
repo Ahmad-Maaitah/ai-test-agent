@@ -36,6 +36,7 @@ __all__ = [
     "OpenSooqError",
     "BASE_HEADERS",
     "TOKEN_URL",
+    "TOKEN_URL_STG",
     "build_headers",
     "build_logged_out_token",
     "fetch_ticket",
@@ -43,7 +44,16 @@ __all__ = [
 ]
 
 TOKEN_URL = "https://api.opensooq.com/v2.1/configurations/token"
+TOKEN_URL_STG = "https://apiv.sooqtest.com/v2.1/configurations/token"
 DEFAULT_TIMEOUT = 20.0
+
+
+def _resolve_token_url(env: str = "prod") -> str:
+    """Return the configurations/token URL for prod or stg."""
+    normalized = (env or "prod").strip().lower()
+    if normalized in ("stg", "staging", "sooqtest", "test"):
+        return TOKEN_URL_STG
+    return TOKEN_URL
 
 # Every header from the reference request except X-Tracking-UUID, which is
 # regenerated per call. Override any of these via the `headers` argument.
@@ -162,11 +172,13 @@ def build_headers(overrides: Optional[Dict[str, str]] = None) -> Dict[str, str]:
 def fetch_ticket(
     headers: Optional[Dict[str, str]] = None,
     timeout: float = DEFAULT_TIMEOUT,
+    env: str = "prod",
 ) -> Dict[str, Any]:
     """Call the configurations/token endpoint and return the ticket pair."""
+    token_url = _resolve_token_url(env)
     request_headers = build_headers(headers)
     request = urllib.request.Request(
-        TOKEN_URL, data=b"", headers=request_headers, method="POST"
+        token_url, data=b"", headers=request_headers, method="POST"
     )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
@@ -193,6 +205,8 @@ def fetch_ticket(
         raise OpenSooqError("OpenSooq response did not contain a ticket pair", parsed)
 
     return {
+        "env": "stg" if token_url == TOKEN_URL_STG else "prod",
+        "token_url": token_url,
         "tracking_uuid": request_headers["X-Tracking-UUID"],
         "ticket_id": ticket[0],
         "ticket_token": ticket[1],
@@ -204,12 +218,13 @@ def fetch_ticket(
 def get_logged_out_token(
     headers: Optional[Dict[str, str]] = None,
     timeout: float = DEFAULT_TIMEOUT,
+    env: str = "prod",
 ) -> Dict[str, Any]:
     """Fetch a ticket and return it together with the logged-out JWT.
-    Returns keys: tracking_uuid, ticket_id, ticket_token, hash, fetched_at,
-    LoggedoutToken.
+    Returns keys: env, token_url, tracking_uuid, ticket_id, ticket_token, hash,
+    fetched_at, LoggedoutToken.
     """
-    record = fetch_ticket(headers=headers, timeout=timeout)
+    record = fetch_ticket(headers=headers, timeout=timeout, env=env)
     record["LoggedoutToken"] = build_logged_out_token(
         member_id=record["tracking_uuid"],
         auth_time=str(record["ticket_id"]),

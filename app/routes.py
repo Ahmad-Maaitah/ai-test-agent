@@ -573,7 +573,10 @@ def execute_api_parallel(api_item, variables_dict, generator_vars):
             'statusCode': test_result.get('status_code'),
             'error': test_result.get('error'),
             'ruleResults': test_result.get('rule_results', []),
-            'response': test_result.get('response_json')
+            'response': test_result.get('response_json'),
+            'reportPaths': test_result.get('report_paths', {}),
+            'requestData': test_result.get('requestData', {}),
+            'responseData': test_result.get('responseData', {})
         }
 
         safe_print(f"[PARALLEL] Completed API: {api['name']} - {status_str} ({execution_time}ms)")
@@ -914,9 +917,9 @@ def run_apis():
                 'executionTime': f"{thread_result['responseTime']}ms",
                 'errorMessage': error_message,
                 'ruleResults': test_result.get('rule_results', []),
-                'reportPaths': {},
-                'requestData': {},
-                'responseData': {'response': response_json} if response_json else {}
+                'reportPaths': thread_result.get('reportPaths', {}),
+                'requestData': thread_result.get('requestData', {}),
+                'responseData': thread_result.get('responseData', {})
             }
 
             all_results.append(result_entry)
@@ -1380,11 +1383,29 @@ def generate_random_text():
 
 @main_bp.route('/api/opensooq/logged-out-token', methods=['GET', 'POST'])
 def opensooq_logged_out_token():
-    """Fetch a fresh OpenSooq logged-out JWT (ticket + AuthManager signature)."""
+    """Fetch a fresh OpenSooq logged-out JWT from production (api.opensooq.com)."""
     from backend.opensooq_auth import get_logged_out_token, OpenSooqError
 
     try:
-        record = get_logged_out_token()
+        record = get_logged_out_token(env='prod')
+        return jsonify({'success': True, 'data': record})
+    except OpenSooqError as exc:
+        return jsonify({
+            'success': False,
+            'error': str(exc),
+            'payload': getattr(exc, 'payload', None),
+        }), 502
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+
+@main_bp.route('/api/opensooq/logged-out-token/stg', methods=['GET', 'POST'])
+def opensooq_logged_out_token_stg():
+    """Fetch a fresh logged-out JWT from STG (apiv.sooqtest.com)."""
+    from backend.opensooq_auth import get_logged_out_token, OpenSooqError
+
+    try:
+        record = get_logged_out_token(env='stg')
         return jsonify({'success': True, 'data': record})
     except OpenSooqError as exc:
         return jsonify({
