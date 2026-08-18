@@ -297,6 +297,18 @@ def generate_run_html_report(
     total_failed = sum(1 for r in results if r['result'] == 'FAIL')
     overall_result = 'PASS' if total_failed == 0 else 'FAIL'
 
+    # Count every rule/test case executed across all APIs
+    total_rules = 0
+    total_rules_passed = 0
+    total_rules_failed = 0
+    for r in results:
+        for rule in r.get('ruleResults', []):
+            total_rules += 1
+            if rule.get('result') == 'PASS':
+                total_rules_passed += 1
+            elif rule.get('result') == 'FAIL':
+                total_rules_failed += 1
+
     # Calculate total response time
     total_response_time_ms = 0
     for r in results:
@@ -511,7 +523,7 @@ def generate_run_html_report(
             background: white;
             padding: 25px 35px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 20px;
             border-bottom: 1px solid #eee;
         }}
@@ -528,6 +540,9 @@ def generate_run_html_report(
         .summary-value.fail {{ color: #e74c3c; }}
         .summary-label {{ font-size: 0.85rem; color: #7f8c8d; margin-top: 5px; font-weight: 500; }}
         .summary-card.result .summary-label {{ color: rgba(255,255,255,0.8); }}
+        .summary-sub {{ font-size: 0.75rem; color: #95a5a6; margin-top: 4px; }}
+        .summary-sub .pass-count {{ color: #27ae60; font-weight: 600; }}
+        .summary-sub .fail-count {{ color: #e74c3c; font-weight: 600; }}
 
         /* Content */
         .content {{ background: white; padding: 30px 35px; border-radius: 0 0 16px 16px; }}
@@ -849,6 +864,11 @@ def generate_run_html_report(
             <div class="summary-card">
                 <div class="summary-value fail">{total_failed}</div>
                 <div class="summary-label">Failed</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value">{total_rules}</div>
+                <div class="summary-label">Total Rules</div>
+                <div class="summary-sub"><span class="pass-count">{total_rules_passed} passed</span> · <span class="fail-count">{total_rules_failed} failed</span></div>
             </div>
             <div class="summary-card">
                 <div class="summary-value" style="color: #3498db;">{total_response_time_display}</div>
