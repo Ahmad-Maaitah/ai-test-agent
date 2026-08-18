@@ -313,12 +313,22 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
         'error': None,
         'status_code': None,
         'response_time_ms': None,
-        'response_json': None  # Added for flow context extraction
+        'response_json': None,  # Added for flow context extraction
+        'requestData': {},
+        'responseData': {}
     }
 
     try:
         # Step 1: Parse cURL command
         parsed_curl = parse_curl(curl_command)
+
+        # Capture request details now so failed calls still show them in reports
+        result['requestData'] = {
+            'method': parsed_curl.get('method', 'GET'),
+            'url': parsed_curl.get('url', ''),
+            'headers': parsed_curl.get('headers', {}),
+            'body': parsed_curl.get('data', '')
+        }
 
         # Step 2: Execute API request
         start_time = time.time()
@@ -395,14 +405,6 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
             result['response_json'] = response.json()
         except Exception:
             result['response_json'] = None
-
-        # Store request/response data for report
-        result['requestData'] = {
-            'method': parsed_curl.get('method', 'GET'),
-            'url': parsed_curl.get('url', ''),
-            'headers': parsed_curl.get('headers', {}),
-            'body': parsed_curl.get('data', '')
-        }
 
         # Capture response details
         try:
