@@ -24,7 +24,8 @@ RULE_TYPES = {
         "requiresField": False,
         "ruleType": "functional",
         "configFields": [
-            {"name": "expectedStatus", "type": "number", "label": "Expected Status Code (or {{variable}})", "default": 200}
+            {"name": "expectedStatus", "type": "number", "label": "Expected Status Code", "default": 200,
+             "placeholder": "200 or {{variable}}"}
         ]
     },
     "response_time": {
@@ -34,7 +35,8 @@ RULE_TYPES = {
         "requiresField": False,
         "ruleType": "performance",
         "configFields": [
-            {"name": "maxMs", "type": "number", "label": "Max Response Time (ms) (or {{variable}})", "default": 2000}
+            {"name": "maxMs", "type": "number", "label": "Max Response Time (ms)", "default": 2000,
+             "placeholder": "2000 or {{variable}}"}
         ]
     },
     "field_exists": {
@@ -76,7 +78,7 @@ RULE_TYPES = {
         "requiresField": True,
         "ruleType": "functional",
         "configFields": [
-            {"name": "expectedValue", "type": "boolean", "label": "Expected Value (or {{variable}})", "default": True}
+            {"name": "expectedValue", "type": "boolean", "label": "Expected Value", "default": True}
         ]
     },
     "custom_expression": {
@@ -93,7 +95,8 @@ RULE_TYPES = {
                 "options": ["equals", "not_equals", "contains", "greater_than", "less_than", "regex"],
                 "default": "equals"
             },
-            {"name": "expectedValue", "type": "text", "label": "Expected Value (value or {{variable}})", "default": ""}
+            {"name": "expectedValue", "type": "text", "label": "Expected Value", "default": "",
+             "placeholder": "value or {{variable}}"}
         ]
     }
 }

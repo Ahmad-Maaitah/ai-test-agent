@@ -5782,8 +5782,9 @@
                     return `
                         <div>
                             <label>${cf.label}</label>
-                            <input type="number" value="${value}"
-                                   onchange="updateRule('${rule.id}', '${cf.name}', parseInt(this.value) || 0)">
+                            <input type="text" inputmode="numeric" value="${escapeHtml(String(value ?? ''))}"
+                                   ${cf.placeholder ? `placeholder="${escapeHtml(cf.placeholder)}"` : ''}
+                                   onchange="updateRule('${rule.id}', '${cf.name}', containsVariable(this.value) ? this.value : (parseInt(this.value) || 0))">
                         </div>
                     `;
                 } else {
@@ -5791,6 +5792,7 @@
                         <div>
                             <label>${cf.label}</label>
                             <input type="text" value="${escapeHtml(value || '')}"
+                                   ${cf.placeholder ? `placeholder="${escapeHtml(cf.placeholder)}"` : ''}
                                    onchange="updateRule('${rule.id}', '${cf.name}', this.value)">
                         </div>
                     `;
@@ -8888,14 +8890,14 @@
                     return `
                         <div>
                             <label>${cf.label}</label>
-                            <input type="number" value="${value}" onchange="updatePageRule('${rule.id}', '${cf.name}', parseInt(this.value) || 0)">
+                            <input type="text" inputmode="numeric" value="${escapeHtml(String(value ?? ''))}" ${cf.placeholder ? `placeholder="${escapeHtml(cf.placeholder)}"` : ''} onchange="updatePageRule('${rule.id}', '${cf.name}', containsVariable(this.value) ? this.value : (parseInt(this.value) || 0))">
                         </div>
                     `;
                 } else {
                     return `
                         <div>
                             <label>${cf.label}</label>
-                            <input type="text" value="${escapeHtml(value || '')}" onchange="updatePageRule('${rule.id}', '${cf.name}', this.value)">
+                            <input type="text" value="${escapeHtml(value || '')}" ${cf.placeholder ? `placeholder="${escapeHtml(cf.placeholder)}"` : ''} onchange="updatePageRule('${rule.id}', '${cf.name}', this.value)">
                         </div>
                     `;
                 }
@@ -9249,21 +9251,33 @@
             selectNewRuleField(field);
         }
 
+        function containsVariable(value) {
+            return typeof value === 'string' && /\{\{\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\}\}/.test(value);
+        }
+
         function renderNewRuleConfigFields(ruleType, typeConfig) {
             const container = document.getElementById('new-rule-config-container');
 
             if (!typeConfig.configFields || typeConfig.configFields.length === 0) {
                 container.innerHTML = '';
+                container.style.flex = '1';
                 return;
             }
 
+            // Grow the container with the number of fields so they stay on one row
+            container.style.flex = String(typeConfig.configFields.length);
+            container.style.alignItems = 'flex-end';
+
             container.innerHTML = typeConfig.configFields.map(cf => {
                 const value = cf.default !== undefined ? cf.default : '';
+                const cellStyle = 'min-width: 160px; flex: 1;';
+                const labelStyle = 'display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase; white-space: nowrap;';
+                const placeholder = cf.placeholder ? ` placeholder="${escapeHtml(cf.placeholder)}"` : '';
 
                 if (cf.type === 'select') {
                     return `
-                        <div>
-                            <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">${cf.label}</label>
+                        <div style="${cellStyle}">
+                            <label style="${labelStyle}">${cf.label}</label>
                             <select id="new-rule-config-${cf.name}" onchange="resetNewRuleTest()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                                 ${cf.options.map(opt => `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                             </select>
@@ -9271,8 +9285,8 @@
                     `;
                 } else if (cf.type === 'boolean') {
                     return `
-                        <div>
-                            <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">${cf.label}</label>
+                        <div style="${cellStyle}">
+                            <label style="${labelStyle}">${cf.label}</label>
                             <select id="new-rule-config-${cf.name}" onchange="resetNewRuleTest()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                                 <option value="true" ${value === true ? 'selected' : ''}>true</option>
                                 <option value="false" ${value === false ? 'selected' : ''}>false</option>
@@ -9281,16 +9295,16 @@
                     `;
                 } else if (cf.type === 'number') {
                     return `
-                        <div>
-                            <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">${cf.label}</label>
-                            <input type="number" id="new-rule-config-${cf.name}" value="${value}" onchange="resetNewRuleTest()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <div style="${cellStyle}">
+                            <label style="${labelStyle}">${cf.label}</label>
+                            <input type="text" inputmode="numeric" id="new-rule-config-${cf.name}" value="${value}"${placeholder} onchange="resetNewRuleTest()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                         </div>
                     `;
                 } else {
                     return `
-                        <div>
-                            <label style="display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase;">${cf.label}</label>
-                            <input type="text" id="new-rule-config-${cf.name}" value="${value}" onchange="resetNewRuleTest()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <div style="${cellStyle}">
+                            <label style="${labelStyle}">${cf.label}</label>
+                            <input type="text" id="new-rule-config-${cf.name}" value="${value}"${placeholder} onchange="resetNewRuleTest()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                         </div>
                     `;
                 }
@@ -9329,7 +9343,8 @@
                     const el = document.getElementById(`new-rule-config-${cf.name}`);
                     if (el) {
                         let val = el.value;
-                        if (cf.type === 'number') val = parseInt(val) || 0;
+                        // Numeric fields may hold a {{variable}} placeholder instead of a literal
+                        if (cf.type === 'number' && !containsVariable(val)) val = parseInt(val) || 0;
                         if (cf.type === 'boolean') val = val === 'true';
                         config[cf.name] = val;
                     }
