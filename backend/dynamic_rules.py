@@ -24,7 +24,7 @@ RULE_TYPES = {
         "requiresField": False,
         "ruleType": "functional",
         "configFields": [
-            {"name": "expectedStatus", "type": "number", "label": "Expected Status Code", "default": 200}
+            {"name": "expectedStatus", "type": "number", "label": "Expected Status Code (or {{variable}})", "default": 200}
         ]
     },
     "response_time": {
@@ -34,7 +34,7 @@ RULE_TYPES = {
         "requiresField": False,
         "ruleType": "performance",
         "configFields": [
-            {"name": "maxMs", "type": "number", "label": "Max Response Time (ms)", "default": 2000}
+            {"name": "maxMs", "type": "number", "label": "Max Response Time (ms) (or {{variable}})", "default": 2000}
         ]
     },
     "field_exists": {
@@ -76,7 +76,7 @@ RULE_TYPES = {
         "requiresField": True,
         "ruleType": "functional",
         "configFields": [
-            {"name": "expectedValue", "type": "boolean", "label": "Expected Value", "default": True}
+            {"name": "expectedValue", "type": "boolean", "label": "Expected Value (or {{variable}})", "default": True}
         ]
     },
     "custom_expression": {
@@ -93,7 +93,7 @@ RULE_TYPES = {
                 "options": ["equals", "not_equals", "contains", "greater_than", "less_than", "regex"],
                 "default": "equals"
             },
-            {"name": "expectedValue", "type": "text", "label": "Expected Value", "default": ""}
+            {"name": "expectedValue", "type": "text", "label": "Expected Value (value or {{variable}})", "default": ""}
         ]
     }
 }
@@ -159,7 +159,37 @@ def get_type_name(value: Any) -> str:
         return type(value).__name__
 
 
-def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_code: int) -> Dict:
+_VARIABLE_PATTERN = re.compile(r'\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}')
+
+
+def resolve_variables(value: Any, variables: Optional[Dict[str, Any]]) -> Any:
+    """
+    Replace {{variableName}} placeholders in a rule value with saved variable values.
+
+    Placeholders with no matching variable are left untouched so the rule reports
+    the raw placeholder instead of silently comparing against an empty string.
+    """
+    if not isinstance(value, str) or '{{' not in value:
+        return value
+
+    lookup = variables or {}
+
+    def replace(match):
+        name = match.group(1)
+        if name in lookup and lookup[name] is not None:
+            return str(lookup[name])
+        return match.group(0)
+
+    return _VARIABLE_PATTERN.sub(replace, value)
+
+
+def evaluate_rule(
+    rule: Dict,
+    response: Any,
+    response_time_ms: float,
+    status_code: int,
+    variables: Optional[Dict[str, Any]] = None
+) -> Dict:
     """
     Evaluate a single rule against the response.
 
@@ -168,6 +198,7 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
         response: Parsed JSON response body
         response_time_ms: Response time in milliseconds
         status_code: HTTP status code
+        variables: Saved variables usable as {{name}} inside expected values
 
     Returns:
         Rule result with pass/fail, expected, actual
@@ -190,7 +221,11 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
 
     try:
         if rule_type == 'status_code':
-            expected_status = config.get('expectedStatus', 200)
+            expected_status = resolve_variables(config.get('expectedStatus', 200), variables)
+            try:
+                expected_status = int(str(expected_status).strip())
+            except (ValueError, TypeError):
+                pass
             result['expected'] = str(expected_status)
             result['actual'] = str(status_code)
 
@@ -200,7 +235,13 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
                 result['reason'] = f"Expected status {expected_status}, got {status_code}"
 
         elif rule_type == 'success_flag':
-            expected_value = config.get('expectedValue', True)
+            expected_value = resolve_variables(config.get('expectedValue', True), variables)
+            if isinstance(expected_value, str):
+                normalized = expected_value.strip().lower()
+                if normalized in ('true', '1', 'yes'):
+                    expected_value = True
+                elif normalized in ('false', '0', 'no'):
+                    expected_value = False
             value, found = get_nested_field(response, field)
 
             result['expected'] = str(expected_value).lower()
@@ -258,7 +299,7 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
                     result['actual'] = f'{get_type_name(value)} with value'
 
         elif rule_type == 'field_type':
-            expected_type = config.get('expectedType', 'string')
+            expected_type = resolve_variables(config.get('expectedType', 'string'), variables)
             value, found = get_nested_field(response, field)
 
             result['expected'] = expected_type
@@ -276,7 +317,11 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
                     result['reason'] = f"Expected {expected_type}, got {actual_type}"
 
         elif rule_type == 'response_time':
-            max_ms = config.get('maxMs', 2000)
+            max_ms = resolve_variables(config.get('maxMs', 2000), variables)
+            try:
+                max_ms = float(str(max_ms).strip())
+            except (ValueError, TypeError):
+                max_ms = 2000
 
             result['expected'] = f'<= {max_ms}ms'
             result['actual'] = f'{int(response_time_ms)}ms'
@@ -288,7 +333,9 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
 
         elif rule_type == 'custom_expression':
             operator = config.get('operator', 'equals')
-            expected_value = config.get('expectedValue', '')
+            expected_value = resolve_variables(config.get('expectedValue', ''), variables)
+            if not isinstance(expected_value, str):
+                expected_value = str(expected_value)
             # Strip surrounding quotes if user added them
             # BUT: if value is exactly "" or '', keep it as empty string (user's intent)
             if expected_value == '""' or expected_value == "''":
@@ -350,7 +397,13 @@ def evaluate_rule(rule: Dict, response: Any, response_time_ms: float, status_cod
     return result
 
 
-def apply_dynamic_rules(rules: List[Dict], response: Any, response_time_ms: float, status_code: int) -> List[Dict]:
+def apply_dynamic_rules(
+    rules: List[Dict],
+    response: Any,
+    response_time_ms: float,
+    status_code: int,
+    variables: Optional[Dict[str, Any]] = None
+) -> List[Dict]:
     """
     Apply all custom rules to a response.
 
@@ -359,6 +412,7 @@ def apply_dynamic_rules(rules: List[Dict], response: Any, response_time_ms: floa
         response: Parsed JSON response body
         response_time_ms: Response time in milliseconds
         status_code: HTTP status code
+        variables: Saved variables usable as {{name}} inside expected values
 
     Returns:
         List of rule results
@@ -367,10 +421,24 @@ def apply_dynamic_rules(rules: List[Dict], response: Any, response_time_ms: floa
 
     for rule in rules:
         if rule.get('enabled', True):
-            result = evaluate_rule(rule, response, response_time_ms, status_code)
+            result = evaluate_rule(rule, response, response_time_ms, status_code, variables)
             results.append(result)
 
     return results
+
+
+def load_saved_variables() -> Dict[str, Any]:
+    """Return saved variables as a {name: value} map for rule expected values."""
+    try:
+        from backend.db_helpers import get_all_variables
+        return {
+            v['name']: v.get('value')
+            for v in get_all_variables()
+            if v.get('name')
+        }
+    except Exception as exc:
+        print(f"[WARN] Could not load variables for rule evaluation: {exc}")
+        return {}
 
 
 def extract_response_fields(data: Any, prefix: str = "", max_depth: int = 15, current_depth: int = 0) -> List[str]:

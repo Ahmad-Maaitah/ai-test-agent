@@ -339,12 +339,18 @@ def run_test_pipeline(curl_command: str, api_name: str = "API Test", custom_rule
         # Step 3: Apply validation rules
         if custom_rules and len(custom_rules) > 0:
             # Use dynamic rules engine for custom rules
-            from backend.dynamic_rules import apply_dynamic_rules
+            from backend.dynamic_rules import apply_dynamic_rules, load_saved_variables
             try:
                 response_json = response.json()
             except Exception:
                 response_json = None
-            rule_results = apply_dynamic_rules(custom_rules, response_json, response_time_ms, response.status_code)
+            rule_results = apply_dynamic_rules(
+                custom_rules,
+                response_json,
+                response_time_ms,
+                response.status_code,
+                variables=load_saved_variables()
+            )
         else:
             # Fall back to legacy hardcoded rules
             rule_results = apply_rules(response)

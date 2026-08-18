@@ -1758,7 +1758,7 @@ def validate_rules():
 @main_bp.route('/api/test-rules', methods=['POST'])
 def test_rules():
     """Test rules against provided response (without re-executing cURL)."""
-    from backend.dynamic_rules import apply_dynamic_rules
+    from backend.dynamic_rules import apply_dynamic_rules, load_saved_variables
 
     req_data = request.get_json()
     rules = req_data.get('rules', [])
@@ -1774,7 +1774,13 @@ def test_rules():
 
     try:
         # Apply rules against the provided response
-        results = apply_dynamic_rules(rules, response_json, response_time_ms, status_code)
+        results = apply_dynamic_rules(
+            rules,
+            response_json,
+            response_time_ms,
+            status_code,
+            variables=load_saved_variables()
+        )
 
         return jsonify({
             'success': True,
@@ -1826,10 +1832,16 @@ def test_single_rule():
     safe_print(f"  Response Time: {response_time_ms}ms")
 
     try:
-        from backend.dynamic_rules import evaluate_rule
+        from backend.dynamic_rules import evaluate_rule, load_saved_variables
 
         # Test the single rule
-        result = evaluate_rule(rule, response_json, response_time_ms, status_code)
+        result = evaluate_rule(
+            rule,
+            response_json,
+            response_time_ms,
+            status_code,
+            variables=load_saved_variables()
+        )
 
         safe_print(f"  Result: {result.get('result')}")
         safe_print(f"  Expected: {result.get('expected')}")
