@@ -314,13 +314,13 @@
             text-overflow: ellipsis;
         }
 
-        /* Fixed width slot shared by the count and the hover actions, so the
-           name keeps its width (no jumping) and is never covered up */
+        /* The count and the actions button share one narrow slot, so the name
+           keeps its width on hover and stays fully readable */
         .folder-trailing {
             position: relative;
             flex-shrink: 0;
-            width: 112px;
-            height: 24px;
+            min-width: 34px;
+            height: 22px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -334,31 +334,37 @@
             color: #7f8c8d;
         }
 
-        .folder-actions {
+        .folder-menu-btn {
             position: absolute;
             right: 0;
-            display: flex;
-            gap: 2px;
-            white-space: nowrap;
+            width: 24px;
+            height: 22px;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            background: #e9edf0;
+            color: #5d6d7e;
+            font-size: 15px;
+            line-height: 1;
+            cursor: pointer;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.15s;
         }
 
-        .folder-item:hover .folder-actions,
-        .folder-item:focus-within .folder-actions {
+        .folder-item:hover .folder-menu-btn,
+        .folder-item:focus-within .folder-menu-btn {
             opacity: 1;
             pointer-events: auto;
         }
 
-        .folder-item:hover .folder-count {
-            visibility: hidden;
+        .folder-menu-btn:hover {
+            background: #d5dbdf;
+            color: #2c3e50;
         }
 
-        .folder-actions .btn-icon {
-            padding: 2px 4px;
-            font-size: 12px;
-            line-height: 1;
+        .folder-item:hover .folder-count {
+            visibility: hidden;
         }
 
         .folder-children {
@@ -4586,12 +4592,9 @@
                         <span class="folder-name">${escapeHtml(folder.name)}</span>
                         <span class="folder-trailing">
                             <span class="folder-count">${apiCount}</span>
-                            <span class="folder-actions">
-                                <button class="btn-icon" onclick="event.stopPropagation(); runFolderFromDashboard('${folder.id}')" title="Run All APIs (Recursive)">▶️</button>
-                                <button class="btn-icon" onclick="event.stopPropagation(); createSubfolder('${folder.id}')" title="New Subfolder">➕</button>
-                                <button class="btn-icon" onclick="event.stopPropagation(); editSection('${folder.id}')" title="Edit">✏️</button>
-                                <button class="btn-icon" onclick="event.stopPropagation(); deleteSection('${folder.id}')" title="Delete">🗑️</button>
-                            </span>
+                            <button class="folder-menu-btn"
+                                    onclick="showFolderContextMenu(event, '${folder.id}')"
+                                    title="Folder actions">⋯</button>
                         </span>
                     </div>
                 `;
