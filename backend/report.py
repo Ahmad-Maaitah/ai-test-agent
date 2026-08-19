@@ -4,12 +4,33 @@ Report generation for test results.
 Handles creation of execution metadata and provides paths for pytest-generated reports.
 """
 
+import html
 import json
 import os
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from backend.utils import get_metadata_path, write_file
+
+
+# A run can hold hundreds of APIs, and embedding full response bodies produced
+# reports large enough (17MB+) to hang or crash the browser. Bodies are kept as
+# a preview; the complete payloads stay in the JSON report and metadata files.
+REPORT_BODY_CHAR_LIMIT = 4000
+REPORT_HEADER_CHAR_LIMIT = 2000
+
+
+def escape_report_text(value: Any) -> str:
+    """Escape a value so response content cannot break the report markup."""
+    return html.escape('' if value is None else str(value), quote=False)
+
+
+def truncate_report_block(text: str, limit: int = REPORT_BODY_CHAR_LIMIT) -> str:
+    """Shorten oversized request/response blocks, noting what was left out."""
+    if not text or len(text) <= limit:
+        return text
+    omitted = len(text) - limit
+    return f'{text[:limit]}\n\n... truncated {omitted:,} more characters ...'
 
 
 def save_execution_metadata(
@@ -326,6 +347,10 @@ def generate_run_html_report(
     else:
         total_response_time_display = f"{total_response_time_ms:.2f}ms"
 
+    # Laying out every API card at once makes large runs unusable in a browser,
+    # so the report opens fully collapsed and each level is expanded on demand
+    collapsed_class = ' collapsed'
+
     # Build modules HTML
     modules_html = ""
     for module_name, apis in modules.items():
@@ -344,24 +369,29 @@ def generate_run_html_report(
             for rule in rule_results:
                 result_class = rule['result'].lower()
                 icon = '✓' if rule['result'] == 'PASS' else '✗'
-                field_display = f" <span style='color: #8e44ad; font-size: 0.85rem;'>({rule.get('field', '')})</span>" if rule.get('field') else ''
-                field_row = f'''<div class="detail-row"><span class="detail-label">Field:</span><span class="detail-value" style="color: #8e44ad; font-family: monospace;">{rule.get('field', '')}</span></div>''' if rule.get('field') else ''
+                rule_field = escape_report_text(rule.get('field', ''))
+                rule_name = escape_report_text(rule.get('name') or rule.get('rule_name', ''))
+                rule_type = escape_report_text(rule.get('rule_type', ''))
+                rule_expected = escape_report_text(truncate_report_block(str(rule.get('expected', '-')), 2000))
+                rule_actual = escape_report_text(truncate_report_block(str(rule.get('actual', '-')), 2000))
+                field_display = f" <span style='color: #8e44ad; font-size: 0.85rem;'>({rule_field})</span>" if rule.get('field') else ''
+                field_row = f'''<div class="detail-row"><span class="detail-label">Field:</span><span class="detail-value" style="color: #8e44ad; font-family: monospace;">{rule_field}</span></div>''' if rule.get('field') else ''
                 tests_html += f'''
                 <div class="test-item {result_class}">
                     <div class="test-header">
                         <span class="test-icon">{icon}</span>
-                        <span class="test-name">{rule.get('name') or rule.get('rule_name', '')}{field_display}</span>
-                        <span class="test-type">{rule.get('rule_type', '')}</span>
+                        <span class="test-name">{rule_name}{field_display}</span>
+                        <span class="test-type">{rule_type}</span>
                     </div>
                     <div class="test-details">
                         {field_row}
                         <div class="detail-row">
                             <span class="detail-label">Expected:</span>
-                            <span class="detail-value expected">{rule.get('expected', '-')}</span>
+                            <span class="detail-value expected">{rule_expected}</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Actual:</span>
-                            <span class="detail-value actual {result_class}">{rule.get('actual', '-')}</span>
+                            <span class="detail-value actual {result_class}">{rule_actual}</span>
                         </div>
                     </div>
                 </div>'''
@@ -386,18 +416,25 @@ def generate_run_html_report(
             response_body = response_data.get('body', '')
 
             # Format headers as string
-            import json
             request_headers_str = json.dumps(request_headers, indent=2) if request_headers else 'No headers'
             response_headers_str = json.dumps(response_headers, indent=2) if response_headers else 'No headers'
             response_body_str = json.dumps(response_body, indent=2) if isinstance(response_body, (dict, list)) else str(response_body) if response_body else 'Empty response'
             request_body_str = json.dumps(request_body, indent=2) if isinstance(request_body, (dict, list)) else str(request_body) if request_body else 'No body'
 
+            request_headers_str = escape_report_text(truncate_report_block(request_headers_str, REPORT_HEADER_CHAR_LIMIT))
+            response_headers_str = escape_report_text(truncate_report_block(response_headers_str, REPORT_HEADER_CHAR_LIMIT))
+            request_body_str = escape_report_text(truncate_report_block(request_body_str))
+            response_body_str = escape_report_text(truncate_report_block(response_body_str))
+            request_url = escape_report_text(request_url)
+            request_method = escape_report_text(request_method)
+
             apis_html += f'''
             <div class="api-card {api_result_class}" id="{api_id}">
-                <div class="api-header">
+                <div class="api-header collapsed" onclick="toggleApiCard(this)">
                     <div class="api-info">
+                        <span class="api-toggle">▼</span>
                         <span class="api-icon {api_result_class}">{api_icon}</span>
-                        <h4 class="api-name">{api.get('apiName', 'Unknown API')}</h4>
+                        <h4 class="api-name">{escape_report_text(api.get('apiName', 'Unknown API'))}</h4>
                         <span class="api-badge {api_result_class}">{api['result']}</span>
                     </div>
                     <div class="api-meta">
@@ -406,6 +443,7 @@ def generate_run_html_report(
                         <span class="meta-item tests"><strong>Tests:</strong> <span class="pass-count">{api_passed}</span> / <span class="fail-count">{api_failed}</span></span>
                     </div>
                 </div>
+                <div class="api-body collapsed">
                 <div class="api-tests">
                     <h5 class="tests-title">Test Cases</h5>
                     {tests_html}
@@ -457,14 +495,15 @@ def generate_run_html_report(
                         </div>
                     </div>
                 </div>
+                </div>
             </div>'''
 
         modules_html += f'''
         <div class="module-section">
-            <div class="module-header {module_result}" onclick="toggleModule(this)">
+            <div class="module-header {module_result}{collapsed_class}" onclick="toggleModule(this)">
                 <div class="module-left">
                     <span class="toggle-icon">▼</span>
-                    <h3 class="module-name">{module_name}</h3>
+                    <h3 class="module-name">{escape_report_text(module_name)}</h3>
                 </div>
                 <div class="module-stats">
                     <span class="stat pass">{module_passed} passed</span>
@@ -472,7 +511,7 @@ def generate_run_html_report(
                     <span class="api-count">{len(apis)} APIs</span>
                 </div>
             </div>
-            <div class="module-apis">
+            <div class="module-apis{collapsed_class}">
                 {apis_html}
             </div>
         </div>'''
@@ -549,7 +588,22 @@ def generate_run_html_report(
             margin-bottom: 25px;
             padding-bottom: 15px;
             border-bottom: 2px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
         }}
+        .content-tools {{ display: flex; gap: 8px; }}
+        .tool-btn {{
+            background: #f1f3f5;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            color: #495057;
+            cursor: pointer;
+        }}
+        .tool-btn:hover {{ background: #e9ecef; color: #212529; }}
 
         /* Module Section */
         .module-section {{ margin-bottom: 20px; }}
@@ -625,6 +679,27 @@ def generate_run_html_report(
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            user-select: none;
+        }}
+        .api-header:hover {{ background: #fafbfc; }}
+        .api-header.collapsed {{ border-bottom: none; }}
+        .api-toggle {{
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }}
+        .api-header.collapsed .api-toggle {{ transform: rotate(-90deg); }}
+        .api-body {{
+            max-height: none;
+            overflow: visible;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+        }}
+        .api-body.collapsed {{
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
         }}
         .api-info {{ display: flex; align-items: center; gap: 12px; }}
         .api-icon {{
@@ -881,7 +956,13 @@ def generate_run_html_report(
         </div>
 
         <div class="content">
-            <h2 class="content-title">Test Results by Module</h2>
+            <div class="content-title">
+                <h2>Test Results by Module</h2>
+                <div class="content-tools">
+                    <button class="tool-btn" onclick="setAllModules(false)">Expand all</button>
+                    <button class="tool-btn" onclick="setAllModules(true)">Collapse all</button>
+                </div>
+            </div>
             {modules_html}
         </div>
 
@@ -920,9 +1001,32 @@ def generate_run_html_report(
             }}
         }}
 
-        // Initialize all modules as expanded
+        function toggleApiCard(header) {{
+            const body = header.nextElementSibling;
+            const collapsed = header.classList.contains('collapsed');
+            header.classList.toggle('collapsed', !collapsed);
+            body.classList.toggle('collapsed', !collapsed);
+        }}
+
+        function setAllModules(collapsed) {{
+            document.querySelectorAll('.module-section').forEach(function(section) {{
+                const header = section.querySelector('.module-header');
+                const apis = section.querySelector('.module-apis');
+                header.classList.toggle('collapsed', collapsed);
+                header.classList.toggle('expanded', !collapsed);
+                apis.classList.toggle('collapsed', collapsed);
+            }});
+
+            document.querySelectorAll('.api-card').forEach(function(card) {{
+                card.querySelector('.api-header').classList.toggle('collapsed', collapsed);
+                card.querySelector('.api-body').classList.toggle('collapsed', collapsed);
+            }});
+        }}
+
+        // Modules already collapsed by the generator stay collapsed, otherwise
+        // mark them expanded so the toggle icon matches their state
         document.addEventListener('DOMContentLoaded', function() {{
-            document.querySelectorAll('.module-header').forEach(function(header) {{
+            document.querySelectorAll('.module-header:not(.collapsed)').forEach(function(header) {{
                 header.classList.add('expanded');
             }});
         }});
