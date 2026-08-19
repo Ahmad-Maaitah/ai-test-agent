@@ -6,7 +6,7 @@ Run this file to start the Flask application.
 
 from app import create_app
 from backend.database import init_db
-from backend.db_helpers import initialize_protected_variables
+from backend.db_helpers import initialize_protected_variables, repair_folder_paths
 import os
 
 
@@ -24,6 +24,10 @@ else:
 print("[*] Initializing protected variables...")
 initialize_protected_variables()
 print("[+] Protected variables ready")
+
+repaired_folders = repair_folder_paths()
+if repaired_folders:
+    print(f"[+] Repaired folder paths for {repaired_folders} section(s)")
 
 app = create_app()
 

@@ -289,6 +289,19 @@
             color: #2c3e50;
         }
 
+        .folder-checkbox {
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+            flex-shrink: 0;
+            accent-color: #2196f3;
+        }
+
+        .folder-checkbox:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
         .folder-icon {
             font-size: 16px;
         }
@@ -309,17 +322,29 @@
             color: #7f8c8d;
         }
 
+        /* Actions overlay the row instead of joining the flex flow, otherwise
+           showing them on hover resizes the name and makes the text jump */
         .folder-actions {
-            display: none;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
             gap: 5px;
+            padding-left: 8px;
+            background: inherit;
+            opacity: 0;
+            pointer-events: none;
         }
 
-        .folder-item:hover .folder-actions {
-            display: flex;
+        .folder-item:hover .folder-actions,
+        .folder-item:focus-within .folder-actions {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .folder-item:hover .folder-count {
-            display: none;
+            visibility: hidden;
         }
 
         .folder-children {
@@ -4461,6 +4486,46 @@
             container.innerHTML = renderFolderLevel(folderTree, 0);
             setupFolderDragDrop();
             setupContextMenu();
+            updateFolderCheckboxes();
+        }
+
+        function findFolderInTree(folderId, folders = folderTree) {
+            for (const folder of folders || []) {
+                if (folder.id === folderId) return folder;
+                const match = findFolderInTree(folderId, folder.children);
+                if (match) return match;
+            }
+            return null;
+        }
+
+        function collectFolderApiIds(folder) {
+            if (!folder) return [];
+            const ids = (folder.apis || []).map(api => api.id);
+            (folder.children || []).forEach(child => {
+                ids.push(...collectFolderApiIds(child));
+            });
+            return ids;
+        }
+
+        function toggleFolderSelection(folderId) {
+            const apiIds = collectFolderApiIds(findFolderInTree(folderId));
+            if (apiIds.length === 0) return;
+
+            const allSelected = apiIds.every(id => selectedApis.has(id));
+            apiIds.forEach(id => allSelected ? selectedApis.delete(id) : selectedApis.add(id));
+
+            updateSelectedCount();
+            renderApis();
+        }
+
+        function updateFolderCheckboxes() {
+            document.querySelectorAll('[data-folder-checkbox]').forEach(checkbox => {
+                const apiIds = collectFolderApiIds(findFolderInTree(checkbox.dataset.folderCheckbox));
+                const selectedCount = apiIds.filter(id => selectedApis.has(id)).length;
+
+                checkbox.checked = apiIds.length > 0 && selectedCount === apiIds.length;
+                checkbox.indeterminate = selectedCount > 0 && selectedCount < apiIds.length;
+            });
         }
 
         function getTotalApiCount(folder) {
@@ -4498,6 +4563,11 @@
                                 ${isExpanded ? '▼' : '▶'}
                             </button>
                         ` : '<span style="width: 16px;"></span>'}
+                        <input type="checkbox" class="folder-checkbox"
+                               data-folder-checkbox="${folder.id}"
+                               ${apiCount === 0 ? 'disabled' : ''}
+                               title="Select all APIs in this folder"
+                               onclick="event.stopPropagation(); toggleFolderSelection('${folder.id}')">
                         <span class="folder-icon">${isExpanded ? '📂' : '📁'}</span>
                         <span class="folder-name">${escapeHtml(folder.name)}</span>
                         <span class="folder-count">${apiCount}</span>
@@ -5297,6 +5367,7 @@
 
             // Update "Select All" checkbox state
             updateSelectAllCheckbox();
+            updateFolderCheckboxes();
         }
 
         function updateSelectAllCheckbox() {

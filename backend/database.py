@@ -2,7 +2,7 @@
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, Float, DateTime, ForeignKey, JSON
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, scoped_session, relationship
+from sqlalchemy.orm import sessionmaker, scoped_session, relationship, backref
 from datetime import datetime
 import os
 
@@ -25,8 +25,15 @@ class Section(Base):
 
     # Relationships
     apis = relationship('API', back_populates='section', cascade='all, delete-orphan')
-    # Self-referential relationship for parent-child folders
-    children = relationship('Section', backref='parent', remote_side=[id], cascade='all, delete-orphan', single_parent=True)
+    # Self-referential relationship for parent-child folders.
+    # remote_side belongs on the many-to-one "parent" side; putting it on
+    # children inverts the relationship and makes deleting a subfolder
+    # cascade into its parent.
+    children = relationship(
+        'Section',
+        backref=backref('parent', remote_side=[id]),
+        cascade='all, delete-orphan'
+    )
 
 
 class API(Base):

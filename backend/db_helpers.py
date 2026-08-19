@@ -14,6 +14,35 @@ import json
 # Section Operations
 # =============================================================================
 
+def normalize_folder_path(path: str) -> str:
+    """Collapse repeated slashes so path prefix matching stays reliable."""
+    if not path:
+        return path
+    return '/' + '/'.join(part for part in path.split('/') if part)
+
+
+def folder_path_of(section) -> str:
+    """
+    Return a usable materialized path for a section.
+
+    Sections created through the plain section API have no path stored, and a
+    NULL path breaks every path based folder operation.
+    """
+    path = getattr(section, 'path', None)
+    if not path:
+        parent_id = getattr(section, 'parent_id', None)
+        return f'/{parent_id}/{section.id}' if parent_id else f'/{section.id}'
+    return normalize_folder_path(path)
+
+
+def folder_depth_of(section) -> int:
+    """Return the section depth, derived from its path when it is missing."""
+    depth = getattr(section, 'depth', None)
+    if depth is None:
+        return max(folder_path_of(section).count('/') - 1, 0)
+    return depth
+
+
 def get_all_sections() -> List[Dict]:
     """Get all sections with their APIs."""
     session = get_session()
@@ -78,11 +107,16 @@ def create_section(name: str, description: str = '') -> Dict:
         # Get max order
         max_order = session.query(Section).count()
 
+        section_id = f'section-{datetime.now().timestamp()}'
         section = Section(
-            id=f'section-{datetime.now().timestamp()}',
+            id=section_id,
             name=name,
             description=description,
-            order=max_order
+            order=max_order,
+            is_folder=True,
+            parent_id=None,
+            path=f'/{section_id}',
+            depth=0
         )
         session.add(section)
         session.commit()
@@ -91,7 +125,10 @@ def create_section(name: str, description: str = '') -> Dict:
             'id': section.id,
             'name': section.name,
             'description': section.description,
-            'order': section.order
+            'order': section.order,
+            'parent_id': section.parent_id,
+            'path': section.path,
+            'depth': section.depth
         }
     finally:
         close_session(session)
@@ -750,11 +787,10 @@ def create_folder(name: str, parent_id: str = None, description: str = '') -> Di
             parent = session.query(Section).filter_by(id=parent_id).first()
             if not parent:
                 raise ValueError('Parent folder not found')
-            depth = (parent.depth if hasattr(parent, 'depth') else 0) + 1
-            parent_path = parent.path if hasattr(parent, 'path') else f'/{parent.id}'
-            path = parent_path
+            depth = folder_depth_of(parent) + 1
+            path = folder_path_of(parent)
         else:
-            path = '/'
+            path = ''
 
         # Get max order at this level
         if parent_id:
@@ -804,50 +840,41 @@ def move_folder(folder_id: str, new_parent_id: str = None) -> bool:
         if not folder:
             return False
 
-        # Prevent moving folder into its own descendants
+        old_depth = folder_depth_of(folder)
+        old_path = folder_path_of(folder)
+
         if new_parent_id:
             new_parent = session.query(Section).filter_by(id=new_parent_id).first()
             if not new_parent:
                 return False
 
-            # Check if new_parent is a descendant of folder
-            folder_path = folder.path if hasattr(folder, 'path') else f'/{folder.id}'
-            new_parent_path = new_parent.path if hasattr(new_parent, 'path') else f'/{new_parent.id}'
+            new_parent_path = folder_path_of(new_parent)
 
-            if new_parent_path.startswith(folder_path):
+            # Prevent moving a folder into itself or into one of its descendants
+            if new_parent_path == old_path or new_parent_path.startswith(f'{old_path}/'):
                 raise ValueError('Cannot move folder into its own descendant')
 
-        # Calculate new depth and path
-        old_depth = folder.depth if hasattr(folder, 'depth') else 0
-        old_path = folder.path if hasattr(folder, 'path') else f'/{folder.id}'
-
-        if new_parent_id:
-            new_parent = session.query(Section).filter_by(id=new_parent_id).first()
-            new_depth = (new_parent.depth if hasattr(new_parent, 'depth') else 0) + 1
-            new_parent_path = new_parent.path if hasattr(new_parent, 'path') else f'/{new_parent.id}'
+            new_depth = folder_depth_of(new_parent) + 1
             new_path = f"{new_parent_path}/{folder.id}"
         else:
             new_depth = 0
             new_path = f"/{folder.id}"
-
-        depth_diff = new_depth - old_depth
 
         # Update folder
         folder.parent_id = new_parent_id
         folder.depth = new_depth
         folder.path = new_path
 
-        # Update all descendants (recursive path update)
-        descendants = session.query(Section).filter(
-            Section.path.like(f"{old_path}/%")
-        ).all()
-
-        for desc in descendants:
-            # Update depth
-            desc.depth = (desc.depth if hasattr(desc, 'depth') else 0) + depth_diff
-            # Update path
-            old_desc_path = desc.path if hasattr(desc, 'path') else f'/{desc.id}'
-            desc.path = old_desc_path.replace(old_path, new_path, 1)
+        # Rebuild descendants from parent links so rows with a missing path are
+        # repaired instead of being skipped by a path prefix query
+        pending = [(folder.id, new_path, new_depth)]
+        while pending:
+            parent_id, parent_path, parent_depth = pending.pop()
+            children = session.query(Section).filter_by(parent_id=parent_id).all()
+            for child in children:
+                child.path = f'{parent_path}/{child.id}'
+                child.depth = parent_depth + 1
+                pending.append((child.id, child.path, child.depth))
 
         session.commit()
         return True
@@ -855,6 +882,46 @@ def move_folder(folder_id: str, new_parent_id: str = None) -> bool:
         session.rollback()
         print(f"Error moving folder: {e}")
         raise
+    finally:
+        close_session(session)
+
+
+def repair_folder_paths() -> int:
+    """
+    Rebuild path and depth for every section from its parent links.
+
+    Sections created through the plain section API are stored without a path,
+    which makes drag-and-drop moves fail. Running this on startup repairs any
+    such rows already in the database.
+    """
+    session = get_session()
+    try:
+        sections = session.query(Section).all()
+        children_by_parent = {}
+        for section in sections:
+            children_by_parent.setdefault(section.parent_id, []).append(section)
+
+        repaired = 0
+        pending = [(child, '', 0) for child in children_by_parent.get(None, [])]
+        while pending:
+            section, parent_path, depth = pending.pop()
+            expected_path = f'{parent_path}/{section.id}'
+
+            if section.path != expected_path or section.depth != depth:
+                section.path = expected_path
+                section.depth = depth
+                repaired += 1
+
+            for child in children_by_parent.get(section.id, []):
+                pending.append((child, expected_path, depth + 1))
+
+        if repaired:
+            session.commit()
+        return repaired
+    except Exception as exc:
+        session.rollback()
+        print(f"[WARN] Could not repair folder paths: {exc}")
+        return 0
     finally:
         close_session(session)
 

@@ -8,7 +8,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from backend.database import init_db
-from backend.db_helpers import initialize_protected_variables
+from backend.db_helpers import initialize_protected_variables, repair_folder_paths
 
 # Initialize database
 db_path = os.path.join(os.path.dirname(__file__), 'database.db')
@@ -23,6 +23,10 @@ else:
 print("[*] Initializing protected variables...")
 initialize_protected_variables()
 print("[+] Protected variables ready")
+
+repaired_folders = repair_folder_paths()
+if repaired_folders:
+    print(f"[+] Repaired folder paths for {repaired_folders} section(s)")
 
 # Import app
 from app import create_app
