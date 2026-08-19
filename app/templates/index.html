@@ -314,6 +314,18 @@
             text-overflow: ellipsis;
         }
 
+        /* Fixed width slot shared by the count and the hover actions, so the
+           name keeps its width (no jumping) and is never covered up */
+        .folder-trailing {
+            position: relative;
+            flex-shrink: 0;
+            width: 112px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
         .folder-count {
             background: #ecf0f1;
             padding: 2px 8px;
@@ -322,19 +334,15 @@
             color: #7f8c8d;
         }
 
-        /* Actions overlay the row instead of joining the flex flow, otherwise
-           showing them on hover resizes the name and makes the text jump */
         .folder-actions {
             position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
+            right: 0;
             display: flex;
-            gap: 5px;
-            padding-left: 8px;
-            background: inherit;
+            gap: 2px;
+            white-space: nowrap;
             opacity: 0;
             pointer-events: none;
+            transition: opacity 0.15s;
         }
 
         .folder-item:hover .folder-actions,
@@ -345,6 +353,12 @@
 
         .folder-item:hover .folder-count {
             visibility: hidden;
+        }
+
+        .folder-actions .btn-icon {
+            padding: 2px 4px;
+            font-size: 12px;
+            line-height: 1;
         }
 
         .folder-children {
@@ -4570,13 +4584,15 @@
                                onclick="event.stopPropagation(); toggleFolderSelection('${folder.id}')">
                         <span class="folder-icon">${isExpanded ? '📂' : '📁'}</span>
                         <span class="folder-name">${escapeHtml(folder.name)}</span>
-                        <span class="folder-count">${apiCount}</span>
-                        <div class="folder-actions">
-                            <button class="btn-icon" onclick="event.stopPropagation(); runFolderFromDashboard('${folder.id}')" title="Run All APIs (Recursive)">▶️</button>
-                            <button class="btn-icon" onclick="event.stopPropagation(); createSubfolder('${folder.id}')" title="New Subfolder">➕</button>
-                            <button class="btn-icon" onclick="event.stopPropagation(); editSection('${folder.id}')" title="Edit">✏️</button>
-                            <button class="btn-icon" onclick="event.stopPropagation(); deleteSection('${folder.id}')" title="Delete">🗑️</button>
-                        </div>
+                        <span class="folder-trailing">
+                            <span class="folder-count">${apiCount}</span>
+                            <span class="folder-actions">
+                                <button class="btn-icon" onclick="event.stopPropagation(); runFolderFromDashboard('${folder.id}')" title="Run All APIs (Recursive)">▶️</button>
+                                <button class="btn-icon" onclick="event.stopPropagation(); createSubfolder('${folder.id}')" title="New Subfolder">➕</button>
+                                <button class="btn-icon" onclick="event.stopPropagation(); editSection('${folder.id}')" title="Edit">✏️</button>
+                                <button class="btn-icon" onclick="event.stopPropagation(); deleteSection('${folder.id}')" title="Delete">🗑️</button>
+                            </span>
+                        </span>
                     </div>
                 `;
 
