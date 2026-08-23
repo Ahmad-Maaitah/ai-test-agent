@@ -428,6 +428,16 @@ def generate_run_html_report(
             request_url = escape_report_text(request_url)
             request_method = escape_report_text(request_method)
 
+            # Without this an API that never reached the server renders as a
+            # card with no tests and empty panels, giving no clue why.
+            error_message = api.get('errorMessage')
+            error_html = ''
+            if error_message and not api.get('ruleResults'):
+                error_html = (
+                    '<div class="api-error"><strong>Execution error:</strong> '
+                    f'{escape_report_text(error_message)}</div>'
+                )
+
             apis_html += f'''
             <div class="api-card {api_result_class}" id="{api_id}">
                 <div class="api-header collapsed" onclick="toggleApiCard(this)">
@@ -444,6 +454,7 @@ def generate_run_html_report(
                     </div>
                 </div>
                 <div class="api-body collapsed">
+                {error_html}
                 <div class="api-tests">
                     <h5 class="tests-title">Test Cases</h5>
                     {tests_html}
@@ -730,6 +741,16 @@ def generate_run_html_report(
         .fail-count {{ color: #e74c3c; font-weight: 600; }}
 
         /* Test Cases */
+        .api-error {{
+            margin: 15px 20px 0;
+            padding: 12px 15px;
+            border-left: 4px solid #e74c3c;
+            border-radius: 4px;
+            background: #fdedec;
+            color: #922b21;
+            font-size: 0.9rem;
+            word-break: break-word;
+        }}
         .api-tests {{ padding: 15px 20px; background: #fafbfc; }}
         .tests-title {{
             font-size: 0.9rem;

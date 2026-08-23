@@ -4,8 +4,24 @@ import shlex
 import re
 import os
 import hashlib
+import sys
 from datetime import datetime
 from typing import Optional
+
+
+def safe_print(message: str) -> None:
+    """
+    Print without letting the console encoding abort the caller.
+
+    Request bodies can hold any language, and a Windows console using a legacy
+    code page raises UnicodeEncodeError on them. That error is a ValueError
+    subclass, so it was being swallowed as an "invalid cURL" parse failure.
+    """
+    try:
+        print(message)
+    except UnicodeEncodeError:
+        encoding = getattr(sys.stdout, 'encoding', None) or 'ascii'
+        print(message.encode(encoding, 'replace').decode(encoding, 'replace'))
 
 
 def parse_curl(curl_command: str) -> dict:
@@ -34,27 +50,27 @@ def parse_curl(curl_command: str) -> dict:
     # It captures everything between the quotes, including newlines
 
     # DEBUG: Show what we're trying to match
-    print(f"\n[PARSE] Trying to extract data from curl command...")
-    print(f"   Curl length: {len(curl_command)} chars")
-    print(f"   Curl preview: {curl_command[:200]}")
+    safe_print(f"\n[PARSE] Trying to extract data from curl command...")
+    safe_print(f"   Curl length: {len(curl_command)} chars")
+    safe_print(f"   Curl preview: {curl_command[:200]}")
     if '-d ' in curl_command or '--data' in curl_command:
-        print(f"   [+] Contains -d or --data flag")
+        safe_print(f"   [+] Contains -d or --data flag")
         # Find the -d section
         d_index = curl_command.find('-d ')
         if d_index >= 0:
-            print(f"   -d section: {curl_command[d_index:d_index+50]}")
+            safe_print(f"   -d section: {curl_command[d_index:d_index+50]}")
     else:
-        print(f"   [-] No -d or --data flag found!")
+        safe_print(f"   [-] No -d or --data flag found!")
 
     data_pattern = r"(--data(?:-raw|-binary)?|--json|-d)\s+(['\"])(.+?)\2"
     data_match = re.search(data_pattern, curl_command, re.MULTILINE | re.DOTALL)
 
     if data_match:
-        print(f"[PARSE] Data pattern matched!")
-        print(f"   Flag: {data_match.group(1)}")
-        print(f"   Quote: {data_match.group(2)}")
-        print(f"   Content: {data_match.group(3)}")
-        print(f"   Full match: {data_match.group(0)}")
+        safe_print(f"[PARSE] Data pattern matched!")
+        safe_print(f"   Flag: {data_match.group(1)}")
+        safe_print(f"   Quote: {data_match.group(2)}")
+        safe_print(f"   Content: {data_match.group(3)}")
+        safe_print(f"   Full match: {data_match.group(0)}")
         # Extract the data content from group 3 (the actual content between quotes)
         data_content = data_match.group(3)
         if data_content:

@@ -7,6 +7,13 @@ import os
 # Add current directory to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Logs echo request bodies in any language. On a console using a legacy code
+# page an unencodable character raises UnicodeEncodeError mid-request, which
+# aborts the API run instead of just the log line.
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, 'reconfigure'):
+        stream.reconfigure(encoding='utf-8', errors='replace')
+
 from backend.database import init_db
 from backend.db_helpers import initialize_protected_variables, repair_folder_paths
 

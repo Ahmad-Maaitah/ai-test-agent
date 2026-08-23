@@ -599,7 +599,10 @@ def execute_api_parallel(api_item, variables_dict, generator_vars):
             'statusCode': None,
             'error': str(e),
             'ruleResults': [],
-            'response': None
+            'response': None,
+            'reportPaths': {},
+            'requestData': {},
+            'responseData': {}
         }
 
 
@@ -820,7 +823,8 @@ def run_apis():
             test_result = {
                 'response_json': thread_result.get('response'),
                 'status_code': thread_result.get('statusCode'),
-                'rule_results': thread_result.get('ruleResults', [])
+                'rule_results': thread_result.get('ruleResults', []),
+                'error': thread_result.get('error')
             }
 
             # Auto-update saved variables if response contains matching fields
@@ -889,23 +893,34 @@ def run_apis():
                     save_data(data)
                     print(f"[OK] Variables saved successfully!")
 
-            # Determine overall result based on rule_type
-            structural_pass = all(
-                r['result'] == 'PASS'
-                for r in test_result.get('rule_results', [])
-                if r.get('rule_type') == 'structural'
+            # Determine overall result based on rule_type. Legacy fallback rules
+            # carry no rule_type, so they are counted in both buckets rather
+            # than being skipped, which used to let a connection failure report
+            # every rule failed and still pass overall.
+            rule_results = test_result.get('rule_results', [])
+
+            def rules_passed(rule_type):
+                return all(
+                    r.get('result') == 'PASS'
+                    for r in rule_results
+                    if r.get('rule_type') in (rule_type, None)
+                )
+
+            # An API that never reached the server produces no rule results at
+            # all, and all() over an empty list is True.
+            execution_error = test_result.get('error')
+            never_ran = not rule_results and (
+                execution_error or test_result.get('status_code') is None
             )
-            functional_pass = all(
-                r['result'] == 'PASS'
-                for r in test_result.get('rule_results', [])
-                if r.get('rule_type') == 'functional'
-            )
+
+            structural_pass = rules_passed('structural') and not never_ran
+            functional_pass = rules_passed('functional') and not never_ran
 
             overall_result = 'PASS' if (structural_pass and functional_pass) else 'FAIL'
 
             # Get status code
             status_code = test_result.get('status_code')
-            error_message = None
+            error_message = execution_error
 
             # Fallback: try to get from rule results for legacy compatibility
             if status_code is None:
