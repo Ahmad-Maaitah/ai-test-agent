@@ -668,9 +668,13 @@ def run_apis():
     """Run selected APIs and generate report."""
     req_data = request.get_json()
     api_ids = req_data.get('apiIds', [])
+    sequential = bool(req_data.get('sequential', False))
 
     if not api_ids:
         return jsonify({'success': False, 'error': 'No APIs selected'}), 400
+
+    # Keep the caller's folder/UI order through execution and reporting.
+    request_order = {api_id: index for index, api_id in enumerate(api_ids)}
 
     # Load data for variables and sections
     data = load_data()
@@ -728,19 +732,27 @@ def run_apis():
     # Build variable dictionary for thread-safe access
     variables_dict = {v['name']: v['value'] for v in data.get('variables', [])}
 
-    # Detect variable dependencies and create execution batches
-    batches = get_variable_dependencies(apis_to_run, variables_dict)
+    # Ordered flows need a boundary after every API so extracted variables are
+    # applied before the next request is built. Merely using one worker is not
+    # enough because batch results are processed only after the batch finishes.
+    if sequential:
+        batches = [[api_item] for api_item in apis_to_run]
+        print(f"\n[BATCH] Sequential mode: created {len(batches)} ordered API steps")
+    else:
+        batches = get_variable_dependencies(apis_to_run, variables_dict)
 
     # Execute APIs in parallel batches
     all_results = []
     total_start_time = datetime.now()
 
     for batch_num, batch in enumerate(batches, 1):
-        print(f"\n[BATCH {batch_num}/{len(batches)}] Executing {len(batch)} APIs in parallel (max 5 workers)...")
+        execution_mode = 'sequentially' if sequential else 'in parallel (max 5 workers)'
+        print(f"\n[BATCH {batch_num}/{len(batches)}] Executing {len(batch)} APIs {execution_mode}...")
         batch_start = datetime.now()
 
-        # Use ThreadPoolExecutor for parallel execution (max 5 concurrent)
-        max_workers = min(5, len(batch))
+        # Folder/selected flows must run in order because later APIs can depend
+        # on variables extracted by earlier APIs. Run All may stay parallel.
+        max_workers = 1 if sequential else min(5, len(batch))
         batch_results = []
 
         # Prepare API items with custom rules
@@ -778,6 +790,13 @@ def run_apis():
                         'error': f'Thread error: {str(e)}',
                         'ruleResults': []
                     })
+
+        # as_completed() returns the fastest response first. Restore the
+        # requested folder order before updating variables and building the
+        # combined report.
+        batch_results.sort(
+            key=lambda result: request_order.get(result.get('apiId'), len(request_order))
+        )
 
         batch_end = datetime.now()
         batch_duration = int((batch_end - batch_start).total_seconds() * 1000)
@@ -935,8 +954,11 @@ def run_apis():
     total_execution_time = int((total_end_time - total_start_time).total_seconds() * 1000)
     print(f"\n[RUN] All batches completed in {total_execution_time}ms")
 
-    # Use all_results instead of results for report generation
-    results = all_results
+    # Preserve the requested order across all dependency batches as well.
+    results = sorted(
+        all_results,
+        key=lambda result: request_order.get(result.get('apiId'), len(request_order))
+    )
 
     # Generate combined HTML report for this run
     run_report_filename = f'run_report_{run_id}.html'

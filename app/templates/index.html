@@ -6250,7 +6250,9 @@
 
             if (selectedApisList.length === 0) return;
 
-            await runApisWithProgress(selectedApisList, 'Run Selected');
+            // Respect the visible API order and allow extracted variables to
+            // flow from each selected API into the next one.
+            await runApisWithProgress(selectedApisList, 'Run Selected', true);
 
             // Clear selection after run
             selectedApis.clear();
@@ -10121,7 +10123,8 @@
                     if (apisList.length > 0) {
                         const folder = findFolderById(folderId, folderTree);
                         const folderName = folder ? folder.name : 'Folder';
-                        await runApisWithProgress(apisList, `Run ${folderName}`);
+                        // Folder runs are ordered flows, not parallel batches.
+                        await runApisWithProgress(apisList, `Run ${folderName}`, true);
                     } else {
                         showToast('No APIs found in this folder', 'error');
                     }
@@ -10420,7 +10423,7 @@
             await runApisWithProgress(allApis, 'Run All');
         }
 
-        async function runApisWithProgress(apis, title) {
+        async function runApisWithProgress(apis, title, sequential = false) {
             // Get the button and show loading state
             const btn = document.querySelector('.dashboard-actions .btn-secondary');
             const originalText = btn ? btn.textContent : '';
@@ -10461,7 +10464,7 @@
                 const response = await fetch('/api/run', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ apiIds })
+                    body: JSON.stringify({ apiIds, sequential })
                 });
 
                 const data = await response.json();
